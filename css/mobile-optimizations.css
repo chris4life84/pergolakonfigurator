@@ -1,0 +1,1224 @@
+/**
+ * ========================================
+ * MOBILE OPTIMIERUNGEN - TOUCH & PERFORMANCE
+ * ========================================
+ * Zweck: Touch-Target-Größen und Performance-Optimierungen
+ * Standard: Apple HIG (44x44px), Material Design (48x48dp)
+ */
+
+.mobile-desktop-tip {
+    display: none;
+}
+
+/* ========================================
+   1. TOUCH-TARGET-GRÖẞEN (Min. 44x44px)
+   ======================================== */
+
+/* Stepper Navigation - Touch-Optimierung */
+.stepper-step {
+    min-width: 60px;
+    min-height: 48px; /* ✅ Bereits gut */
+    padding: 0.6rem 0.4rem;
+    cursor: pointer;
+}
+
+/* Mobile: Touch-Targets vergrößern */
+@media (max-width: 768px) {
+    .mobile-desktop-tip {
+        display: block;
+        background: rgba(15, 118, 110, 0.08);
+        border: 1px solid rgba(15, 118, 110, 0.2);
+        color: #ffffff;
+        padding: 0.6rem 0.75rem;
+        border-radius: 10px;
+        font-size: 0.86rem;
+        line-height: 1.35;
+    }
+
+    /* Desktop-Preisschild auf Mobil verstecken */
+    #price-tag {
+        display: none !important;
+    }
+    
+    /* Mobile Anfrage-Bar anzeigen */
+    .mobile-anfrage-bar {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(45, 45, 45, 0.96);
+        border-top: 1px solid rgba(143, 188, 143, 0.4);
+        padding: 0.65rem 1rem;
+        gap: 1rem;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .mobile-price-display {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.1rem;
+    }
+    
+    .mobile-price-label {
+        font-size: 0.65rem;
+        color: rgba(255, 255, 255, 0.6);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+    }
+    
+    .mobile-price-amount {
+        font-size: 1.15rem;
+        color: #ffffff;
+        font-weight: 700;
+        line-height: 1;
+    }
+    
+    .mobile-anfrage-btn {
+        flex: 1;
+        background: rgba(143, 188, 143, 0.25);
+        border: 1px solid rgba(143, 188, 143, 0.4);
+        color: #ffffff;
+        padding: 0.65rem 1.2rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: none;
+    }
+    
+    .mobile-anfrage-btn:active {
+        background: rgba(143, 188, 143, 0.35);
+        transform: scale(0.98);
+    }
+    
+    /* Carport-Hinweis für Mobil anpassen */
+    .carport-interaction-hint {
+        bottom: 180px;
+        left: 1rem;
+        right: 1rem;
+        transform: none;
+        font-size: 0.8rem;
+        padding: 0.5rem 0.8rem;
+    }
+
+    /* Buttons oben links dezenter */
+    #template-flyout .template-flyout-toggle,
+    #compact-info-toggle,
+    #drag-handles-toggle,
+    #carport-overlay-toggle,
+    #template-flyout-toggle-flach,
+    #template-flyout-toggle-pult {
+        padding: 0.32rem 0.5rem;
+        font-size: 0.85rem;
+        border-radius: 8px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+    
+    /* Tab-Navigation kompakter für Mobil */
+    .horizontal-tab {
+        padding: 0.5rem 0.65rem !important;
+        min-height: 52px;
+    }
+    
+    .horizontal-tab .tab-icon {
+        font-size: 1.1rem !important;
+        margin-right: 0.4rem !important;
+    }
+    
+    .horizontal-tab .tab-label {
+        font-size: 0.75rem !important;
+    }
+    
+    .horizontal-tabs {
+        gap: 0.4rem;
+    }
+    
+    /* Statik-Card und Statik-Warning: Identisches Styling für beide Tabs */
+    #main-statics-card,
+    #statik-warning-container > div {
+        padding: 0.45rem 0.5rem !important;
+        margin-bottom: 0.4rem !important;
+        background: rgba(45, 45, 45, 0.5) !important;
+        border: 1px solid rgba(74, 74, 74, 0.4) !important;
+        border-left: 2px solid rgba(124, 184, 153, 0.5) !important;
+        border-radius: 6px !important;
+        box-shadow: none !important;
+    }
+    
+    #main-statics-card h4,
+    #statik-warning-container h4 {
+        font-size: 0.7rem !important;
+        margin: 0 0 0.3rem 0 !important;
+        opacity: 0.75;
+        font-weight: 600 !important;
+    }
+    
+    #main-statics-card .statics-card-body,
+    #statik-warning-container .statics-card-body {
+        padding: 0.4rem !important;
+        gap: 0.45rem !important;
+        background: rgba(53, 53, 53, 0.4) !important;
+        border: 1px solid rgba(85, 85, 85, 0.3) !important;
+    }
+    
+    #main-statics-card .statics-card-indicator,
+    #statik-warning-container .statics-card-indicator {
+        font-size: 1.1rem !important;
+    }
+    
+    #main-statics-card .statics-card-title,
+    #statik-warning-container .statics-card-title {
+        font-size: 0.75rem !important;
+        font-weight: 600 !important;
+        line-height: 1.2 !important;
+    }
+    
+    #main-statics-card .statics-card-note,
+    #statik-warning-container .statics-card-note {
+        font-size: 0.65rem !important;
+        margin-top: 0.1rem !important;
+        opacity: 0.65;
+        line-height: 1.2 !important;
+    }
+    
+    /* Statik-Warning-Container Spacing */
+    #statik-warning-container {
+        margin-top: 0.4rem !important;
+    }
+
+    .stepper-step {
+        min-width: 68px;
+        min-height: 52px;
+        padding: 0.7rem 0.5rem;
+    }
+
+    .stepper-icon-container {
+        width: 44px; /* Erhöht von 38px */
+        height: 44px;
+        font-size: 1.5rem;
+    }
+}
+
+/* Option Cards - Touch-Optimierung */
+.option-card {
+    min-height: 104px; /* ✅ Bereits gut */
+    padding: 0.68rem 0.65rem;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .option-card {
+        min-height: 96px; /* Mindestens 48px Touch-Area */
+        min-width: 52px; /* Erhöht von 48px */
+        padding: 0.65rem 0.6rem;
+        font-size: 0.76rem;
+    }
+}
+
+/* Glass Color Options - Touch-Optimierung */
+.glass-color-option {
+    min-height: 108px; /* ✅ Bereits gut */
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .glass-color-option {
+        min-height: 100px; /* Erhöht von 90px */
+        min-width: 52px; /* Erhöht von 48px */
+        padding: 0.6rem 0.55rem;
+    }
+}
+
+/* Buttons - Touch-Optimierung */
+.no-posts-button,
+.post-deactivate-btn,
+.tab-button {
+    min-height: 44px;
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+@media (max-width: 768px) {
+    .no-posts-button,
+    .post-deactivate-btn {
+        min-height: 48px;
+        padding: 0.75rem 1.1rem;
+        font-size: 0.92rem;
+    }
+
+    .tab-button {
+        min-height: 48px;
+        padding: 0.8rem 0.6rem;
+        font-size: 0.82rem;
+    }
+}
+
+/* Inputs & Selects - Touch-Optimierung */
+.control-group input,
+.control-group select {
+    min-height: 44px;
+    padding: 0.7rem;
+    font-size: 16px; /* Verhindert Zoom auf iOS */
+}
+
+@media (max-width: 768px) {
+    .control-group input,
+    .control-group select {
+        min-height: 48px;
+        padding: 0.75rem 0.65rem;
+        font-size: 16px !important; /* iOS Zoom verhindern */
+    }
+}
+
+/* Range Inputs - Touch-Optimierung */
+input[type="range"] {
+    min-height: 44px;
+    cursor: pointer;
+    touch-action: pan-x; /* Horizontales Scrollen erlauben */
+}
+
+@media (max-width: 768px) {
+    input[type="range"] {
+        min-height: 48px;
+        padding: 0.5rem 0;
+    }
+}
+
+/* Checkboxes & Radio Buttons - Touch-Optimierung */
+input[type="checkbox"],
+input[type="radio"] {
+    min-width: 20px;
+    min-height: 20px;
+    cursor: pointer;
+}
+
+/* Labels mit Checkboxes - größere Touch-Area */
+label:has(input[type="checkbox"]),
+label:has(input[type="radio"]) {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 0.5rem 0;
+}
+
+@media (max-width: 768px) {
+    input[type="checkbox"],
+    input[type="radio"] {
+        min-width: 24px;
+        min-height: 24px;
+        margin-right: 0.6rem;
+    }
+}
+
+/* Close Button - Touch-Optimierung */
+.infobox-close {
+    min-width: 44px;
+    min-height: 44px;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+@media (max-width: 768px) {
+    .infobox-close {
+        min-width: 48px;
+        min-height: 48px;
+        font-size: 1.5rem;
+    }
+}
+
+/* Accordion Headers - Touch-Optimierung */
+.post-accordion-header {
+    min-height: 48px;
+    padding: 0.9rem 1rem;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+@media (max-width: 768px) {
+    .post-accordion-header {
+        min-height: 52px;
+        padding: 1rem 1.1rem;
+    }
+}
+
+/* Config & Infobox Toggle - Touch-Optimierung */
+.config-toggle,
+.infobox-toggle {
+    min-width: 44px;
+    min-height: 80px; /* Vertikal, daher höher */
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+@media (max-width: 768px) {
+    .config-toggle,
+    .infobox-toggle {
+        min-width: 48px;
+        min-height: 90px;
+        padding: 0.6rem 0.5rem;
+    }
+}
+
+/* Canvas Help Cards - Touch-Optimierung */
+.canvas-help-card {
+    min-height: 36px; /* Informativ, nicht interaktiv */
+}
+
+.canvas-help-card--clickable {
+    min-height: 44px;
+    padding: 0.5rem 0.65rem;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+@media (max-width: 768px) {
+    .canvas-help-card--clickable {
+        min-height: 48px;
+        padding: 0.6rem 0.75rem;
+    }
+}
+
+/* ========================================
+   2. IOS VIEWPORT FIX (dvh)
+   ======================================== */
+
+/* Dynamische Viewport-Höhe für iOS */
+@supports (height: 100dvh) {
+    body {
+        height: 100dvh;
+    }
+
+    .canvas-container {
+        height: 100dvh;
+    }
+
+    @media (max-width: 768px) {
+        .canvas-container {
+            height: 52dvh;
+        }
+
+        .sidebar {
+            max-height: 78dvh;
+        }
+
+        .infobox-panel {
+            height: 70dvh;
+        }
+    }
+}
+
+/* ========================================
+   3. PERFORMANCE-OPTIMIERUNGEN
+   ======================================== */
+
+/* GPU-Beschleunigung für Animationen */
+.stepper-step,
+.option-card,
+.glass-color-option,
+.canvas-help-card--clickable {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+/* Smooth Scrolling optimieren */
+.sidebar,
+.infobox-content,
+.material-table-container,
+.stepper-navigation {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+}
+
+/* Touch-Delay reduzieren */
+a, button, input, select, textarea, label, .option-card, .glass-color-option {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+/* Canvas Performance */
+#pergola-canvas {
+    touch-action: none; /* Wichtig für OrbitControls */
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* ========================================
+   4. ABSTAND ZWISCHEN INTERAKTIVEN ELEMENTEN
+   ======================================== */
+
+/* Mindestabstand 8px zwischen Touch-Targets */
+.option-card-grid {
+    gap: 0.85rem; /* ~13.6px */
+}
+
+@media (max-width: 768px) {
+    .option-card-grid {
+        gap: 0.6rem; /* ~9.6px */
+    }
+
+    .glass-color-options {
+        gap: 0.6rem;
+    }
+
+    .stepper-navigation {
+        gap: 0.5rem; /* ~8px */
+    }
+}
+
+/* ========================================
+   5. FONT-SIZE OPTIMIERUNG (16px minimum)
+   ======================================== */
+
+/* iOS Zoom verhindern: min. 16px */
+@media (max-width: 768px) {
+    input, select, textarea {
+        font-size: 16px !important;
+    }
+
+    /* Kleinere Texte sind OK, nur Inputs müssen 16px sein */
+    .help-text,
+    .option-card-label,
+    small {
+        font-size: 0.8rem; /* ~12.8px ist OK */
+    }
+}
+
+/* ========================================
+   6. HOVER-EFFEKTE AUF MOBILE DEAKTIVIEREN
+   ======================================== */
+
+/* Hover nur auf Desktop */
+@media (hover: hover) and (pointer: fine) {
+    .option-card:hover,
+    .glass-color-option:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
+    }
+}
+
+/* Touch-Geräte: Kein Hover */
+@media (hover: none) and (pointer: coarse) {
+    .option-card:hover,
+    .glass-color-option:hover {
+        transform: none;
+    }
+
+    /* Aktiver State für Touch */
+    .option-card:active,
+    .glass-color-option:active {
+        transform: scale(0.97);
+        transition: transform 0.1s ease;
+    }
+}
+
+/* ========================================
+   7. SAFE AREA INSETS (iPhone Notch etc.)
+   ======================================== */
+
+@supports (padding: env(safe-area-inset-bottom)) {
+    .sidebar {
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    }
+
+    .infobox-panel {
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    }
+
+    .price-tag {
+        bottom: env(safe-area-inset-bottom);
+    }
+
+    @media (max-width: 768px) {
+        .header {
+            padding-top: env(safe-area-inset-top);
+        }
+    }
+}
+
+/* ========================================
+   8. LESBARKEIT AUF KLEINEN DISPLAYS
+   ======================================== */
+
+@media (max-width: 480px) {
+    /* Extra kleine Smartphones */
+    .stepper-step {
+        min-width: 56px;
+    }
+
+    .option-card {
+        min-width: 100%; /* Volle Breite */
+        grid-template-columns: 1fr;
+    }
+
+    .option-card-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========================================
+   9. LANDSCAPE ORIENTATION OPTIMIERUNG
+   ======================================== */
+
+@media (max-width: 768px) and (orientation: landscape) {
+    .sidebar {
+        max-height: 85dvh;
+    }
+
+    .header {
+        --header-height: 50px;
+        padding: 0.5rem 1rem;
+    }
+
+    .branding {
+        font-size: 1rem;
+    }
+}
+
+/* ========================================
+   10. FOKUS-STYLES FÜR ACCESSIBILITY
+   ======================================== */
+
+/* Sichtbarer Fokus für Tastatur-Navigation */
+*:focus-visible {
+    outline: 3px solid var(--accent-blue);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Touch-Geräte: Kein Fokus-Outline */
+@media (hover: none) and (pointer: coarse) {
+    *:focus {
+        outline: none;
+    }
+}
+
+/* ========================================
+   11. PERFORMANCE: WILL-CHANGE OPTIMIERUNG
+   ======================================== */
+
+/* Nur während Animation */
+.sidebar.open,
+.infobox-panel.open {
+    will-change: transform;
+}
+
+/* Nach Animation entfernen */
+.sidebar:not(.open),
+.infobox-panel:not(.open) {
+    will-change: auto;
+}
+
+/* ========================================
+   12. MOBILE UI KOMPAKT (PREISTAG & TOP-BUTTONS)
+   ======================================== */
+@media (max-width: 768px) {
+    /* Stärkere Überschreibung gegen style.min.css */
+    body #price-tag {
+        max-width: 230px !important;
+    }
+    body #price-tag .price-tag__total-amount {
+        font-size: 15px !important;
+        line-height: 1.1 !important;
+    }
+
+    /* Basisdaten-Info unter die Buttons schieben */
+    .canvas-compact-info {
+        top: 102px !important;
+    }
+
+    /* Preisschild deutlich kompakter */
+    #price-tag {
+        transform: scale(0.58);
+        transform-origin: bottom left;
+        max-width: 230px;
+        padding: 0.45rem 0.5rem;
+        gap: 0.2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        pointer-events: auto;
+        border-radius: 12px;
+        backdrop-filter: blur(6px);
+    }
+    #price-tag .price-tag__header {
+        font-size: 0.72rem;
+        line-height: 1.05;
+    }
+    #price-tag .price-tag__total {
+        font-size: 1.05rem;
+        margin: 0.05rem 0;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    #price-tag .price-tag__total-amount {
+        font-size: 15px;
+    }
+    #price-tag .price-tag__net,
+    #price-tag .price-tag__total-note,
+    #price-tag .price-tag__list {
+        font-size: 0.7rem;
+        line-height: 1.1;
+    }
+    #price-tag .price-tag__anfrage-btn {
+        padding: 0.3rem 0.45rem;
+        font-size: 0.78rem;
+        border-radius: 5px;
+        min-height: 32px;
+        pointer-events: auto;
+        width: 100%;
+        text-align: center;
+    }
+
+    /* Basisdaten / Toggle-Buttons kleiner und sichtbar oben links */
+    #template-flyout {
+        top: 24px;
+        left: 10px;
+        transform: scale(0.82);
+        transform-origin: top left;
+        z-index: 1200;
+    }
+    #template-flyout .template-flyout-toggle,
+    #compact-info-toggle,
+    #drag-handles-toggle,
+    #carport-overlay-toggle,
+    #template-flyout-toggle-flach,
+    #template-flyout-toggle-pult {
+        padding: 0.45rem;
+        font-size: 1.4rem;
+        border-radius: 7px;
+        min-height: 40px;
+        min-width: 40px;
+        line-height: 1;
+    }
+    
+    /* Nur Icons auf Mobile - Text ausblenden */
+    #compact-info-toggle::before {
+        content: '📋';
+    }
+    #drag-handles-toggle::before {
+        content: '👁️';
+    }
+    #carport-overlay-toggle::before {
+        content: '🚗';
+    }
+    #template-flyout-toggle-flach::before {
+        content: '☆';
+    }
+    #template-flyout-toggle-pult::before {
+        content: '☆';
+    }
+    
+    /* Original-Text ausblenden */
+    #compact-info-toggle,
+    #drag-handles-toggle,
+    #carport-overlay-toggle,
+    #template-flyout-toggle-flach,
+    #template-flyout-toggle-pult {
+        font-size: 0;
+    }
+    
+    #compact-info-toggle::before,
+    #drag-handles-toggle::before,
+    #carport-overlay-toggle::before,
+    #template-flyout-toggle-flach::before,
+    #template-flyout-toggle-pult::before {
+        font-size: 1.4rem;
+    }
+}
+
+/* ========================================
+   12. MOBILE KONFIGURATION KOMPAKTER
+   ======================================== */
+
+@media (max-width: 768px) {
+    /* Kompaktere Carport-Segmente */
+    .segment-card {
+        padding: 0.5rem 0.6rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .segment-card h4 {
+        font-size: 0.75rem;
+        margin-bottom: 0.4rem;
+    }
+
+    /* Kompaktere Buttons */
+    button, .btn {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.75rem;
+    }
+
+    /* Kompaktere Akkordeons */
+    .post-accordion-header {
+        padding: 0.6rem 0.7rem;
+    }
+
+    .post-accordion-content {
+        padding: 0.5rem 0.6rem;
+    }
+
+    /* Kompaktere Tabs im horizontalen Layout */
+    .horizontal-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: thin;
+    }
+
+    /* Preis-Tag kompakter */
+    .price-tag {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.6rem;
+        max-width: 140px;
+    }
+
+    .price-tag h3 {
+        font-size: 0.65rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .price-tag .price {
+        font-size: 0.9rem;
+    }
+
+    /* Range-Container kompakter */
+    .range-with-input {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .range-with-input input[type="range"] {
+        flex: 1;
+    }
+
+    .range-with-input input[type="number"] {
+        width: 55px !important;
+        flex-shrink: 0;
+    }
+
+    /* Stepper kompakter */
+    .stepper-navigation {
+        padding: 0.3rem;
+        gap: 0.3rem;
+    }
+
+    .stepper-step {
+        padding: 0.4rem 0.3rem;
+        min-width: 60px;
+    }
+
+    .stepper-step-label {
+        font-size: 0.65rem;
+        line-height: 1.1;
+    }
+
+    /* Glasfarben-Optionen kompakter */
+    .glass-color-options {
+        gap: 0.4rem;
+    }
+
+    .glass-color-option {
+        padding: 0.5rem;
+        min-height: 80px;
+    }
+
+    .glass-color-option-label {
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Noch kompakter für sehr kleine Bildschirme */
+    .segment-card {
+        padding: 0.4rem 0.5rem;
+    }
+
+    .price-tag {
+        max-width: 120px;
+        padding: 0.3rem 0.5rem;
+        font-size: 0.65rem;
+    }
+
+    .price-tag h3 {
+        font-size: 0.6rem;
+        margin-bottom: 0.15rem;
+    }
+
+    .price-tag .price {
+        font-size: 0.8rem;
+    }
+
+    .stepper-step {
+        min-width: 55px;
+        padding: 0.35rem 0.25rem;
+    }
+
+    button, .btn {
+        padding: 0.45rem 0.7rem;
+        font-size: 0.72rem;
+    }
+}
+
+/* ========================================
+   13. VERBESSERTE SCROLLBEREICHE
+   ======================================== */
+
+@media (max-width: 768px) {
+    /* Horizontale Tab-Navigation scrollbar optimieren */
+    .horizontal-tabs {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .horizontal-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Konfigurations-Content optimierter Scroll */
+    .horizontal-config-content {
+        max-height: calc(42vh - 40px);
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    /* Segment-Liste scrollbar */
+    .segment-list {
+        max-height: calc(42vh - 100px);
+        overflow-y: auto;
+    }
+
+    /* Infobox optimiert */
+    .infobox-panel {
+        max-height: 70vh;
+    }
+
+    .infobox-content {
+        max-height: calc(70vh - 80px);
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+}
+
+/* ========================================
+   14. VERBESSERTE TOUCH-ZONEN FÜR INPUTS
+   ======================================== */
+
+@media (max-width: 768px) {
+    /* Größere Touch-Bereiche für Checkbox/Radio Labels */
+    label:has(input[type="checkbox"]),
+    label:has(input[type="radio"]) {
+        padding: 0.6rem 0.4rem;
+        margin: 0.2rem 0;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+
+    label:has(input[type="checkbox"]):active,
+    label:has(input[type="radio"]):active {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    /* Optimierte Select-Dropdowns */
+    select {
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 0.5rem center;
+        background-size: 1.2em;
+        padding-right: 2rem;
+    }
+
+    /* Bessere Input-Felder */
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    textarea {
+        border: 1.5px solid #ddd;
+        border-radius: 6px;
+        transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="email"]:focus,
+    textarea:focus {
+        border-color: var(--accent-blue, #007bff);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+}
+
+/* ========================================
+   15. OPTIMIERTE ANIMATIONEN FÜR MOBILE
+   ======================================== */
+
+@media (max-width: 768px) {
+    /* Reduzierte Animationen auf mobilen Geräten */
+    @media (prefers-reduced-motion: no-preference) {
+        .option-card,
+        .glass-color-option,
+        .stepper-step {
+            transition: transform 0.15s ease, background-color 0.15s ease;
+        }
+    }
+
+    /* Keine Animationen bei reduzierter Bewegung */
+    @media (prefers-reduced-motion: reduce) {
+        * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+}
+
+/* ========================================
+   MOBILE OPTIMIERUNGEN: CARPORT-TAB
+   ======================================== */
+
+@media (max-width: 768px) {
+    /* Carport-Template-Buttons */
+    #template-option-cards .option-card {
+        min-width: 80px;
+        padding: 0.5rem 0.4rem;
+    }
+
+    #template-option-cards .option-card-label {
+        font-size: 0.7rem;
+    }
+
+    #template-option-cards small {
+        font-size: 0.6rem;
+    }
+
+    /* Segment-Liste kompakter */
+    #carport-segment-list-main {
+        grid-template-columns: 1fr !important;
+        gap: 0.8rem !important;
+    }
+
+    .carport-config-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .carport-export-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Segment-Cards */
+    .segment-card {
+        font-size: 0.75rem;
+    }
+
+    .segment-card h4 {
+        font-size: 0.8rem;
+    }
+
+    /* Add-Segment Button */
+    #add-segment-btn-main {
+        padding: 0.6rem !important;
+        font-size: 0.85rem !important;
+    }
+
+    /* Segment-Statik-Indicator */
+    .segment-statics-indicator {
+        padding: 0.2rem 0.4rem !important;
+        font-size: 0.6rem !important;
+    }
+
+    .segment-statics-indicator .statics-icon {
+        font-size: 1em !important;
+    }
+
+    .segment-statics-indicator .statics-text {
+        font-size: 0.6rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Noch kompakter für sehr kleine Bildschirme */
+    #template-option-cards {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    #template-option-cards .option-card {
+        min-width: 70px;
+        padding: 0.4rem 0.3rem;
+    }
+
+    #template-option-cards .option-card-label {
+        font-size: 0.65rem;
+    }
+
+    #template-option-cards small {
+        font-size: 0.55rem;
+        line-height: 1.2;
+    }
+
+    /* Segment-Inputs kompakter */
+    .segment-width, .segment-depth, .segment-height,
+    .segment-x, .segment-z, .segment-rotation {
+        font-size: 0.7rem !important;
+        padding: 0.3rem !important;
+    }
+
+    /* Labels kleiner */
+    #carport-tab-content label {
+        font-size: 0.7rem;
+    }
+
+    /* Segment-Post-Controls */
+    .segment-post-controls {
+        padding: 0.5rem !important;
+    }
+
+    .segment-post-controls h5 {
+        font-size: 0.7rem !important;
+    }
+
+    .post-item {
+        padding: 0.5rem !important;
+    }
+
+    .post-item strong {
+        font-size: 0.7rem !important;
+    }
+
+    .toggle-post-btn {
+        padding: 0.2rem 0.4rem !important;
+        font-size: 0.65rem !important;
+    }
+}
+
+/* ========================================
+   13. ULTRA-KOMPAKTE MOBILE UI
+   ======================================== */
+
+@media (max-width: 640px) {
+    .horizontal-config-panel .control-group-compact {
+        padding: 0.4rem 0.45rem;
+        border-radius: 6px;
+        gap: 0.35rem;
+    }
+
+    .horizontal-config-panel .control-group-compact h4 {
+        font-size: 0.62rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .horizontal-config-panel .control-group-compact small,
+    .horizontal-config-panel .help-text {
+        font-size: 0.58rem;
+        line-height: 1.25;
+    }
+
+    .horizontal-config-panel .option-card-grid {
+        gap: 0.35rem;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    }
+
+    .horizontal-config-panel .option-card {
+        min-height: 38px;
+        padding: 0.35rem 0.4rem;
+        font-size: 0.62rem;
+    }
+
+    .horizontal-config-panel .option-card-label {
+        font-size: 0.62rem;
+    }
+
+    .horizontal-config-panel .range-with-input {
+        gap: 0.18rem;
+    }
+
+    .horizontal-config-panel .range-with-input input[type="number"],
+    .horizontal-config-panel .range-with-input input[type="text"] {
+        width: 52px !important;
+    }
+
+    .horizontal-config-panel input[type="number"],
+    .horizontal-config-panel input[type="text"],
+    .horizontal-config-panel input[type="tel"],
+    .horizontal-config-panel input[type="email"],
+    .horizontal-config-panel select {
+        min-height: 34px;
+        padding: 0.3rem 0.4rem;
+    }
+
+    .horizontal-config-panel input[type="range"] {
+        min-height: 30px;
+    }
+
+    .horizontal-config-panel input[type="range"]::-webkit-slider-runnable-track,
+    .horizontal-config-panel input[type="range"]::-moz-range-track {
+        height: 3px;
+    }
+
+    .horizontal-config-panel button,
+    .horizontal-config-panel .btn,
+    .horizontal-config-panel .tab-button,
+    .horizontal-config-panel .no-posts-button,
+    .horizontal-config-panel .post-deactivate-btn,
+    .horizontal-config-panel .carport-export-btn {
+        padding: 0.35rem 0.55rem;
+        font-size: 0.65rem;
+        border-radius: 6px;
+    }
+
+    .price-tag {
+        font-size: 0.58rem;
+        padding: 0.3rem 0.45rem;
+        max-width: 125px;
+    }
+
+    .price-tag .price {
+        font-size: 0.78rem;
+    }
+
+    .canvas-help-card--clickable {
+        min-height: 38px;
+        padding: 0.35rem 0.45rem;
+    }
+}
+
+@media (max-width: 420px) {
+    .horizontal-config-panel .control-group-compact {
+        padding: 0.32rem 0.38rem;
+    }
+
+    .horizontal-config-panel .control-group-compact h4 {
+        font-size: 0.58rem;
+    }
+
+    .horizontal-config-panel .option-card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .horizontal-config-panel .option-card {
+        min-height: 34px;
+        font-size: 0.58rem;
+    }
+
+    .horizontal-config-panel .range-with-input input[type="number"],
+    .horizontal-config-panel .range-with-input input[type="text"] {
+        width: 46px !important;
+    }
+
+    .horizontal-config-panel button,
+    .horizontal-config-panel .btn,
+    .horizontal-config-panel .tab-button,
+    .horizontal-config-panel .carport-export-btn {
+        font-size: 0.6rem;
+        padding: 0.3rem 0.5rem;
+    }
+
+    .price-tag {
+        max-width: 115px;
+    }
+}

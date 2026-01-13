@@ -1,0 +1,310 @@
+// Gewichtstabelle für Aluminiumprofile (kg/m)
+export const PROFILE_WEIGHT_TABLE = {
+    "80x60x4": 2.85,     // 80x60x4mm = 2,85 kg/m
+    "80x60": 2.85,       // Alternative Schreibweise
+    "120x80x4": 4.15,    // 120x80x4mm = 4,15 kg/m
+    "120x80": 4.15,      // Alternative Schreibweise
+    "160x80x4": 5.01,    // 160x80x4mm = 5,01 kg/m
+    "160x80": 5.01,      // Alternative Schreibweise
+    "200x100x4": 6.3,    // 200x100x4mm = 6,3 kg/m
+    "200x100": 6.3,      // Alternative Schreibweise
+    "100x80x4": 3.72,    // 100x80x4mm = 3,72 kg/m
+    "100x80": 3.72,      // Alternative Schreibweise
+    "80x40": 2.85,       // 80x40 = ähnlich wie 80x60
+    "60x20": 2.5,        // Kleineres Profil geschätzt
+    "60x20_t": 2.8       // T-Profil etwas schwerer
+};
+
+// Preis pro Kilogramm Aluminium
+export const ALUMINIUM_PRICE_PER_KG = 5.50;
+
+export const PRICE_TABLE={
+    seitenprofile:{
+        "40x40":{
+            unit:"meter",
+            price:9.52,
+            weightPerMeter:0.55,
+            pricePerKg:9.52/0.55
+        },
+        default:{
+            unit:"meter",
+            price:9.52,
+            weightPerMeter:0.55,
+            pricePerKg:9.52/0.55
+        }
+    },
+    pfosten:{
+        "200x100":{
+            unit:"kilogramm",
+            weightPerMeter:6.3,
+            pricePerKg:5.50
+        },
+        "160x80":{
+            unit:"kilogramm",
+            weightPerMeter:5.01,
+            pricePerKg:5.50
+        },
+        "120x80":{
+            unit:"kilogramm",
+            weightPerMeter:4.15,
+            pricePerKg:5.50
+        },
+        "100x80":{
+            unit:"kilogramm",
+            weightPerMeter:3.72,
+            pricePerKg:5.50
+        },
+        "80x60":{
+            unit:"kilogramm",
+            weightPerMeter:2.85,
+            pricePerKg:5.50
+        },
+        "80x40":{
+            unit:"kilogramm",
+            weightPerMeter:2.85,
+            pricePerKg:5.50
+        },
+        pfostenprofil:{
+            unit:"kilogramm",
+            weightPerMeter:5.01,
+            pricePerKg:5.50
+        },
+        default:{
+            unit:"kilogramm",
+            weightPerMeter:5.01,
+            pricePerKg:5.50
+        }
+    },
+    laengstraeger:{
+        "200x100mm":{
+            unit:"kilogramm",
+            weightPerMeter:6.3,
+            pricePerKg:5.50
+        },
+        "200x100":{
+            unit:"kilogramm",
+            weightPerMeter:6.3,
+            pricePerKg:5.50
+        },
+        "160x80mm":{
+            unit:"kilogramm",
+            weightPerMeter:5.01,
+            pricePerKg:5.50
+        },
+        "160x80":{
+            unit:"kilogramm",
+            weightPerMeter:5.01,
+            pricePerKg:5.50
+        },
+        "120x80mm":{
+            unit:"kilogramm",
+            weightPerMeter:4.15,
+            pricePerKg:5.50
+        },
+        "120x80":{
+            unit:"kilogramm",
+            weightPerMeter:4.15,
+            pricePerKg:5.50
+        },
+        "100x80mm":{
+            unit:"kilogramm",
+            weightPerMeter:3.72,
+            pricePerKg:5.50
+        },
+        "100x80":{
+            unit:"kilogramm",
+            weightPerMeter:3.72,
+            pricePerKg:5.50
+        },
+        "80x60mm":{
+            unit:"kilogramm",
+            weightPerMeter:2.85,
+            pricePerKg:5.50
+        },
+        "80x60":{
+            unit:"kilogramm",
+            weightPerMeter:2.85,
+            pricePerKg:5.50
+        },
+        "80x40mm":{
+            unit:"kilogramm",
+            weightPerMeter:2.85,
+            pricePerKg:5.50
+        },
+        "80x40":{
+            unit:"kilogramm",
+            weightPerMeter:2.85,
+            pricePerKg:5.50
+        },
+        default:{
+            unit:"kilogramm",
+            weightPerMeter:5.01,
+            pricePerKg:5.50
+        }
+    },
+    quertraeger:{
+        "200x100mm":{
+            unit:"kilogramm",
+            weightPerMeter:6.3,
+            pricePerKg:5.50
+        },
+        "200x100":{
+            unit:"kilogramm",
+            weightPerMeter:6.3,
+            pricePerKg:5.50
+        },
+        "160x80mm":{
+            unit:"kilogramm",
+            weightPerMeter:5.01,
+            pricePerKg:5.50
+        },
+        "160x80":{
+            unit:"kilogramm",
+            weightPerMeter:5.01,
+            pricePerKg:5.50
+        },
+        "120x80mm":{
+            unit:"kilogramm",
+            weightPerMeter:4.15,
+            pricePerKg:5.50
+        },
+        "120x80":{
+            unit:"kilogramm",
+            weightPerMeter:4.15,
+            pricePerKg:5.50
+        },
+        "100x80mm":{
+            unit:"kilogramm",
+            weightPerMeter:3.72,
+            pricePerKg:5.50
+        },
+        "100x80":{
+            unit:"kilogramm",
+            weightPerMeter:3.72,
+            pricePerKg:5.50
+        },
+        "80x60mm":{
+            unit:"kilogramm",
+            weightPerMeter:2.85,
+            pricePerKg:5.50
+        },
+        "80x60":{
+            unit:"kilogramm",
+            weightPerMeter:2.85,
+            pricePerKg:5.50
+        },
+        "80x40mm":{
+            unit:"kilogramm",
+            weightPerMeter:2.85,
+            pricePerKg:5.50
+        },
+        "80x40":{
+            unit:"kilogramm",
+            weightPerMeter:2.85,
+            pricePerKg:5.50
+        },
+        default:{
+            unit:"kilogramm",
+            weightPerMeter:5.01,
+            pricePerKg:5.50
+        }
+    },
+    glas:{
+        standard:{
+            unit:"sqm",
+            price:59.84
+        },
+        rand:{
+            unit:"sqm",
+            price:59.84
+        },
+        default:{
+            unit:"sqm",
+            price:59.84
+        }
+    },
+    epdm:{
+        epdm_folie:{
+            unit:"sqm",
+            price:15.80
+        },
+        osb:{
+            unit:"sqm",
+            price:22
+        },
+        default:{
+            unit:"sqm",
+            price:15.80
+        }
+    },
+    aluschiene:{
+        "60x20":{
+            unit:"meter",
+            price:18.65
+        },
+        "60x20_t":{
+            unit:"meter",
+            price:18.65
+        },
+        default:{
+            unit:"meter",
+            price:18.65
+        }
+    },
+    oberflaechenbehandlung:{
+        sichtbar:{
+            unit:"sqm",
+            price:70.00
+        },
+        default:{
+            unit:"sqm",
+            price:70.00
+        }
+    },
+    vorbehandlung:{
+        alumeter:{
+            unit:"meter",
+            price:70.00
+        },
+        default:{
+            unit:"meter",
+            price:70.00
+        }
+    },
+    montage:{
+        gesamt:{
+            unit:"meter",
+            price:40.00
+        },
+        default:{
+            unit:"meter",
+            price:40.00
+        }
+    }
+};
+export const EXTRA_POSITIONS=[{
+    id:"baustellenvorbereitung",
+    label:"Baustellenvorbereitung",
+    unit:"fixed",
+    price:0
+},
+{
+    id:"geruest",
+    label:"Gerüst",
+    unit:"fixed",
+    price:0
+},
+{
+    id:"lieferung",
+    label:"Lieferung",
+    unit:"fixed",
+    price:0
+},
+{
+    id:"anfahrt",
+    label:"Anfahrt",
+    unit:"fixed",
+    price:0
+}
+];
+export const VAT_RATE=.19;

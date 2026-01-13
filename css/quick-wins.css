@@ -1,0 +1,146 @@
+/* ===================================================================
+   QUICK WINS - Bessere Lesbarkeit & Hierarchie
+   =================================================================== */
+
+/* Canvas-Hintergrund: Sofort helle Farbe, kein dunkler Flash beim Laden */
+#pergola-canvas {
+    background-color: #e8dcc8 !important;
+}
+
+/* Segment Section Toggle - Aufgehellt */
+.segment-section-toggle {
+    background: #353535 !important;
+    border: 1px solid #555555 !important;
+}
+
+.segment-section-toggle:hover {
+    background: #454545 !important;
+    border-color: #666666 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.segment-section-toggle[aria-expanded="true"] {
+    background: #404040 !important;
+    border: 2px solid #7cb899 !important;
+    color: #7cb899 !important;
+    box-shadow: 0 2px 12px rgba(124, 184, 153, 0.3) !important;
+}
+
+/* Segment Section Content - Aufgehellt */
+.segment-section-content {
+    background: #3d3d3d !important;
+    border: 1px solid #555555 !important;
+}
+
+.segment-section-content > div {
+    background: #3d3d3d !important;
+    border: 1px solid #555555 !important;
+}
+
+/* Post Accordion - Aufgehellt */
+.post-accordion-item {
+    background: #3d3d3d !important;
+    border: 1px solid #555555 !important;
+}
+
+.post-accordion-item.active {
+    border: 2px solid #7cb899 !important;
+    background: #404040 !important;
+    box-shadow: 0 4px 16px rgba(124, 184, 153, 0.3) !important;
+}
+
+.post-accordion-header {
+    background: #353535 !important;
+}
+
+.post-accordion-header:hover {
+    background: #454545 !important;
+}
+
+.post-accordion-item.active .post-accordion-header {
+    background: #404040 !important;
+    color: #7cb899 !important;
+}
+
+.post-accordion-content {
+    background: #3d3d3d !important;
+}
+
+/* Post Control - Aufgehellt */
+.post-control {
+    background: #3d3d3d !important;
+    border: 1px solid #555555 !important;
+}
+
+/* Alle Labels in reinem Weiß */
+label,
+.dimension-label,
+.post-control label,
+.segment-section-content label {
+    color: #ffffff !important;
+}
+
+/* Carport Warning & Info Boxes - Lesbare Texte */
+div[style*="rgba(255,193,7,0.1)"] {
+    background: rgba(255, 193, 7, 0.15) !important;
+}
+
+div[style*="rgba(255,193,7,0.1)"] p {
+    color: #ffffff !important;
+}
+
+div[style*="rgba(255,193,7,0.1)"] strong {
+    color: #fbbf24 !important;
+}
+
+div[style*="rgba(0,123,255,0.05)"] h3 {
+    color: #60a5fa !important;
+}
+
+div[style*="rgba(0,123,255,0.05)"] p {
+    color: #ffffff !important;
+}
+
+/* Alle Carport Labels weiß */
+.carport-template-compact label,
+.carport-segment label,
+.carport-mode label,
+label[for*="carport"] {
+    color: #ffffff !important;
+}
+
+/* Segment Header - Weißer Text statt Blau */
+.segment-header strong {
+    color: #ffffff !important;
+}
+
+/* Segment Body - Alle Labels und Texte weiß */
+.segment-body h5,
+.dimension-label,
+.dimension-label small {
+    color: #ffffff !important;
+}
+
+/* Alle wichtigen Texte in Weiß */
+.segment-header strong,
+.option-card,
+h4, h5 {
+    color: #ffffff !important;
+}
+
+/* Small-Text und Select-Beschreibungen lesbar */
+small,
+.control-group-compact small {
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 0.85rem !important;
+}
+
+/* Alle Select-Dropdowns weiß beschriften */
+select {
+    color: #ffffff !important;
+}
+
+select option {
+    background: #2d2d2d !important;
+    color: #ffffff !important;
+}

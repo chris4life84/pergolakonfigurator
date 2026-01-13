@@ -1,0 +1,2138 @@
+/* ===================================================================
+   PREMIUM KONFIGURATOR OPTIMIERUNG
+   Fokus: Premium Look + Ergonomie + Usability
+   =================================================================== */
+
+/* ===================================================================
+   OBERE NAVIGATION (HEADER) - Premium Design
+   =================================================================== */
+
+.header {
+    background: linear-gradient(180deg, #2a2a2a 0%, #252525 100%) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid rgba(143, 188, 143, 0.2) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+.header-content {
+    color: #ffffff !important;
+}
+
+.branding {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.05em !important;
+}
+
+.main-nav a {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.02em !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.main-nav a:hover {
+    color: #8fbc8f !important;
+}
+
+.main-nav a::after {
+    background: #8fbc8f !important;
+}
+
+/* ===================================================================
+   3D CANVAS - Premium Hintergrund mit Vignette
+   =================================================================== */
+
+.canvas-container {
+    position: relative;
+    background: linear-gradient(135deg, #2a2a2a 0%, #353535 50%, #2a2a2a 100%) !important;
+}
+
+/* Subtiler Vignetten-Effekt für Tiefe */
+.canvas-container::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 0%, transparent 40%, rgba(20, 20, 20, 0.3) 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ===================================================================
+   HORIZONTAL TABS - Premium Navigation
+   =================================================================== */
+
+.horizontal-tabs {
+    background: linear-gradient(180deg, #1a1a1a 0%, #252525 100%) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4) !important;
+    padding: 0 !important;
+}
+
+.horizontal-tab {
+    position: relative;
+    padding: 1rem 1.5rem !important;
+    color: #999 !important;
+    font-weight: 500 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border-bottom: 2px solid transparent !important;
+}
+
+.horizontal-tab::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.horizontal-tab:hover::before {
+    opacity: 1;
+}
+
+.horizontal-tab:hover {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.horizontal-tab.active {
+    color: #fff !important;
+    background: #2a2a2a !important;
+    border-bottom-color: #8fbc8f !important;
+    box-shadow: inset 0 -2px 0 #8fbc8f, 0 -4px 12px rgba(143, 188, 143, 0.15) !important;
+}
+
+.horizontal-tab .tab-icon {
+    font-size: 1.3rem !important;
+    filter: grayscale(1);
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.horizontal-tab:hover .tab-icon,
+.horizontal-tab.active .tab-icon {
+    filter: grayscale(0);
+    opacity: 1;
+}
+
+/* ===================================================================
+   CONFIG PANEL - Premium Dark
+   =================================================================== */
+
+.horizontal-config-panel {
+    background: rgba(26, 26, 26, 0.98) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.horizontal-config-content {
+    background: #1a1a1a !important;
+}
+
+/* ===================================================================
+   CONTROLS & CARDS - Premium Look
+   =================================================================== */
+
+.control-group-compact {
+    background: linear-gradient(135deg, #2a2a2a 0%, #252525 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    transition: all 0.3s ease !important;
+}
+
+.control-group-compact:hover {
+    border-color: rgba(143, 188, 143, 0.3) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(143, 188, 143, 0.1) !important;
+    transform: translateY(-1px);
+}
+
+.control-group-compact h4 {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 1.05rem !important;
+    letter-spacing: 0.02em;
+}
+
+/* ===================================================================
+   GLASFARBEN - Ergonomische Darstellung
+   =================================================================== */
+
+.glass-color-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+}
+
+.glass-color-option {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    padding: 1rem !important;
+    background: #353535 !important;
+    border: 2px solid #4a4a4a !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    min-height: auto !important;
+}
+
+.glass-color-option:hover {
+    background: #404040 !important;
+    border-color: #7cb899 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+.glass-color-option.active {
+    background: #404040 !important;
+    border: 2px solid #7cb899 !important;
+    box-shadow: 0 0 0 3px rgba(124, 184, 153, 0.2) !important;
+}
+
+.glass-color-preview {
+    width: 80px !important;
+    height: 80px !important;
+    border-radius: 8px !important;
+    flex-shrink: 0 !important;
+    border: 2px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Glasfarben-Previews mit realistischen Farben */
+.glass-color-preview--klar {
+    background: linear-gradient(135deg, rgba(200, 230, 255, 0.4), rgba(230, 245, 255, 0.3)) !important;
+    border-color: rgba(124, 184, 153, 0.3) !important;
+}
+
+.glass-color-preview--matt {
+    background: linear-gradient(135deg, rgba(220, 225, 230, 0.6), rgba(240, 242, 245, 0.5)) !important;
+    backdrop-filter: blur(2px) !important;
+}
+
+.glass-color-preview--grau {
+    background: linear-gradient(135deg, rgba(120, 130, 140, 0.7), rgba(100, 110, 120, 0.6)) !important;
+}
+
+.glass-color-preview--bronze {
+    background: linear-gradient(135deg, rgba(180, 140, 90, 0.6), rgba(160, 120, 70, 0.5)) !important;
+}
+
+.glass-color-label {
+    color: #ffffff !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    flex: 1 !important;
+}
+
+/* Neue RAL-Farben */
+.option-card-chip--ral9005 {
+    background: linear-gradient(145deg, #0a0a0a, #1a1a1a) !important;
+}
+
+.option-card-chip--ral7035 {
+    background: linear-gradient(145deg, #d7d7d7, #c5c5c5) !important;
+}
+
+.option-card-chip--ral8017 {
+    background: linear-gradient(145deg, #3e2723, #2d1913) !important;
+}
+
+.option-card-chip--ral5010 {
+    background: linear-gradient(145deg, #004f9f, #003d7a) !important;
+}
+
+/* Neue NCS-Farben */
+.option-card-chip--ncs-s7020-b {
+    background: linear-gradient(145deg, #1a3a52, #0d2333) !important;
+}
+
+.option-card-chip--ncs-s3030-y20r {
+    background: linear-gradient(145deg, #d68c3a, #b87020) !important;
+}
+
+.option-card-chip--ncs-s8505-y20r {
+    background: linear-gradient(145deg, #2d2520, #1a1410) !important;
+}
+
+.option-card-chip--ncs-s4050-g {
+    background: linear-gradient(145deg, #00794d, #005a39) !important;
+}
+
+/* ===================================================================
+   STATIK CARD - Premium Design
+   =================================================================== */
+
+.statics-card {
+    background: linear-gradient(135deg, #2d2d2d 0%, #272727 100%) !important;
+    border: 2px solid #4a4a4a !important;
+    border-radius: 12px !important;
+    padding: 1.25rem !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+.statics-card-body {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    padding: 0.75rem !important;
+    background: #353535 !important;
+    border-radius: 8px !important;
+    border: 1px solid #555555 !important;
+}
+
+.statics-card-indicator {
+    font-size: 2rem !important;
+    flex-shrink: 0 !important;
+}
+
+.statics-card-title {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    margin: 0 !important;
+}
+
+.statics-card-note {
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 0.85rem !important;
+    margin-top: 0.25rem !important;
+    display: block !important;
+}
+
+/* ===================================================================
+   PROFILSTÄRKE & MITTELTRÄGER BUTTONS
+   =================================================================== */
+
+/* Basis-Style für alle Profil-Buttons */
+button.profil-btn-main {
+    background: #353535 !important;
+    border: 1px solid #555555 !important;
+    color: #ffffff !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    transition: all 0.3s ease !important;
+    opacity: 0.8 !important;
+}
+
+button.profil-btn-main:hover:not([disabled]) {
+    background: #404040 !important;
+    border-color: #8fbc8f !important;
+    opacity: 1 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Aktiver State - wird durch inline-style gesetzt */
+button.profil-btn-main[style*="#404040"] {
+    background: #404040 !important;
+    border: 3px solid #8fbc8f !important;
+    opacity: 1 !important;
+    box-shadow: 0 0 0 4px rgba(143, 188, 143, 0.4), 0 4px 16px rgba(143, 188, 143, 0.3) !important;
+}
+
+/* Mittelträger-Buttons */
+button.mitteltraeger-btn-main {
+    background: #353535 !important;
+    border: 1px solid #555555 !important;
+    color: #ffffff !important;
+    padding: 0.6rem !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+    opacity: 0.8 !important;
+}
+
+button.mitteltraeger-btn-main:hover:not([disabled]) {
+    background: #404040 !important;
+    border-color: #8fbc8f !important;
+    opacity: 1 !important;
+    transform: translateY(-2px) !important;
+}
+
+button.mitteltraeger-btn-main[style*="#404040"] {
+    background: #404040 !important;
+    border: 3px solid #8fbc8f !important;
+    opacity: 1 !important;
+    box-shadow: 0 0 0 4px rgba(143, 188, 143, 0.4), 0 4px 16px rgba(143, 188, 143, 0.3) !important;
+}
+
+/* Statik-Warnung Container - bessere Lesbarkeit */
+#statik-warning-container {
+    margin-top: 1rem !important;
+}
+
+#statik-warning-container > div {
+    background: #2d2d2d !important;
+    border-left: 4px solid #7cb899 !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+}
+
+#statik-warning-container .statics-card-body {
+    background: #353535 !important;
+}
+
+#statik-warning-container strong {
+    color: #7cb899 !important;
+}
+
+#statik-warning-container small {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+#statik-warning-container div[style*="font-weight: bold"] {
+    color: #7cb899 !important;
+}
+
+/* ===================================================================
+   OPTION CARDS - Premium Selection
+   =================================================================== */
+
+.option-card {
+    background: #353535 !important;
+    border: 1px solid #4a4a4a !important;
+    color: #ffffff !important;
+    opacity: 0.8 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.option-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(143, 188, 143, 0.1) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.option-card:hover:not(:disabled):not([disabled])::before {
+    opacity: 1;
+}
+
+.option-card:hover:not(:disabled):not([disabled]) {
+    border-color: #666666 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(143, 188, 143, 0.2) !important;
+    transform: translateY(-2px);
+    opacity: 1 !important;
+}
+
+.option-card.active {
+    background: #404040 !important;
+    border: 2px solid #7cb899 !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+    box-shadow: 0 6px 20px rgba(124, 184, 153, 0.4), 0 0 30px rgba(124, 184, 153, 0.3) !important;
+}
+
+.option-card.active::before {
+    display: none;
+}
+
+/* ===================================================================
+   INPUTS - Premium Dark Style
+   =================================================================== */
+
+input[type="text"],
+input[type="number"],
+select {
+    background: #2d2d2d !important;
+    border: 1px solid #666666 !important;
+    color: #ffffff !important;
+    font-size: 16px !important;
+    transition: all 0.3s ease !important;
+}
+
+input[type="text"]:hover,
+input[type="number"]:hover,
+select:hover {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+    background: #202020 !important;
+    border-color: #8fbc8f !important;
+    box-shadow: 0 0 0 3px rgba(143, 188, 143, 0.15), 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    outline: none !important;
+}
+
+/* Custom Select Arrow */
+select {
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') !important;
+    background-repeat: no-repeat !important;
+    background-position: right 8px center !important;
+    background-size: 20px !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+}
+
+/* ===================================================================
+   RANGE SLIDERS - Premium Style
+   =================================================================== */
+
+input[type="range"] {
+    -webkit-appearance: none;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 2px;
+    outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(135deg, #8fbc8f, #7cb899) !important;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(143, 188, 143, 0.4), 0 0 0 4px rgba(143, 188, 143, 0.1) !important;
+    transition: all 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    box-shadow: 0 2px 12px rgba(143, 188, 143, 0.6), 0 0 0 6px rgba(143, 188, 143, 0.15) !important;
+    transform: scale(1.1);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(135deg, #8fbc8f, #7cb899) !important;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(143, 188, 143, 0.4) !important;
+    transition: all 0.2s ease;
+}
+
+/* ===================================================================
+   BUTTONS - Premium Styling
+   =================================================================== */
+
+button:not(.horizontal-tab):not(.option-card) {
+    background: linear-gradient(135deg, #2d2d2d 0%, #272727 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+button:not(.horizontal-tab):not(.option-card):hover:not(:disabled) {
+    background: linear-gradient(135deg, #353535 0%, #303030 100%) !important;
+    border-color: rgba(143, 188, 143, 0.3) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+    transform: translateY(-1px);
+}
+
+/* Primary Action Buttons */
+.carport-export-btn,
+button.primary,
+button[type="submit"] {
+    background: linear-gradient(135deg, #8fbc8f 0%, #7cb899 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 16px rgba(143, 188, 143, 0.3) !important;
+}
+
+.carport-export-btn:hover:not(:disabled),
+button.primary:hover:not(:disabled),
+button[type="submit"]:hover:not(:disabled) {
+    background: linear-gradient(135deg, #9dd39d 0%, #8fbc8f 100%) !important;
+    box-shadow: 0 6px 20px rgba(143, 188, 143, 0.4), 0 0 20px rgba(143, 188, 143, 0.2) !important;
+    transform: translateY(-2px);
+}
+
+/* ===================================================================
+   PRICE TAG - Premium Floating Card (LESBAR!)
+   =================================================================== */
+
+.price-tag {
+    background: linear-gradient(135deg, #2a2a2a 0%, #252525 100%) !important;
+    border: 1px solid rgba(143, 188, 143, 0.3) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    padding: 1.25rem !important;
+}
+
+.price-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(143, 188, 143, 0.3) !important;
+}
+
+/* Price Tag Header */
+.price-tag__header {
+    color: #ffffff !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.75rem !important;
+}
+
+.price-tag__title {
+    color: #ffffff !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+}
+
+.price-tag__timestamp {
+    color: #999999 !important;
+    font-size: 0.8rem !important;
+}
+
+/* Total Amount - DEUTLICH SICHTBAR */
+.price-tag__total {
+    margin: 1rem 0 !important;
+    padding: 1rem !important;
+    background: rgba(143, 188, 143, 0.15) !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(143, 188, 143, 0.3) !important;
+}
+
+.price-tag__total-label {
+    color: #e0e0e0 !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.price-tag__total-amount {
+    color: #8fbc8f !important;
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+}
+
+.price-tag__net {
+    color: #cccccc !important;
+    font-size: 0.85rem !important;
+    margin-top: 0.5rem !important;
+}
+
+.price-tag__total-note {
+    color: #999999 !important;
+    font-size: 0.75rem !important;
+    margin-top: 0.25rem !important;
+}
+
+.price-tag__footer {
+    color: #999999 !important;
+    font-size: 0.8rem !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding-top: 0.75rem !important;
+    margin-top: 0.75rem !important;
+}
+
+/* ===================================================================
+   CARPORT-MODUS - Premium Dark Design
+   =================================================================== */
+
+/* Carport Overlay Templates Container */
+.carport-overlay-templates {
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.98) 0%, rgba(30, 30, 30, 0.98) 100%) !important;
+    border: 1px solid rgba(143, 188, 143, 0.3) !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+}
+
+/* Carport Overlay Panel */
+.carport-overlay-panel {
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.98) 0%, rgba(30, 30, 30, 0.98) 100%) !important;
+    border: 1px solid rgba(143, 188, 143, 0.25) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Carport Overlay Header */
+.carport-overlay-header {
+    background: transparent !important;
+    color: #8fbc8f !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    padding: 0.75rem 0 !important;
+    border-bottom: 1px solid rgba(143, 188, 143, 0.2) !important;
+    margin-bottom: 0.75rem !important;
+}
+
+/* Carport Overlay Chips/Karten */
+.carport-overlay-chip {
+    background: linear-gradient(135deg, rgba(42, 42, 42, 0.95) 0%, rgba(37, 37, 37, 0.95) 100%) !important;
+    border: 1px solid rgba(143, 188, 143, 0.3) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.carport-overlay-chip:hover {
+    background: linear-gradient(135deg, #8fbc8f 0%, #7cb899 100%) !important;
+    border-color: #8fbc8f !important;
+    box-shadow: 0 6px 16px rgba(143, 188, 143, 0.4), 0 0 20px rgba(143, 188, 143, 0.2) !important;
+    transform: translateY(-2px) !important;
+}
+
+.carport-overlay-chip small {
+    color: #cccccc !important;
+    font-weight: 500 !important;
+}
+
+.carport-overlay-chip:hover small {
+    color: #ffffff !important;
+}
+
+/* Carport Konfigurator Titel */
+.carport-config-header {
+    background: linear-gradient(135deg, #2a2a2a 0%, #252525 100%) !important;
+    color: #ffffff !important;
+    padding: 1rem !important;
+    border-radius: 8px 8px 0 0 !important;
+    border-bottom: 2px solid rgba(143, 188, 143, 0.3) !important;
+}
+
+/* Carport Segment Cards - Deutlich besser erkennbar */
+.compact-info-segment-compact {
+    background: linear-gradient(135deg, rgba(143, 188, 143, 0.15) 0%, rgba(143, 188, 143, 0.08) 100%) !important;
+    border: 1px solid rgba(143, 188, 143, 0.3) !important;
+    border-left: 3px solid #8fbc8f !important;
+    color: #ffffff !important;
+    padding: 0.75rem !important;
+    margin: 0.5rem 0 !important;
+}
+
+.compact-info-segment-compact:hover {
+    background: linear-gradient(135deg, rgba(143, 188, 143, 0.25) 0%, rgba(143, 188, 143, 0.15) 100%) !important;
+    border-color: rgba(143, 188, 143, 0.5) !important;
+    box-shadow: 0 2px 8px rgba(143, 188, 143, 0.2) !important;
+}
+
+/* Segment Header in Carport-Modus */
+.segment-header {
+    background: rgba(143, 188, 143, 0.1) !important;
+    color: #ffffff !important;
+    padding: 0.75rem 1rem !important;
+    border-bottom: 2px solid rgba(143, 188, 143, 0.3) !important;
+    font-weight: 600 !important;
+}
+
+/* Carport Warning */
+.carport-warning {
+    background: rgba(245, 158, 11, 0.15) !important;
+    border-left: 4px solid #f59e0b !important;
+    color: #ffffff !important;
+    padding: 1rem !important;
+    margin: 1rem 0 !important;
+}
+
+.carport-warning strong {
+    color: #fbbf24 !important;
+}
+
+/* Carport Template Select */
+.carport-template-compact select,
+#carport-template-select {
+    background: linear-gradient(135deg, #2a2a2a 0%, #252525 100%) !important;
+    border: 1px solid rgba(143, 188, 143, 0.3) !important;
+    color: #ffffff !important;
+    font-size: 0.95rem !important;
+    font-weight: 500 !important;
+    padding: 0.45rem 2.5rem 0.65rem 0.85rem !important;
+    border-radius: 6px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"%3E%3Cpath fill="%238fbc8f" d="M0 0l6 8 6-8z"/%3E%3C/svg%3E') !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.85rem center !important;
+    background-size: 12px 8px !important;
+}
+
+.carport-template-compact select option,
+#carport-template-select option {
+    background: #2a2a2a !important;
+    color: #ffffff !important;
+    padding: 0.5rem !important;
+}
+
+.carport-template-compact select:hover,
+#carport-template-select:hover {
+    border-color: rgba(143, 188, 143, 0.5) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.carport-template-compact select:focus,
+#carport-template-select:focus {
+    border-color: #8fbc8f !important;
+    box-shadow: 0 0 0 3px rgba(143, 188, 143, 0.2) !important;
+    outline: none !important;
+}
+
+.carport-template-compact label {
+    color: #e0e0e0 !important;
+    font-weight: 600 !important;
+}
+
+/* ===================================================================
+   POST CONTROLS - Pfosten versetzen, kürzen, entfernen
+   =================================================================== */
+
+.post-control {
+    margin-bottom: 1rem !important;
+    background: rgba(42, 42, 42, 0.3) !important;
+    border: 1px solid rgba(143, 188, 143, 0.15) !important;
+    border-radius: 6px !important;
+    padding: 0.75rem !important;
+}
+
+.post-control label {
+    display: block !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.5rem !important;
+    color: #e0e0e0 !important;
+    font-size: 0.9rem !important;
+}
+
+.post-control small {
+    display: block !important;
+    color: #999999 !important;
+    font-size: 0.8rem !important;
+    margin-top: 0.35rem !important;
+}
+
+.post-control input[type="number"],
+.post-control select {
+    background: linear-gradient(135deg, #2a2a2a 0%, #252525 100%) !important;
+    border: 1px solid rgba(143, 188, 143, 0.3) !important;
+    color: #ffffff !important;
+    padding: 0.65rem 0.85rem !important;
+    border-radius: 6px !important;
+    font-size: 0.9rem !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.post-control input[type="number"]:focus,
+.post-control select:focus {
+    border-color: #8fbc8f !important;
+    box-shadow: 0 0 0 3px rgba(143, 188, 143, 0.2) !important;
+    outline: none !important;
+}
+
+.post-control select {
+    padding-right: 2rem !important;
+}
+
+.post-deactivate-btn {
+    width: 100% !important;
+    padding: 0.65rem !important;
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.9) 0%, rgba(211, 47, 47, 0.9) 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(244, 67, 54, 0.5) !important;
+    border-radius: 6px !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    margin-top: 0.5rem !important;
+}
+
+.post-deactivate-btn:hover {
+    background: linear-gradient(135deg, rgba(244, 67, 54, 1) 0%, rgba(211, 47, 47, 1) 100%) !important;
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4) !important;
+    transform: translateY(-1px) !important;
+}
+
+.post-deactivate-btn.active {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.9) 0%, rgba(69, 160, 73, 0.9) 100%) !important;
+    border-color: rgba(76, 175, 80, 0.5) !important;
+}
+
+.post-deactivate-btn.active:hover {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 1) 0%, rgba(69, 160, 73, 1) 100%) !important;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4) !important;
+}
+
+/* ===================================================================
+   POST ACCORDION - Individuelle Pfostensteuerung Premium Dark
+   =================================================================== */
+
+.post-accordion-section {
+    background: transparent !important;
+    padding: 0 !important;
+}
+
+.post-accordion-item {
+    background: #3d3d3d !important;
+    border: 1px solid #555555 !important;
+    border-radius: 6px !important;
+    margin-bottom: 0.65rem !important;
+    overflow: hidden !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.post-accordion-item:hover {
+    border-color: rgba(143, 188, 143, 0.3) !important;
+}
+
+.post-accordion-item.active {
+    border: 2px solid #7cb899 !important;
+    background: #404040 !important;
+    box-shadow: 0 4px 16px rgba(124, 184, 153, 0.3) !important;
+}
+
+.post-accordion-header {
+    background: linear-gradient(135deg, rgba(42, 42, 42, 0.6) 0%, rgba(37, 37, 37, 0.6) 100%) !important;
+    color: #ffffff !important;
+    padding: 0.75rem 1rem !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.65rem !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border: none !important;
+}
+
+.post-accordion-header:hover {
+    background: linear-gradient(135deg, rgba(52, 52, 52, 0.7) 0%, rgba(47, 47, 47, 0.7) 100%) !important;
+}
+
+.post-accordion-item.active .post-accordion-header {
+    background: linear-gradient(135deg, rgba(143, 188, 143, 0.2) 0%, rgba(124, 184, 153, 0.2) 100%) !important;
+    color: #8fbc8f !important;
+}
+
+.post-icon {
+    font-size: 1.1rem !important;
+}
+
+.post-label {
+    flex: 1 !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    color: inherit !important;
+}
+
+.post-chevron {
+    color: #8fbc8f !important;
+    font-size: 0.85rem !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.post-accordion-item.active .post-chevron {
+    transform: rotate(180deg) !important;
+}
+
+.post-accordion-content {
+    max-height: 0 !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    background: rgba(30, 30, 30, 0.4) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.post-accordion-item.active .post-accordion-content {
+    max-height: 500px !important;
+    padding: 1rem !important;
+}
+
+/* Range Container */
+.range-container {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.65rem !important;
+    margin-top: 0.4rem !important;
+}
+
+.range-with-input {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    padding: 0.75rem !important;
+    background: #353535 !important;
+    border: 1px solid #555555 !important;
+    border-radius: 8px !important;
+}
+
+/* Alle Range-Inputs (Slider) - Specifische Selektoren */
+#post-offset-front,
+#post-offset-rear,
+#post-shorten-front,
+#post-shorten-rear,
+#post-shorten-middle,
+input[type="range"].post-offset-slider,
+input[type="range"].post-shorten-slider {
+    flex: 1 !important;
+    background: transparent !important;
+    height: 8px !important;
+    border-radius: 4px !important;
+    outline: none !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+}
+
+/* Track-Styling - WebKit */
+#post-offset-front::-webkit-slider-runnable-track,
+#post-offset-rear::-webkit-slider-runnable-track,
+#post-shorten-front::-webkit-slider-runnable-track,
+#post-shorten-rear::-webkit-slider-runnable-track,
+#post-shorten-middle::-webkit-slider-runnable-track {
+    width: 100% !important;
+    height: 8px !important;
+    background: #4a4a4a !important;
+    border-radius: 4px !important;
+    border: 1px solid #666666 !important;
+}
+
+/* Track-Styling - Firefox */
+#post-offset-front::-moz-range-track,
+#post-offset-rear::-moz-range-track,
+#post-shorten-front::-moz-range-track,
+#post-shorten-rear::-moz-range-track,
+#post-shorten-middle::-moz-range-track {
+    width: 100% !important;
+    height: 8px !important;
+    background: #4a4a4a !important;
+    border-radius: 4px !important;
+    border: 1px solid #666666 !important;
+}
+
+/* Thumb-Styling - WebKit */
+#post-offset-front::-webkit-slider-thumb,
+#post-offset-rear::-webkit-slider-thumb,
+#post-shorten-front::-webkit-slider-thumb,
+#post-shorten-rear::-webkit-slider-thumb,
+#post-shorten-middle::-webkit-slider-thumb {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #8fbc8f 0%, #7cb899 100%) !important;
+    cursor: grab !important;
+    border: 3px solid #ffffff !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(124, 184, 153, 0.3) !important;
+    margin-top: -8px !important;
+    transition: transform 0.2s ease !important;
+}
+
+/* Thumb-Styling - Firefox */
+#post-offset-front::-moz-range-thumb,
+#post-offset-rear::-moz-range-thumb,
+#post-shorten-front::-moz-range-thumb,
+#post-shorten-rear::-moz-range-thumb,
+#post-shorten-middle::-moz-range-thumb {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(135deg, #8fbc8f 0%, #7cb899 100%) !important;
+    cursor: grab !important;
+    border: 3px solid #ffffff !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(124, 184, 153, 0.3) !important;
+    transition: transform 0.2s ease !important;
+}
+
+/* Active State */
+#post-offset-front:active::-webkit-slider-thumb,
+#post-offset-rear:active::-webkit-slider-thumb,
+#post-shorten-front:active::-webkit-slider-thumb,
+#post-shorten-rear:active::-webkit-slider-thumb,
+#post-shorten-middle:active::-webkit-slider-thumb {
+    cursor: grabbing !important;
+    transform: scale(1.15) !important;
+}
+
+#post-offset-front:active::-moz-range-thumb,
+#post-offset-rear:active::-moz-range-thumb,
+#post-shorten-front:active::-moz-range-thumb,
+#post-shorten-rear:active::-moz-range-thumb,
+#post-shorten-middle:active::-moz-range-thumb {
+    cursor: grabbing !important;
+    transform: scale(1.15) !important;
+}
+
+/* Number Inputs neben Slidern */
+#post-offset-front-input,
+#post-offset-rear-input,
+#post-shorten-front-input,
+#post-shorten-rear-input,
+#post-shorten-middle-input,
+.post-offset-input,
+.post-shorten-input,
+.range-with-input input[type="number"] {
+    background: #2d2d2d !important;
+    border: 1px solid #666666 !important;
+    color: #ffffff !important;
+    padding: 0.6rem 0.75rem !important;
+    border-radius: 6px !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    width: 80px !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+#post-offset-front-input:focus,
+#post-offset-rear-input:focus,
+#post-shorten-front-input:focus,
+#post-shorten-rear-input:focus,
+#post-shorten-middle-input:focus,
+.post-offset-input:focus,
+.post-shorten-input:focus,
+.range-with-input input[type="number"]:focus {
+    border-color: #7cb899 !important;
+    box-shadow: 0 0 0 3px rgba(124, 184, 153, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    outline: none !important;
+}
+
+/* Individual Post Controls Container - Kompakt */
+#individual-post-controls {
+    background: transparent !important;
+}
+
+#individual-post-controls > div[style*="background: #f0f8ff"],
+#individual-post-controls > div[style*="background:#f0f8ff"] {
+    background: linear-gradient(135deg, rgba(143, 188, 143, 0.15) 0%, rgba(124, 184, 153, 0.15) 100%) !important;
+    border-left: 4px solid #8fbc8f !important;
+    border-radius: 8px !important;
+    padding: 0.6rem 0.75rem !important;
+    margin-bottom: 0.5rem !important;
+}
+
+#individual-post-controls strong {
+    color: #8fbc8f !important;
+    font-size: 0.88rem !important;
+    display: block !important;
+}
+
+#individual-post-controls p {
+    color: #e0e0e0 !important;
+    font-size: 0.82rem !important;
+    margin: 0.25rem 0 0 0 !important;
+    line-height: 1.3 !important;
+}
+
+#individual-post-controls label {
+    font-size: 0.82rem !important;
+    margin-bottom: 0.2rem !important;
+    display: block !important;
+}
+
+#individual-post-controls .range-with-input {
+    padding: 0.45rem 0.55rem !important;
+    margin-top: 0.25rem !important;
+    margin-bottom: 0.25rem !important;
+    gap: 0.5rem !important;
+}
+
+#individual-post-controls button {
+    padding: 0.45rem 0.7rem !important;
+    font-size: 0.82rem !important;
+    margin-top: 0.25rem !important;
+    margin-left: 0.5rem !important;
+}
+
+/* Post-Item Karten - sehr kompakt */
+#individual-post-controls .post-item {
+    margin-bottom: 0.5rem !important;
+    padding: 0.55rem !important;
+    background: #2d2d2d !important;
+    border: 1px solid #4a4a4a !important;
+    border-radius: 6px !important;
+}
+
+#individual-post-controls .post-item > div:first-child {
+    margin-bottom: 0.4rem !important;
+}
+
+#individual-post-controls .post-item strong {
+    font-size: 0.82rem !important;
+    color: #8fbc8f !important;
+}
+
+/* Toggle-Post-Button kompakter */
+#individual-post-controls .toggle-post-btn {
+    padding: 0.3rem 0.55rem !important;
+    font-size: 0.72rem !important;
+    min-width: 65px !important;
+}
+
+/* Dimension Columns - kompakteres Layout */
+#individual-post-controls .dimension-columns {
+    display: flex !important;
+    gap: 0.4rem !important;
+    flex-wrap: wrap !important;
+}
+
+#individual-post-controls .dimension-column {
+    flex: 1 !important;
+    min-width: 180px !important;
+    margin-left: 0 !important;
+}
+
+#individual-post-controls .dimension-row {
+    margin-bottom: 0.3rem !important;
+}
+
+#individual-post-controls .dimension-label {
+    font-size: 0.78rem !important;
+    margin-bottom: 0.25rem !important;
+    color: #e0e0e0 !important;
+}
+
+#individual-post-controls .dimension-label small {
+    font-size: 0.7rem !important;
+    opacity: 0.7 !important;
+}
+
+#individual-post-controls .dimension-input-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
+}
+
+#individual-post-controls .dimension-input-group input[type="text"] {
+    min-width: 55px !important;
+    min-height: 32px !important;
+    max-width: 70px !important;
+    padding: 0.3rem !important;
+    font-size: 0.85rem !important;
+}
+
+#individual-post-controls .dimension-stepper {
+    display: flex !important;
+    gap: 0.15rem !important;
+}
+
+#individual-post-controls .dimension-btn {
+    padding: 0.3rem 0.5rem !important;
+    font-size: 0.85rem !important;
+    min-width: 28px !important;
+}
+
+#individual-post-controls h4 {
+    font-size: 0.95rem !important;
+    margin-bottom: 0.5rem !important;
+}
+
+/* Pfosten-Container */
+#corner-posts-container,
+#intermediate-posts-container,
+#center-posts-container {
+    display: grid !important;
+    gap: 0.5rem !important;
+}
+
+/* Control Group Compact */
+.control-group-compact {
+    background: transparent !important;
+    margin-bottom: 1.5rem !important;
+}
+
+.control-group-compact h4 {
+    color: #ffffff !important;
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+    margin: 0 0 0.75rem 0 !important;
+    padding-bottom: 0.5rem !important;
+    border-bottom: 1px solid rgba(143, 188, 143, 0.2) !important;
+}
+
+/* Segment Inputs im Carport-Modus */
+#carport-tab-content input[type="number"] {
+    background: #1a1a1a !important;
+    border: 1px solid rgba(143, 188, 143, 0.3) !important;
+    color: #ffffff !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    padding: 0.75rem !important;
+}
+
+#carport-tab-content input[type="number"]:focus {
+    border-color: #8fbc8f !important;
+    box-shadow: 0 0 0 3px rgba(143, 188, 143, 0.2) !important;
+}
+
+/* Carport Buttons */
+#carport-tab-content button {
+    background: linear-gradient(135deg, #2d2d2d 0%, #272727 100%) !important;
+    border: 1px solid rgba(143, 188, 143, 0.3) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    padding: 0.75rem 1rem !important;
+}
+
+#carport-tab-content button:hover {
+    background: linear-gradient(135deg, #8fbc8f 0%, #7cb899 100%) !important;
+    border-color: #8fbc8f !important;
+    box-shadow: 0 4px 12px rgba(143, 188, 143, 0.3) !important;
+}
+
+/* Carport Segment Highlighting */
+.carport-segment.segment-highlight {
+    outline: 2px solid #8fbc8f !important;
+    box-shadow: 0 0 0 4px rgba(143, 188, 143, 0.25), 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.carport-segment.segment-hover {
+    box-shadow: 0 4px 12px rgba(143, 188, 143, 0.3) !important;
+}
+
+/* Drag Toggle Button */
+.drag-toggle-btn {
+    background: linear-gradient(135deg, rgba(42, 42, 42, 0.95) 0%, rgba(37, 37, 37, 0.95) 100%) !important;
+    border: 1px solid rgba(143, 188, 143, 0.3) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+    font-weight: 600 !important;
+}
+
+.drag-toggle-btn:hover {
+    background: linear-gradient(135deg, rgba(52, 52, 52, 0.95) 0%, rgba(47, 47, 47, 0.95) 100%) !important;
+    border-color: rgba(143, 188, 143, 0.5) !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5), 0 0 20px rgba(143, 188, 143, 0.15) !important;
+}
+
+.drag-toggle-btn.is-off {
+    background: linear-gradient(135deg, rgba(35, 35, 35, 0.8) 0%, rgba(30, 30, 30, 0.8) 100%) !important;
+    color: #999999 !important;
+    border-color: rgba(143, 188, 143, 0.2) !important;
+    opacity: 0.7 !important;
+}
+
+/* Carport Overlay Actions */
+.carport-overlay-actions {
+    padding: 0.5rem 0 !important;
+}
+
+/* Segment Statik Indicator */
+.segment-statics-indicator {
+    background: rgba(143, 188, 143, 0.2) !important;
+    color: #8fbc8f !important;
+    font-weight: 600 !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 6px !important;
+    border: 1px solid rgba(143, 188, 143, 0.3) !important;
+}
+
+.segment-statics-indicator.segment-conflict {
+    background: rgba(245, 158, 11, 0.2) !important;
+    color: #fbbf24 !important;
+    border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+/* ===================================================================
+   UNTERE NAVIGATION (TABS) - Edler & Lesbarer
+   =================================================================== */
+
+.canvas-compact-info {
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.95) 0%, rgba(30, 30, 30, 0.95) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+}
+
+.compact-info-header {
+    color: #fff !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.compact-info-line {
+    color: #e0e0e0 !important;
+}
+
+.compact-info-line strong {
+    color: #fff !important;
+}
+
+.compact-info-total {
+    background: rgba(143, 188, 143, 0.1) !important;
+}
+
+.compact-info-total strong {
+    color: #8fbc8f !important;
+}
+
+.segment-num {
+    color: #8fbc8f !important;
+}
+
+.segment-size {
+    color: #fff !important;
+}
+
+/* ===================================================================
+   DIMENSION HANDLES - Premium Dark
+   =================================================================== */
+
+.dimension-handle {
+    background: rgba(26, 26, 26, 0.95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.dimension-handle:hover {
+    border-color: rgba(143, 188, 143, 0.5) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 20px rgba(143, 188, 143, 0.2) !important;
+}
+
+.dimension-handle-icon {
+    color: #8fbc8f !important;
+}
+
+/* ===================================================================
+   LABELS & TEXT - Premium Typography
+   =================================================================== */
+
+label {
+    color: #e0e0e0 !important;
+    font-weight: 500 !important;
+}
+
+.dimension-label {
+    color: #fff !important;
+}
+
+small, .help-text {
+    color: #999 !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #fff !important;
+}
+
+/* Modal/Dialog Überschriften sollen schwarz sein */
+#anfrage-modal-overlay h3,
+div[id*="modal"] h3,
+div[id*="overlay"] h3 {
+    color: #1a1a1a !important;
+}
+
+/* ===================================================================
+   SCROLLBARS - Premium Dark
+   =================================================================== */
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: rgba(143, 188, 143, 0.3);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: rgba(143, 188, 143, 0.5);
+    background-clip: padding-box;
+}
+
+/* ===================================================================
+   FOCUS STATES - Accessibility
+   =================================================================== */
+
+*:focus-visible {
+    outline: 2px solid #8fbc8f !important;
+    outline-offset: 2px !important;
+}
+
+::selection {
+    background: rgba(143, 188, 143, 0.3) !important;
+    color: #fff !important;
+}
+
+/* ===================================================================
+   SMOOTH TRANSITIONS - Alles geschmeidig
+   =================================================================== */
+
+* {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* ===================================================================
+   CANVAS CURSOR - Besseres Feedback
+   =================================================================== */
+
+#pergola-canvas {
+    cursor: grab;
+}
+
+#pergola-canvas:active {
+    cursor: grabbing;
+}
+
+/* ===================================================================
+   CARPORT INTERACTION HINT - Dezenter Hinweis
+   =================================================================== */
+
+.carport-interaction-hint {
+    position: fixed;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(45, 45, 45, 0.95);
+    color: #ffffff;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(143, 188, 143, 0.3);
+    z-index: 900;
+    animation: fadeInSlideUp 0.4s ease-out;
+    pointer-events: none;
+}
+
+.carport-interaction-hint .hint-icon {
+    font-size: 1.1rem;
+}
+
+.carport-interaction-hint .hint-text {
+    font-weight: 500;
+}
+
+/* Mobile-Anfrage-Bar standardmäßig versteckt */
+.mobile-anfrage-bar {
+    display: none;
+}
+
+/* Desktop-Preisschild normal anzeigen */
+#price-tag {
+    /* Wird nur auf Mobile versteckt via mobile-optimizations.css */
+}
+
+@keyframes fadeInSlideUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* ===================================================================
+   TAB NAVIGATION - Edler, größere Icons
+   =================================================================== */
+
+.horizontal-tab {
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(30, 30, 30, 0.9) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+    padding: 0.875rem 1.25rem !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.horizontal-tab::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(143, 188, 143, 0.05) 0%, rgba(124, 184, 153, 0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 0;
+}
+
+.horizontal-tab:hover::before {
+    opacity: 1;
+}
+
+.horizontal-tab:hover {
+    border-color: rgba(143, 188, 143, 0.4) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 20px rgba(143, 188, 143, 0.1) !important;
+}
+
+.horizontal-tab.active {
+    background: linear-gradient(135deg, #8fbc8f 0%, #7cb899 100%) !important;
+    border-color: #8fbc8f !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    box-shadow: 0 6px 20px rgba(143, 188, 143, 0.4), 
+                0 0 30px rgba(143, 188, 143, 0.2) !important;
+}
+
+.horizontal-tab.active::before {
+    opacity: 0;
+}
+
+/* Tab Icons - Größer & deutlicher */
+.horizontal-tab i,
+.horizontal-tab svg,
+.horizontal-tab .icon {
+    font-size: 1.4rem !important;
+    margin-right: 0.75rem !important;
+    color: inherit !important;
+    position: relative;
+    z-index: 1;
+}
+
+.horizontal-tab span {
+    position: relative;
+    z-index: 1;
+    font-size: 0.95rem !important;
+    font-weight: 500 !important;
+}
+
+.horizontal-tab.active span {
+    font-weight: 600 !important;
+}
+
+/* Tab Container */
+.horizontal-tabs-container {
+    background: rgba(20, 20, 20, 0.95) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 0.5rem !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* ===================================================================
+   SEGMENT EIGENSCHAFTEN - Collapsible Sections Premium Dark
+   =================================================================== */
+
+/* Segment Section Toggle Button */
+.segment-section-toggle {
+    background: linear-gradient(135deg, rgba(42, 42, 42, 0.95) 0%, rgba(37, 37, 37, 0.95) 100%) !important;
+    border: 1px solid rgba(143, 188, 143, 0.3) !important;
+    color: #ffffff !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    margin: 0 0 0.5rem 0 !important;
+}
+
+.segment-section-toggle:hover {
+    background: linear-gradient(135deg, rgba(52, 52, 52, 0.95) 0%, rgba(47, 47, 47, 0.95) 100%) !important;
+    border-color: rgba(143, 188, 143, 0.5) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(143, 188, 143, 0.15) !important;
+}
+
+.segment-section-toggle[aria-expanded="true"] {
+    background: linear-gradient(135deg, rgba(143, 188, 143, 0.25) 0%, rgba(124, 184, 153, 0.25) 100%) !important;
+    border-color: rgba(143, 188, 143, 0.6) !important;
+    color: #8fbc8f !important;
+}
+
+/* Chevron Icon */
+.segment-section-chevron {
+    color: #8fbc8f !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    font-size: 0.85rem !important;
+}
+
+.segment-section-toggle[aria-expanded="true"] .segment-section-chevron {
+    transform: rotate(90deg) !important;
+}
+
+/* Segment Section Content */
+.segment-section-content {
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.5) 0%, rgba(26, 26, 26, 0.5) 100%) !important;
+    border: 1px solid rgba(143, 188, 143, 0.2) !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    margin-top: 0.5rem !important;
+}
+
+.segment-section-content > div {
+    background: rgba(42, 42, 42, 0.3) !important;
+    border: 1px solid rgba(143, 188, 143, 0.1) !important;
+    border-radius: 4px !important;
+    padding: 0.65rem !important;
+    margin-top: 0.5rem !important;
+}
+
+.segment-section-content > div:first-child {
+    margin-top: 0 !important;
+}
+
+.segment-section-content label {
+    color: #e0e0e0 !important;
+    font-weight: 600 !important;
+}
+
+.segment-section-content small {
+    color: #999999 !important;
+}
+
+/* Segment Section selects */
+.segment-rotation,
+.segment-zwischenpfosten-profil,
+.segment-drainage {
+    background: #2d2d2d !important;
+    border: 1px solid #666666 !important;
+    color: #ffffff !important;
+    padding: 0.45rem 2.5rem 0.65rem 0.75rem !important;
+    border-radius: 6px !important;
+    font-size: 16px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"%3E%3Cpath fill="%238fbc8f" d="M0 0l6 8 6-8z"/%3E%3C/svg%3E') !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.75rem center !important;
+    background-size: 12px 8px !important;
+}
+
+.segment-rotation option,
+.segment-zwischenpfosten-profil option,
+.segment-drainage option {
+    background: #2d2d2d !important;
+    color: #ffffff !important;
+    padding: 0.5rem !important;
+}
+
+.segment-rotation:hover,
+.segment-zwischenpfosten-profil:hover,
+.segment-drainage:hover {
+    border-color: rgba(143, 188, 143, 0.5) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.segment-rotation:focus,
+.segment-zwischenpfosten-profil:focus,
+.segment-drainage:focus {
+    border-color: #8fbc8f !important;
+    box-shadow: 0 0 0 3px rgba(143, 188, 143, 0.2) !important;
+    outline: none !important;
+}
+
+/* Rotation Wrapper für bessere Darstellung */
+.segment-section-content > div > label + select,
+.segment-section-content > div > select {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Segment Section Border */
+.segment-section {
+    border-bottom: 1px solid rgba(143, 188, 143, 0.15) !important;
+    padding-bottom: 1rem !important;
+    margin-bottom: 1rem !important;
+}
+
+/* Zwischenpfosten Option Cards im Segment */
+.segment-intermediate-posts-width-btn,
+.segment-intermediate-posts-depth-btn {
+    background: linear-gradient(135deg, rgba(42, 42, 42, 0.95) 0%, rgba(37, 37, 37, 0.95) 100%) !important;
+    border: 1px solid rgba(143, 188, 143, 0.3) !important;
+    color: #ffffff !important;
+    padding: 0.75rem !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.segment-intermediate-posts-width-btn:hover,
+.segment-intermediate-posts-depth-btn:hover {
+    background: linear-gradient(135deg, rgba(52, 52, 52, 0.95) 0%, rgba(47, 47, 47, 0.95) 100%) !important;
+    border-color: rgba(143, 188, 143, 0.5) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(143, 188, 143, 0.15) !important;
+}
+
+.segment-intermediate-posts-width-btn.active,
+.segment-intermediate-posts-depth-btn.active {
+    background: linear-gradient(135deg, #8fbc8f 0%, #7cb899 100%) !important;
+    border-color: #8fbc8f !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(143, 188, 143, 0.4), 0 0 20px rgba(143, 188, 143, 0.2) !important;
+}
+
+/* ===================================================================
+   CARPORT SEGMENT CARDS - Kompakt & Premium Dark
+   =================================================================== */
+
+.carport-segment {
+    background: #404040 !important;
+    border: 2px solid #555555 !important;
+    border-radius: 8px !important;
+    padding: 0.85rem !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    transition: all 0.3s ease !important;
+    margin-bottom: 1rem !important;
+}
+
+/* Eingeklappte Segmente - kompakte Box */
+.carport-segment:has(.segment-body[style*="display: none"]) {
+    padding: 0.65rem 0.85rem !important;
+    background: #353535 !important;
+    border: 1px solid #4a4a4a !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.carport-segment:has(.segment-body[style*="display: none"]) .segment-header {
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0.25rem !important;
+}
+
+/* Segment Header */
+.segment-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding-bottom: 0.65rem !important;
+    border-bottom: 1px solid rgba(143, 188, 143, 0.2) !important;
+    gap: 0.5rem !important;
+    margin-bottom: 0.75rem !important;
+}
+
+.segment-header strong {
+    color: #ffffff !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+}
+
+/* Segment Toggle Button */
+.segment-toggle {
+    background: transparent !important;
+    border: none !important;
+    color: #8fbc8f !important;
+    cursor: pointer !important;
+    font-size: 0.95rem !important;
+    padding: 0 !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.segment-toggle:hover {
+    color: #7cb899 !important;
+}
+
+/* Segment Body */
+.segment-body {
+    margin-top: 0.75rem !important;
+}
+
+.segment-body h5 {
+    color: #e0e0e0 !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    margin: 0 0 0.65rem 0 !important;
+}
+
+/* Remove Segment Button */
+.remove-segment {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.9) 0%, rgba(200, 35, 51, 0.9) 100%) !important;
+    border: 1px solid rgba(220, 53, 69, 0.5) !important;
+    color: #ffffff !important;
+    padding: 0.4rem 0.65rem !important;
+    border-radius: 6px !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.remove-segment:hover {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 1) 0%, rgba(200, 35, 51, 1) 100%) !important;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4) !important;
+}
+
+/* Segment Body Sections mit Rahmen */
+.segment-body > div {
+    background: #3d3d3d !important;
+    border: 1px solid #555555 !important;
+    border-radius: 8px !important;
+    padding: 0.85rem !important;
+    margin-bottom: 0.75rem !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.segment-body > div:last-child {
+    margin-bottom: 0 !important;
+}
+
+/* Dimension Columns - Kompakt */
+.dimension-columns {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem !important;
+}
+
+.dimension-column {
+    display: flex !important;
+    flex-direction: column !important;
+    background: #3d3d3d !important;
+    border: 1px solid #555555 !important;
+    border-radius: 8px !important;
+    padding: 0.25rem !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dimension-row {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.4rem !important;
+}
+
+.dimension-label {
+    color: #ffffff !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.15rem !important;
+}
+
+.dimension-label small {
+    color: #999999 !important;
+    font-size: 0.75rem !important;
+    font-weight: 400 !important;
+}
+
+/* Dimension Input Group */
+.dimension-input-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+}
+
+.dimension-input-group input[type="text"],
+.segment-width,
+.segment-depth,
+.segment-height,
+.segment-slope,
+.segment-x,
+.segment-z {
+    background: linear-gradient(135deg, #2a2a2a 0%, #252525 100%) !important;
+    border: 1px solid rgba(143, 188, 143, 0.3) !important;
+    color: #ffffff !important;
+    padding: 0.5rem !important;
+    border-radius: 6px !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    min-width: 50px !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dimension-input-group input[type="text"]:focus,
+.segment-width:focus,
+.segment-depth:focus,
+.segment-height:focus,
+.segment-slope:focus,
+.segment-x:focus,
+.segment-z:focus {
+    border-color: #8fbc8f !important;
+    box-shadow: 0 0 0 3px rgba(143, 188, 143, 0.2) !important;
+    outline: none !important;
+}
+
+/* Dimension Stepper Buttons */
+.dimension-stepper {
+    display: flex !important;
+    gap: 0.25rem !important;
+}
+
+.dimension-btn {
+    background: #353535 !important;
+    border: 1px solid #555555 !important;
+    color: #ffffff !important;
+    padding: 0.5rem 0.6rem !important;
+    border-radius: 6px !important;
+    font-size: 1rem !important;
+    cursor: pointer !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+}
+
+.dimension-btn:hover {
+    background: #7cb899 !important;
+    border-color: #8fbc8f !important;
+    box-shadow: 0 2px 12px rgba(124, 184, 153, 0.4) !important;
+    transform: scale(1.05) !important;
+}
+
+.dimension-btn:active {
+    transform: scale(0.95) !important;
+}
+
+/* ===================================================================
+   CARPORT SEGMENT CARDS - Kompakt & Premium Dark
+   =================================================================== */
+
+.carport-segment {
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.95) 0%, rgba(26, 26, 26, 0.95) 100%) !important;
+    border: 1px solid rgba(143, 188, 143, 0.3) !important;
+    border-radius: 8px !important;
+    padding: 0.85rem !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+}
+
+/* Segment Header */
+.segment-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding-bottom: 0.65rem !important;
+    border-bottom: 1px solid rgba(143, 188, 143, 0.2) !important;
+    gap: 0.5rem !important;
+    margin-bottom: 0.75rem !important;
+}
+
+.segment-header strong {
+    color: #8fbc8f !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+}
+
+/* Segment Toggle Button */
+.segment-toggle {
+    background: transparent !important;
+    border: none !important;
+    color: #8fbc8f !important;
+    cursor: pointer !important;
+    font-size: 0.95rem !important;
+    padding: 0 !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.segment-toggle:hover {
+    color: #7cb899 !important;
+}
+
+/* Segment Body */
+.segment-body {
+    margin-top: 0.75rem !important;
+}
+
+.segment-body h5 {
+    color: #e0e0e0 !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    margin: 0 0 0.65rem 0 !important;
+}
+
+/* Remove Segment Button */
+.remove-segment {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.9) 0%, rgba(200, 35, 51, 0.9) 100%) !important;
+    border: 1px solid rgba(220, 53, 69, 0.5) !important;
+    color: #ffffff !important;
+    padding: 0.4rem 0.65rem !important;
+    border-radius: 6px !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.remove-segment:hover {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 1) 0%, rgba(200, 35, 51, 1) 100%) !important;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4) !important;
+}
+
+/* ===================================================================
+   SEGMENT EIGENSCHAFTEN - Collapsible Sections Premium Dark
+   =================================================================== */
+
+/* Segment Section Toggle Button */
+.segment-section-toggle {
+    background: linear-gradient(135deg, rgba(42, 42, 42, 0.95) 0%, rgba(37, 37, 37, 0.95) 100%) !important;
+    border: 1px solid rgba(143, 188, 143, 0.3) !important;
+    color: #ffffff !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    margin: 0 0 0.5rem 0 !important;
+}
+
+.segment-section-toggle:hover {
+    background: linear-gradient(135deg, rgba(52, 52, 52, 0.95) 0%, rgba(47, 47, 47, 0.95) 100%) !important;
+    border-color: rgba(143, 188, 143, 0.5) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(143, 188, 143, 0.15) !important;
+}
+
+.segment-section-toggle[aria-expanded="true"] {
+    background: linear-gradient(135deg, rgba(143, 188, 143, 0.25) 0%, rgba(124, 184, 153, 0.25) 100%) !important;
+    border-color: rgba(143, 188, 143, 0.6) !important;
+    color: #8fbc8f !important;
+}
+
+/* Chevron Icon */
+.segment-section-chevron {
+    color: #8fbc8f !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    font-size: 0.85rem !important;
+}
+
+.segment-section-toggle[aria-expanded="true"] .segment-section-chevron {
+    transform: rotate(90deg) !important;
+}
+
+/* Segment Section Content */
+.segment-section-content {
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.5) 0%, rgba(26, 26, 26, 0.5) 100%) !important;
+    border: 1px solid rgba(143, 188, 143, 0.2) !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    margin-top: 0.5rem !important;
+}

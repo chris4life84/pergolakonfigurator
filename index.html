@@ -1,0 +1,3568 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modul-Garten.de - Neues Layout Demo</title>
+    <link rel="stylesheet" href="css/style.min.css">
+    <link rel="stylesheet" href="css/overrides.min.css">
+    <link rel="stylesheet" href="css/mobile-optimizations.css">
+    <link rel="stylesheet" href="css/horizontal-layout.css">
+    <link rel="stylesheet" href="css/premium-optimizer.css">
+    <link rel="stylesheet" href="css/quick-wins.css">
+    <style>
+        .template-flyout{
+            position:absolute;
+            top:calc(var(--header-height) + 8px);
+            left:16px;
+            z-index:960;
+            font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+            pointer-events:auto;
+        }
+        .template-toggle-row{
+            display:flex;
+            gap:0.35rem;
+            align-items:center;
+            flex-wrap:wrap;
+            padding:0.35rem 0.55rem;
+            background:rgba(255,255,255,0.9);
+            border-radius:12px;
+            box-shadow:0 4px 14px rgba(0,0,0,0.08);
+        }
+        .template-flyout-toggle{
+            border:1px solid rgba(0,0,0,0.08);
+            background:rgba(255,255,255,0.92);
+            padding:0.32rem 0.65rem;
+            border-radius:9px;
+            box-shadow:0 3px 10px rgba(0,0,0,0.08);
+            cursor:pointer;
+            font-weight:500;
+            color:#1f2937;
+            transition:all .2s ease;
+            font-size:0.86rem;
+            letter-spacing:0.01em;
+        }
+        .template-flyout-toggle:hover{
+            background:#f7f8fb;
+            transform:translateY(-1px);
+            box-shadow:0 4px 12px rgba(0,0,0,0.12);
+        }
+        .template-flyout-toggle.active{
+            background:#eaf2ff;
+            box-shadow:0 4px 12px rgba(46,115,255,0.16);
+            color:#0f3d91;
+            font-weight:600;
+        }
+        .template-flyout-toggle.compact-primary{
+            font-weight:700;
+        }
+        .carport-template-compact select{
+            padding:0.35rem 0.5rem;
+            border-radius:6px;
+            font-size:0.9rem;
+            border:1px solid #d8dfe8;
+        }
+        .template-flyout-menu{
+            margin-top:0.5rem;
+            background:rgba(255,255,255,0.96);
+            border-radius:12px;
+            box-shadow:0 12px 30px rgba(0,0,0,0.18);
+            width: min(1100px, 92vw);
+            max-height: 70vh;
+            overflow: auto;
+            padding:0.55rem;
+            border:1px solid rgba(0,0,0,0.06);
+        }
+        .template-flyout-header{
+            font-weight:700;
+            color:#111827;
+            margin-bottom:0.5rem;
+            font-size:0.9rem;
+        }
+        .template-flyout-list{
+            display:grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap:0.3rem;
+        }
+        .template-card{
+            border:1px solid #e5e7eb;
+            border-radius:10px;
+            padding:0.45rem 0.55rem;
+            background:linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,250,252,0.98) 100%);
+            box-shadow:0 4px 10px rgba(0,0,0,0.08);
+            cursor:pointer;
+            transition:all .18s ease;
+        }
+        .template-card:hover{
+            border-color:#cfd6e0;
+            box-shadow:0 8px 16px rgba(0,0,0,0.12);
+            transform:translateY(-1px);
+        }
+        .template-card-title{
+            font-weight:700;
+            color:#1f2937;
+            font-size:0.88rem;
+        }
+        .template-card-sub{
+            font-size:0.76rem;
+            color:#374151;
+        }
+        .template-card-meta{
+            margin-top:0.28rem;
+            display:flex;
+            flex-wrap:wrap;
+            gap:0.18rem 0.32rem;
+            font-size:0.74rem;
+            color:#4b5563;
+        }
+        .template-chip{
+            background:#eef2f7;
+            border-radius:999px;
+            padding:0.15rem 0.5rem;
+            font-weight:600;
+            color:#1f2937;
+        }
+        @media(max-width:768px){
+            .template-flyout{
+                top:10px;
+                left:10px;
+            }
+            .template-flyout-menu{
+                width:92vw;
+                grid-template-columns: 1fr;
+                max-height: 60vh;
+            }
+            .template-flyout-list{grid-template-columns:1fr;}
+        }
+        /* Carport Overlay Templates */
+        .carport-overlay-templates{
+            position:absolute;
+            top:calc(var(--header-height) + 18px);
+            left: max(200px, 25vw);
+            z-index:960;
+            background:rgba(255,255,255,0.96);
+            border-radius:12px;
+            pointer-events:auto;
+            display:flex;
+            flex-direction:column;
+            gap:0.35rem;
+        }
+        .carport-overlay-actions{
+            display:flex;
+            align-items:center;
+            gap:0.4rem;
+            flex-wrap:wrap;
+        }
+        .drag-toggle-btn{
+            border:1px solid rgba(0,0,0,0.08);
+            background:rgba(255,255,255,0.92);
+            padding:0.42rem 0.75rem;
+            border-radius:10px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.1);
+            cursor:pointer;
+            font-weight:700;
+            color:#1f2937;
+            transition:all .16s ease;
+            font-size:0.9rem;
+        }
+        .drag-toggle-btn:hover{
+            background:#f7f8fb;
+            transform:translateY(-1px);
+            box-shadow:0 6px 14px rgba(0,0,0,0.12);
+        }
+        .drag-toggle-btn.is-off{
+            color:#4b5563;
+            border-color:rgba(0,0,0,0.06);
+            opacity:0.88;
+        }
+        .carport-overlay-panel{
+            margin-top:0.4rem;
+            background:rgba(255,255,255,0.96);
+            border-radius:12px;
+            box-shadow:0 10px 24px rgba(0,0,0,0.16);
+            border:1px solid rgba(0,0,0,0.06);
+            padding:0.45rem 0.6rem 0.55rem 0.6rem;
+            min-width:320px;
+            max-width:520px;
+        }
+        .carport-overlay-header{
+            font-weight:700;
+            color:#0f3d91;
+            margin-bottom:0.35rem;
+            font-size:0.9rem;
+        }
+        .carport-overlay-list{
+            display:grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap:0.28rem;
+        }
+        .carport-overlay-chip{
+            border:1px solid #d9dfe8;
+            border-radius:9px;
+            padding:0.32rem 0.4rem;
+            background:linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(246,249,253,0.98) 100%);
+            font-weight:700;
+            font-size:0.82rem;
+            color:#1f2937;
+            text-align:center;
+            cursor:pointer;
+            transition:all .16s ease;
+        }
+        .carport-overlay-chip small{
+            display:block;
+            font-weight:600;
+            font-size:0.72rem;
+            color:#4b5563;
+        }
+        .carport-overlay-chip:hover{
+            box-shadow:0 6px 12px rgba(0,0,0,0.12);
+            border-color:#cfd6e0;
+            transform:translateY(-1px);
+        }
+        @media(max-width: 1024px){
+            .carport-overlay-templates{
+                left: 16px;
+                right: 16px;
+                max-width: none;
+                min-width: 0;
+            }
+            .carport-overlay-list{
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
+        }
+        .carport-segment.segment-highlight{
+            outline:2px solid #007bff;
+            box-shadow:0 0 0 3px rgba(0,123,255,0.15),0 2px 6px rgba(0,0,0,0.12);
+        }
+        .carport-segment.segment-hover{
+            box-shadow:0 3px 8px rgba(0,0,0,0.16);
+        }
+    </style>
+</head>
+<body>
+    <script>
+        (()=>{try{
+            const path=window.location.pathname;
+            const qs=new URLSearchParams(window.location.search);
+            const targetIntern=qs.get('target')==='intern';
+            const isIntern=path.includes('/intern') || targetIntern;
+            const isSnapshotS=path.includes('/s/') || (!isIntern && qs.has('share'));
+            const applyVisibility=()=>{
+                if(!isIntern){
+                    document.body.classList.add('compact-info-hidden');
+                    const ci=document.getElementById('compact-info');
+                    if(ci) ci.hidden=true;
+                    // Toggle bleibt sichtbar, damit „Basisdaten“ weiterhin vorhanden ist
+                    const infoFab=document.getElementById('infobox-toggle');
+                    const infoPanel=document.getElementById('infobox-panel');
+                    if(infoFab) infoFab.style.display='none';
+                    if(infoPanel) infoPanel.style.display='none';
+                }
+                if(isSnapshotS){
+                    const configPanel=document.querySelector('.horizontal-config-panel');
+                    if(configPanel) configPanel.style.display='none';
+                    const anfrageBtn=document.getElementById('anfrageWeiterButton');
+                    if(anfrageBtn) anfrageBtn.style.display='none';
+                }
+            };
+            if(document.readyState==="loading"){
+                document.addEventListener("DOMContentLoaded", applyVisibility);
+            }else{
+                applyVisibility();
+            }
+        }catch(e){console.warn('init visibility failed', e);}})();
+    </script>
+    <!-- Header -->
+    <div class="canvas-container">
+        <div class="header">
+            <div class="header-content">
+                <div class="branding"><a href="https://modul-garten.de" style="color: #887e7e; font-size:1em;font-weight:400; text-decoration: none;">modul-garten.de</a></div>
+                <nav class="main-nav">
+                </nav>
+            </div>
+        </div>
+        
+        <!-- 3D Canvas (60% Höhe) -->
+        <canvas id="pergola-canvas"></canvas>
+        
+        <!-- Hilfeboxen oben links -->
+        <div class="canvas-help" id="canvas-help">
+            <div class="canvas-help-card canvas-help-card--clickable" id="bemassung-toggle">
+                <span class="help-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+                        <path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 10H3V8h2v4h2V8h2v4h2V8h2v4h2V8h2v4h2V8h2v8z" fill="currentColor"/>
+                    </svg>
+                </span>
+            </div>
+        </div>
+        
+        <!-- Kompakte Info-Anzeige -->
+        <div class="canvas-compact-info" id="compact-info" hidden></div>
+        
+        <!-- Carport-Hinweis (nur im Carportmodus sichtbar) -->
+        <div class="carport-interaction-hint" id="carport-interaction-hint" hidden>
+            <span class="hint-icon">💡</span>
+            <span class="hint-text">Klicke auf eine Pergola, um die Segmenteigenschaften anzuzeigen</span>
+        </div>
+
+        <!-- Template-Flyout oben links (Basisdaten/Drag-Toggle sichtbar, Vorlagen-Buttons ausgeblendet) -->
+        <div id="template-flyout" class="template-flyout">
+            <div class="template-toggle-row">
+                <button id="compact-info-toggle" class="template-flyout-toggle compact-primary" type="button" aria-pressed="false">
+                    📋 Basisdaten
+                </button>
+                <button id="carport-overlay-toggle" class="template-flyout-toggle" aria-expanded="false" hidden style="display:none;">
+                    🚗 Carport-Vorlagen
+                </button>
+                <button id="drag-handles-toggle" class="template-flyout-toggle" aria-pressed="false" type="button" hidden style="display:none;">
+                    👁️ Drag-Icons ausblenden
+                </button>
+            </div>
+            <div id="template-flyout-menu" class="template-flyout-menu" hidden>
+                <div class="template-flyout-header">Schnell starten</div>
+                <div class="template-flyout-list" id="template-flyout-list"></div>
+                <div class="template-flyout-empty" id="template-flyout-empty" hidden>Demnächst verfügbar.</div>
+            </div>
+        </div>
+
+        <!-- Carport Overlay Vorlagen (erscheint nur im Carportmodus) -->
+        <div id="carport-overlay-templates" class="carport-overlay-templates" style="display:none;" hidden>
+            <div class="carport-overlay-panel" id="carport-overlay-panel" hidden>
+                <div class="carport-overlay-header">Carport-Vorlagen</div>
+                <div class="carport-overlay-list" id="carport-overlay-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Horizontale Konfigurations-Leiste (40% Höhe) -->
+    <div class="horizontal-config-panel">
+        <!-- Tab-Navigation -->
+        <div class="horizontal-tabs">
+            <button class="horizontal-tab active tab-highlight-yellow" data-tab="abmessungen">
+                <span class="tab-icon">⚙️</span>
+                <span class="tab-label">Grundkonfiguration</span>
+            </button>
+            <button class="horizontal-tab hide-on-mobile" data-tab="dach">
+                <span class="tab-icon">🏠</span>
+                <span class="tab-label">Dach</span>
+            </button>
+            <button class="horizontal-tab hide-on-mobile" data-tab="gestaltung">
+                <span class="tab-icon">🎨</span>
+                <span class="tab-label">Gestaltung</span>
+            </button>
+            <button class="horizontal-tab hide-on-mobile" data-tab="konstruktion">
+                <span class="tab-icon">🏗️</span>
+                <span class="tab-label">Konstruktion</span>
+            </button>
+            <button class="horizontal-tab hide-on-mobile" data-tab="feintuning">
+                <span class="tab-icon">🔧</span>
+                <span class="tab-label">Feintuning</span>
+            </button>
+            <button class="horizontal-tab tab-highlight-blue hide-on-mobile" data-tab="carport" id="carport-tab-button">
+                <span class="tab-icon">🚗</span>
+                <span class="tab-label">Carportmodus</span>
+            </button>
+        </div>
+        
+        <!-- Mobiler Anfrage-Button (nur für Mobile) -->
+        <div class="mobile-anfrage-bar" id="mobile-anfrage-bar">
+            <div class="mobile-price-display" id="mobile-price-display">
+                <span class="mobile-price-label">GESAMTPREIS</span>
+                <span class="mobile-price-amount">5.574,98 €</span>
+            </div>
+            <button class="mobile-anfrage-btn" id="mobile-anfrage-btn">
+                Weiter zu Anfrage
+            </button>
+        </div>
+
+        <!-- Tab-Inhalte -->
+        <div class="horizontal-config-content">
+            <!-- Tab 1: Grundkonfiguration -->
+            <div class="horizontal-tab-content active" data-content="abmessungen">
+                <div class="config-grid">
+                    <!-- Statik Card -->
+                    <div class="control-group-compact statics-card hide-on-mobile" id="main-statics-card">
+                        <h4>🔍 Statik</h4>
+                        <div class="statics-card-body">
+                            <span class="statics-card-indicator" id="statics-card-indicator">🟢</span>
+                            <div>
+                                <div class="statics-card-title" id="statics-card-text">Statik OK</div>
+                                <small class="statics-card-note" id="statics-card-note">Alle Nachweise erfüllt</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mobile-desktop-tip" aria-live="polite">
+                        💡 Tipp: Für erweiterte Konfigurationsmöglichkeiten (Dachtyp, Gestaltung, Konstruktion, Feintuning) nutzen Sie bitte die Desktop-Version.
+                    </div>
+
+                    <!-- PERGOLA-MODUS Einstellungen -->
+                    <div id="pergola-mode-settings" style="display: contents;">
+                        <!-- Vorlagen - Kompakte Box -->
+                        <div class="control-group-compact" style="background:#f8f9fa;padding:0.75rem;border-radius:10px;border:1px solid #e5e7eb;">
+                            <h4 style="margin:0 0 0.5rem 0;font-size:0.92rem;">⭐ Vorlagen</h4>
+                            <div style="display:flex;flex-direction:column;gap:0.4rem;">
+                                <select id="preset-dropdown-glas-pult" class="preset-dropdown" style="width:100%;padding:0.4rem 0.6rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.88rem;background:white;">
+                                    <option value="">Pultdach mit Glas</option>
+                                </select>
+                                <select id="preset-dropdown-glas-flach" class="preset-dropdown" style="width:100%;padding:0.4rem 0.6rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.88rem;background:white;">
+                                    <option value="">Flachdach mit Glas</option>
+                                </select>
+                                <select id="preset-dropdown-epdm" class="preset-dropdown" style="width:100%;padding:0.4rem 0.6rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.88rem;background:white;">
+                                    <option value="">EPDM-Dachfolie</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Aufbau -->
+                        <div class="control-group-compact">
+                            <h4>🏛️ Aufbau</h4>
+                            <select id="type" class="option-select-hidden">
+                                <option value="freistehend">Freistehend</option>
+                                <option value="wandanschluss">Wandmontiert</option>
+                            </select>
+                            <div class="option-card-grid option-card-grid--medium" id="type-option-cards">
+                                <button type="button" class="option-card active" data-value="freistehend">
+                                    <span class="option-card-label">Freistehend</span>
+                                </button>
+                                <button type="button" class="option-card" data-value="wandanschluss">
+                                    <span class="option-card-label">Wandmontiert</span>
+                                </button>
+                            </div>
+                        </div>
+
+                    <!-- Dimensionen + Höhe/Neigung -->
+                    <div class="control-group-compact dimension-box">
+                        <h4 class="dimension-title">📐 Dimensionen</h4>
+
+                        <div style="min-width: max-content;" class="dimension-columns">
+                            <div class="dimension-column">
+                                <div class="dimension-row">
+                                    <div class="dimension-label">
+                                        Breite (m)
+                                        <small>2,00–8,00 m</small>
+                                    </div>
+                                    <div class="dimension-input-group">
+                                        <input type="range" id="width" min="2" max="8" step="0.01" value="4.0" class="dimension-hidden-range">
+                                        <input style="field-sizing: content;min-width: 35px;min-height: 35px;text-align: center;" type="text" inputmode="decimal" id="width-input" min="2" max="8" step="0.01" value="4.00" aria-label="Breite in Metern">
+                                        <div class="dimension-stepper">
+                                            <button type="button" class="dimension-btn" data-dim="width" data-dir="dec" aria-label="Breite verringern">−</button>
+                                            <button type="button" class="dimension-btn" data-dim="width" data-dir="inc" aria-label="Breite erhöhen">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="dimension-row">
+                                    <div class="dimension-label">
+                                        Tiefe (m)
+                                        <small>2,00–6,00 m</small>
+                                    </div>
+                                    <div class="dimension-input-group">
+                                        <input type="range" id="depth" min="2" max="6" step="0.01" value="3.0" class="dimension-hidden-range">
+                                        <input style="field-sizing: content;min-width: 35px;min-height: 35px;text-align: center;" type="text" inputmode="decimal" id="depth-input" min="2" max="6" step="0.01" value="3.00" aria-label="Tiefe in Metern">
+                                        <div class="dimension-stepper">
+                                            <button type="button" class="dimension-btn" data-dim="depth" data-dir="dec" aria-label="Tiefe verringern">−</button>
+                                            <button type="button" class="dimension-btn" data-dim="depth" data-dir="inc" aria-label="Tiefe erhöhen">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="margin-left:5px;" class="dimension-column">
+                                <div class="dimension-row">
+                                    <div class="dimension-label">
+                                        Höhe (m)
+                                        <small>2,20–4,00 m</small>
+                                    </div>
+                                    <div class="dimension-input-group">
+                                        <input type="range" id="height" min="2.2" max="4.0" step="0.01" value="2.5" class="dimension-hidden-range">
+                                        <input style="field-sizing: content;min-width: 35px;min-height: 35px;text-align: center;" type="text" inputmode="decimal" id="height-input" min="2.2" max="4.0" step="0.01" value="2.50" aria-label="Höhe in Metern">
+                                        <div class="dimension-stepper">
+                                            <button type="button" class="dimension-btn" data-dim="height" data-dir="dec" aria-label="Höhe verringern">−</button>
+                                            <button type="button" class="dimension-btn" data-dim="height" data-dir="inc" aria-label="Höhe erhöhen">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Befestigung (NEU HIER!) -->
+                    <div class="control-group-compact">
+                        <h4>🔩 Befestigungsart</h4>
+                        <select id="fastening-type">
+                            <option value="ankerplatte">Ankerplatte</option>
+                            <option value="einbetonieren">Einbetonieren</option>
+                        </select>
+                        <small style="display: block; margin-top: 0.5rem; line-height: 1.5;">Ankerplatte: Auf Terrassenplatten<br>
+                        Einbetonieren: Fundamentblöcke</small>
+                    </div>
+                    </div> <!-- Ende pergola-mode-settings -->
+
+                </div>
+            </div>
+
+            <!-- Tab 2: Konstruktion -->
+            <div class="horizontal-tab-content" data-content="konstruktion">
+                <div class="config-grid config-grid--three-col">
+                    <!-- Links: Statik-Warnungen -->
+                    <div class="control-group-compact" id="statik-warning-container">
+                        <!-- Wird dynamisch befüllt mit Statik-Warnungen -->
+                    </div>
+
+                    <!-- Mitte: Profilstärke -->
+                    <div class="control-group-compact">
+                        <h4>⚙️ Profilstärke</h4>
+                        <div id="profil-auswahl-container">
+                            <!-- Wird dynamisch befüllt -->
+                        </div>
+                    </div>
+
+                    <!-- Rechts: Zwischenpfosten -->
+                    <div class="control-group-compact">
+                        <h4>⚡ Zwischenpfosten</h4>
+                        <div class="option-card-grid option-card-grid--small">
+                            <button type="button" class="option-card" id="intermediate-posts-width-btn" data-value="width">
+                                <span class="option-card-label">Querträger (Breite)</span>
+                            </button>
+                            <button type="button" class="option-card" id="intermediate-posts-depth-btn" data-value="depth">
+                                <span class="option-card-label">Längsträger (Tiefe)</span>
+                            </button>
+                        </div>
+                        <label for="zwischenpfosten-profil" style="display:block; margin:0.75rem 0 0.25rem 0;">Profil</label>
+                        <select id="zwischenpfosten-profil" class="styled-select">
+                            <option value="120x80x4_mittel">120×80 (Standard)</option>
+                            <option value="160x80x4_mittel">160×80</option>
+                            <option value="200x120x4_mittel">200×120</option>
+                        </select>
+                        <div style="margin-top:0.35rem; font-size:0.85rem; color:#666;">
+                            Tip: Zwischenpfosten werden nur erzeugt, wenn mindestens eine Richtung aktiviert ist.
+                        </div>
+                    </div>
+
+                    <!-- Statikcheck unten (ursprünglich, für alte Referenzen) -->
+                    <div class="control-group-compact" style="display:none;">
+                        <h4>✅ Statikcheck</h4>
+                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                            <span id="static-compact-indicator">🟢</span>
+                            <small id="static-compact-note">Alle Nachweise erfüllt</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Dach -->
+            <div class="horizontal-tab-content" data-content="dach">
+                <div class="config-grid">
+                    <!-- Typ (Dachform) -->
+                    <div class="control-group-compact">
+                        <h4>🏗️ Typ</h4>
+                        <select id="dach-typ" class="option-select-hidden">
+                            <option value="pultdach" selected>Pultdach</option>
+                            <option value="flachdach">Flachdach</option>
+                        </select>
+                        <div class="option-card-grid option-card-grid--medium" id="dach-typ-cards">
+                            <button type="button" class="option-card active" data-value="pultdach">
+                                <span class="option-card-label">Pultdach</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="flachdach">
+                                <span class="option-card-label">Flachdach</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Neigung (nur bei Pultdach sichtbar) -->
+                    <div class="control-group-compact" id="roof-slope-group" style="display:none;">
+                        <h4>📐 Neigung (°)</h4>
+                        <div class="dimension-row" style="margin-top:0;">
+                            <div class="dimension-label">
+                                Gefälle
+                                <small>0–5° · nur bei Pultdach</small>
+                            </div>
+                            <div class="dimension-input-group">
+                                <input type="range" id="slope" min="0" max="5" step="0.1" value="3.0" class="dimension-hidden-range">
+                                <input style="field-sizing: content;min-width: 35px;min-height: 35px;text-align: center;" type="text" inputmode="decimal" id="slope-input" min="0" max="5" step="0.1" value="3.0" aria-label="Neigung in Grad">
+                                <div class="dimension-stepper">
+                                    <button type="button" class="dimension-btn" data-dim="slope" data-dir="dec" aria-label="Neigung verringern">−</button>
+                                    <button type="button" class="dimension-btn" data-dim="slope" data-dir="inc" aria-label="Neigung erhöhen">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dachtyp -->
+                    <div class="control-group-compact">
+                        <h4>🏠 Dachtyp</h4>
+                        <select id="roof-type" class="styled-select" style="display: none;">
+                            <option value="glas">Glas</option>
+                            <option value="epdm">EPDM-Folie</option>
+                        </select>
+                        <div class="option-card-grid" id="roof-type-cards">
+                            <button type="button" class="option-card active" data-value="glas">
+                                <span class="option-card-label">Glas</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="epdm">
+                                <span class="option-card-label">EPDM-Folie</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Glasfarbe -->
+                    <div class="control-group-compact" id="glass-color-group">
+                        <h4>🎨 Glasfarbe</h4>
+                        <div class="glass-color-options">
+                            <button type="button" class="glass-color-option active" data-glass-color="klar">
+                                <span class="glass-color-preview glass-color-preview--klar"></span>
+                                <span class="glass-color-label">Klar</span>
+                            </button>
+                            <button type="button" class="glass-color-option" data-glass-color="matt">
+                                <span class="glass-color-preview glass-color-preview--matt"></span>
+                                <span class="glass-color-label">Matt</span>
+                            </button>
+                            <button type="button" class="glass-color-option" data-glass-color="grau">
+                                <span class="glass-color-preview glass-color-preview--grau"></span>
+                                <span class="glass-color-label">Grau</span>
+                            </button>
+                            <button type="button" class="glass-color-option" data-glass-color="bronze">
+                                <span class="glass-color-preview glass-color-preview--bronze"></span>
+                                <span class="glass-color-label">Bronze</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- EPDM-Folie Farbe -->
+                    <div class="control-group-compact" id="epdm-color-group" style="display: none;">
+                        <h4>🎨 EPDM-Farbe</h4>
+                        <select id="epdm-color" class="styled-select">
+                            <option value="schwarz">Schwarz</option>
+                            <option value="grau">Grau</option>
+                            <option value="weiss">Weiß</option>
+                        </select>
+                    </div>
+
+                    <!-- Regenwasserabfluss -->
+                    <div class="control-group-compact">
+                        <h4>💧 Regenwasserabfluss</h4>
+                        <select id="drainage" class="styled-select" style="display: none;">
+                            <option value="rinne">Mit Rinne</option>
+                            <option value="glasueberstand">Glasüberstand</option>
+                            <option value="vollprofil" disabled>Ohne Rinne</option>
+                        </select>
+                        <div class="option-card-grid" id="drainage-cards">
+                            <button type="button" class="option-card active" data-value="rinne">
+                                <span class="option-card-label">Mit Rinne</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="glasueberstand">
+                                <span class="option-card-label">Glasüberstand</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="vollprofil" disabled style="opacity:0.5; cursor:not-allowed; pointer-events:none;">
+                                <span class="option-card-label">Ohne Rinne</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Gestaltung -->
+            <div class="horizontal-tab-content" data-content="gestaltung">
+                <div class="config-grid">
+                    <!-- Material -->
+                    <div class="control-group-compact">
+                        <h4>🏗️ Material</h4>
+                        <select id="material" class="styled-select" style="display: none;">
+                            <option value="aluminium">Aluminium</option>
+                            <option value="holz" disabled>Holz</option>
+                        </select>
+                        <div class="option-card-grid" id="material-cards">
+                            <button type="button" class="option-card active" data-value="aluminium">
+                                <span class="option-card-label">Aluminium</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="holz" disabled style="opacity: 0.4; cursor: not-allowed; pointer-events: none;">
+                                <span class="option-card-label">Holz</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Profilfarbe (RAL) -->
+                    <div class="control-group-compact">
+                        <h4>🎨 Profilfarbe (RAL)</h4>
+                        <select id="color" class="styled-select" style="display: none;">
+                            <option value="ral7016">RAL 7016 Anthrazitgrau</option>
+                            <option value="ral9016">RAL 9016 Verkehrsweiß</option>
+                            <option value="ral6005">RAL 6005 Moosgrün</option>
+                            <option value="ral3004">RAL 3004 Purpurrot</option>
+                            <option value="ral9005">RAL 9005 Tiefschwarz</option>
+                            <option value="ral7035">RAL 7035 Lichtgrau</option>
+                            <option value="ral8017">RAL 8017 Schokoladenbraun</option>
+                            <option value="ral5010">RAL 5010 Enzianblau</option>
+                        </select>
+                        <div class="option-card-grid option-card-grid--color" id="color-cards">
+                            <button type="button" class="option-card active" data-value="ral7016">
+                                <span class="option-card-chip option-card-chip--ral7016"></span>
+                                <span class="option-card-label">RAL 7016</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="ral9016">
+                                <span class="option-card-chip option-card-chip--ral9016"></span>
+                                <span class="option-card-label">RAL 9016</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="ral6005">
+                                <span class="option-card-chip option-card-chip--ral6005"></span>
+                                <span class="option-card-label">RAL 6005</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="ral3004">
+                                <span class="option-card-chip option-card-chip--ral3004"></span>
+                                <span class="option-card-label">RAL 3004</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="ral9005">
+                                <span class="option-card-chip option-card-chip--ral9005"></span>
+                                <span class="option-card-label">RAL 9005</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="ral7035">
+                                <span class="option-card-chip option-card-chip--ral7035"></span>
+                                <span class="option-card-label">RAL 7035</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="ral8017">
+                                <span class="option-card-chip option-card-chip--ral8017"></span>
+                                <span class="option-card-label">RAL 8017</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="ral5010">
+                                <span class="option-card-chip option-card-chip--ral5010"></span>
+                                <span class="option-card-label">RAL 5010</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- NCS-Farben -->
+                    <div class="control-group-compact">
+                        <h4>🎨 NCS Farbpalette</h4>
+                        <div class="option-card-grid option-card-grid--color" id="ncs-color-cards">
+                            <button type="button" class="option-card" data-value="ncs-s0500-n">
+                                <span class="option-card-chip option-card-chip--ncs-s0500-n"></span>
+                                <span class="option-card-label">NCS S 0500-N</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="ncs-s2005-g">
+                                <span class="option-card-chip option-card-chip--ncs-s2005-g"></span>
+                                <span class="option-card-label">NCS S 2005-G</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="ncs-s7020-b">
+                                <span class="option-card-chip option-card-chip--ncs-s7020-b"></span>
+                                <span class="option-card-label">NCS S 7020-B</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="ncs-s3030-y20r">
+                                <span class="option-card-chip option-card-chip--ncs-s3030-y20r"></span>
+                                <span class="option-card-label">NCS S 3030-Y20R</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="ncs-s8505-y20r">
+                                <span class="option-card-chip option-card-chip--ncs-s8505-y20r"></span>
+                                <span class="option-card-label">NCS S 8505-Y20R</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="ncs-s4050-g">
+                                <span class="option-card-chip option-card-chip--ncs-s4050-g"></span>
+                                <span class="option-card-label">NCS S 4050-G</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 5: Feintuning -->
+            <div class="horizontal-tab-content" data-content="feintuning">
+                <div class="config-grid">
+                    <!-- Toggle: Gruppen-Modus vs Individual-Modus -->
+                    <div class="control-group-compact" style="grid-column: 1 / -1;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; font-size: 1rem;">
+                            <input type="checkbox" id="toggle-individual-control" style="width: 20px; height: 20px;">
+                            🔧 Individuelle Pfostensteuerung
+                        </label>
+                        <small style="color: #666; display: block; margin-top: 0.5rem;">
+                            Aktivieren Sie diese Option, um jeden Pfosten einzeln zu steuern (Versatz, Kürzung, Deaktivierung).
+                        </small>
+                    </div>
+
+                    <!-- GRUPPEN-MODUS (Standard) -->
+                    <div id="group-post-controls" style="display: block; grid-column: 1 / -1;">
+                        <div class="config-grid config-grid--two-col">
+                            <!-- Pfostenversatz -->
+                            <div class="control-group-compact">
+                                <h4>↔️ Pfostenversatz</h4>
+                                <label>Vordere Pfosten (m)</label>
+                                <div class="range-container range-with-input">
+                                    <input type="range" id="post-offset-front" min="0" max="0.5" step="0.01" value="0">
+                                    <input type="number" id="post-offset-front-input" min="0" max="0.5" step="0.01" value="0.00">
+                                </div>
+                                <label>Hintere Pfosten (m)</label>
+                                <div class="range-container range-with-input">
+                                    <input type="range" id="post-offset-rear" min="0" max="0.5" step="0.01" value="0">
+                                    <input type="number" id="post-offset-rear-input" min="0" max="0.5" step="0.01" value="0.00">
+                                </div>
+                            </div>
+
+                            <!-- Pfostenkürzung -->
+                            <div class="control-group-compact">
+                                <h4>✂️ Pfostenkürzung</h4>
+                                <label>Vordere Pfosten (m)</label>
+                                <div class="range-container range-with-input">
+                                    <input type="range" id="post-shorten-front" min="0" max="2.47" step="0.01" value="0">
+                                    <input type="number" id="post-shorten-front-input" min="0" max="2.47" step="0.01" value="0.00">
+                                </div>
+                                <button id="no-posts-front" class="no-posts-button">Keine vorderen Pfosten</button>
+                                <label>Hintere Pfosten (m)</label>
+                                <div class="range-container range-with-input">
+                                    <input type="range" id="post-shorten-rear" min="0" max="2.47" step="0.01" value="0">
+                                    <input type="number" id="post-shorten-rear-input" min="0" max="2.47" step="0.01" value="0.00">
+                                </div>
+                                <button id="no-posts-rear" class="no-posts-button">Keine hinteren Pfosten</button>
+                            </div>
+
+                            <!-- Mittelpfosten -->
+                            <div class="control-group-compact">
+                                <h4>🎯 Mittelpfosten</h4>
+                                <label><input type="checkbox" id="center-post-toggle"> Zentraler Mittelpfosten</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- INDIVIDUAL-MODUS (versteckt per Default) -->
+                    <div id="individual-post-controls" style="display: none; grid-column: 1 / -1;">
+                        <div style="padding: 1rem; background: #f0f8ff; border-radius: 8px; border-left: 4px solid #007bff; margin-bottom: 1rem;">
+                            <strong>🔧 Individuelle Steuerung aktiv</strong>
+                            <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #555;">
+                                Steuern Sie jeden Pfosten einzeln. Änderungen werden sofort angewendet.
+                            </p>
+                        </div>
+
+                        <!-- Eckpfosten -->
+                        <div class="control-group-compact">
+                            <h4>📌 Eckpfosten</h4>
+                            <div id="corner-posts-container"></div>
+                        </div>
+
+                        <!-- Zwischenpfosten (nur bei größeren Pergolas) -->
+                        <div id="intermediate-posts-section" class="control-group-compact" style="display: none;">
+                            <h4>🔷 Zwischenpfosten</h4>
+                            <div id="intermediate-posts-container"></div>
+                        </div>
+
+                        <!-- Mittelpfosten (nur wenn aktiviert) -->
+                        <div id="center-post-section" class="control-group-compact" style="display: none;">
+                            <h4>🎯 Mittelpfosten</h4>
+                            <label><input type="checkbox" id="center-post-toggle-individual"> Zentraler Mittelpfosten</label>
+                            <div id="center-posts-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 6: Carportmodus -->
+            <div class="horizontal-tab-content" data-content="carport" id="carport-tab-content">
+                <div class="config-grid">
+                    <div style="grid-column: 1 / -1;">
+                        <div style="margin-bottom: 1rem; padding: 1rem; background: rgba(0,123,255,0.05); border-left: 3px solid #007bff; border-radius: 4px;">
+                            <div class="carport-config-header">
+                                <h3 style="margin: 0 0 0.5rem 0; color: #007bff;">🚗 Carport-Konfigurator</h3>
+                            </div>
+                            <p style="margin: 0; font-size: 0.9rem; color: #666;">
+                                Wähle eine Vorlage oder erstelle individuelle Segmente für L-, U- oder komplexe Formen.
+                            </p>
+                        </div>
+
+                        <!-- Koordinatenkonflikte -->
+                        <div id="carport-coordinate-warning" class="carport-warning" aria-live="polite"></div>
+
+                        <!-- Hinweis für andere Einstellungen -->
+                        <div style="margin-bottom: 1rem; padding: 0.8rem 1rem; background: rgba(255,193,7,0.1); border-left: 3px solid #ffc107; border-radius: 4px;">
+                            <p style="margin: 0; font-size: 0.85rem; color: #856404;">
+                                💡 <strong>Tipp:</strong> Die Einstellungen für <strong>Dach</strong>, <strong>Farbe</strong>, <strong>Material</strong> und <strong>Feintuning</strong> findest du in den anderen Tabs. Diese gelten für alle Segmente.
+                            </p>
+                        </div>
+
+                        <!-- Carport-Vorlagen Dropdown -->
+                        <div class="carport-template-compact" style="max-width:240px; margin:0.25rem 0 1rem 0;">
+                            <label for="carport-template-select" style="display:block; margin:0 0 4px 0; font-size:0.9rem; font-weight:600; color:#444;">🚗 Carport-Vorlagen</label>
+                            <select id="carport-template-select" style="width:100%;">
+                                <option value="">Vorlage wählen…</option>
+                            </select>
+                        </div>
+
+                        <!-- Carport-Vorlagen (nur im Carport-Modus sichtbar) -->
+                        <div id="carport-preset-box" style="margin-bottom: 1rem; display:none;">
+                            <style>
+                                #carport-preset-list{
+                                    display:grid;
+                                    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                                    gap:0.5rem;
+                                }
+                                .carport-preset-card{
+                                    border:1px solid #e0e6ef;
+                                    border-radius:10px;
+                                    padding:0.55rem 0.65rem;
+                                    background:linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,250,252,0.98) 100%);
+                                    box-shadow:0 4px 10px rgba(0,0,0,0.06);
+                                    cursor:pointer;
+                                    transition:all .16s ease;
+                                    text-align:left;
+                                }
+                                .carport-preset-card:hover{
+                                    box-shadow:0 8px 16px rgba(0,0,0,0.1);
+                                    border-color:#cfd6e0;
+                                    transform:translateY(-1px);
+                                }
+                                .carport-preset-title{
+                                    font-weight:700;
+                                    color:#1f2937;
+                                    font-size:0.9rem;
+                                }
+                                .carport-preset-sub{
+                                    font-size:0.78rem;
+                                    color:#374151;
+                                }
+                                .carport-preset-meta{
+                                    margin-top:0.28rem;
+                                    display:flex;
+                                    flex-wrap:wrap;
+                                    gap:0.18rem 0.35rem;
+                                    font-size:0.74rem;
+                                    color:#4b5563;
+                                }
+                                .carport-preset-chip{
+                                    background:#eef2f7;
+                                    border-radius:999px;
+                                    padding:0.12rem 0.45rem;
+                                    font-weight:600;
+                                    color:#1f2937;
+                                }
+                                @media(max-width: 768px){
+                                    #carport-preset-list{grid-template-columns:1fr;}
+                                }
+                            </style>
+                            <h4 style="margin:0 0 0.6rem 0;">🚀 Carport Schnellstart</h4>
+                            <div id="carport-preset-list"></div>
+                        </div>
+
+                        <!-- Template-Auswahl -->
+                        <!-- Template-Auswahl entfernt (Buttons jetzt oben im Overlay) -->
+
+                        <!-- Button zum Hinzufügen (oberhalb der Liste) -->
+                        <div style="display:flex; justify-content:flex-start; margin-bottom: 0.4rem;">
+                            <button type="button" id="add-segment-btn-main" style="padding: 0.55rem 0.9rem; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.93rem; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.12);">
+                                + Neues Segment hinzufügen
+                            </button>
+                        </div>
+
+                        <style>
+                            #carport-segment-shell{
+                                position:relative;
+                                margin:0 -20px 0.85rem -20px;
+                                padding:0 20px 0.65rem 20px;
+                            }
+                            #carport-segment-list-main{
+                                width:100%;
+                                display:flex;
+                                gap:0.9rem;
+                                overflow-x:auto;
+                                scroll-snap-type:x mandatory;
+                                scroll-behavior:smooth;
+                                -webkit-overflow-scrolling:touch;
+                                padding-bottom:0.3rem;
+                            }
+                            #carport-segment-list-main::-webkit-scrollbar{
+                                height:10px;
+                            }
+                            #carport-segment-list-main::-webkit-scrollbar-thumb{
+                                background:#bdbdbd;
+                                border-radius:8px;
+                            }
+                            #carport-segment-shell .carport-scroll-btn{
+                                position:absolute;
+                                top:50%;
+                                transform:translateY(-50%);
+                                z-index:2;
+                                width:34px;
+                                height:34px;
+                                border:none;
+                                border-radius:50%;
+                                background:rgba(0,0,0,0.08);
+                                box-shadow:0 2px 6px rgba(0,0,0,0.15);
+                                color:#222;
+                                cursor:pointer;
+                                display:flex;
+                                align-items:center;
+                                justify-content:center;
+                                transition:background 0.2s ease, opacity 0.2s ease;
+                            }
+                            #carport-segment-shell .carport-scroll-btn:hover{
+                                background:rgba(0,0,0,0.16);
+                            }
+                            #carport-scroll-left{left:6px;}
+                            #carport-scroll-right{right:6px;}
+                            #carport-scroll-gradient-left,
+                            #carport-scroll-gradient-right{
+                                position:absolute;
+                                top:0;
+                                bottom:0;
+                                width:48px;
+                                pointer-events:none;
+                                z-index:1;
+                            }
+                            #carport-scroll-gradient-left{
+                                left:0;
+                                background:linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+                            }
+                            #carport-scroll-gradient-right{
+                                right:0;
+                                background:linear-gradient(270deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+                            }
+                            .carport-segment{
+                                scroll-snap-align:start;
+                                flex:0 0 540px;
+                                min-width:500px;
+                            }
+                            @media (max-width: 1300px){
+                                .carport-segment{flex:0 0 500px; min-width:460px;}
+                            }
+                            @media (max-width: 1100px){
+                                .carport-segment{flex:0 0 420px; min-width:380px;}
+                            }
+                            @media (max-width: 768px){
+                                #carport-segment-shell{padding:0 12px 0.5rem 12px;}
+                                #carport-segment-list-main{gap:0.6rem;}
+                                .carport-segment{flex:0 0 340px; min-width:310px;}
+                                #carport-segment-shell .carport-scroll-btn{display:none;}
+                                #carport-scroll-gradient-left,
+                                #carport-scroll-gradient-right{display:none;}
+                            }
+                        </style>
+
+                        <!-- Segment-Liste mit integrierten Navigationselementen -->
+                        <div id="carport-segment-shell">
+                            <div id="carport-scroll-gradient-left"></div>
+                            <div id="carport-scroll-gradient-right"></div>
+                            <button type="button" id="carport-scroll-left" class="carport-scroll-btn" aria-label="Segmente nach links scrollen">‹</button>
+                            <button type="button" id="carport-scroll-right" class="carport-scroll-btn" aria-label="Segmente nach rechts scrollen">›</button>
+                            <div id="carport-segment-list-main">
+                            </div>
+                        </div>
+
+                        <!-- Basis-Parameter (für alle Segmente) -->
+                        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #ddd;">
+                            <h4 style="margin-bottom: 1rem;">⚙️ Basis-Einstellungen (für alle Segmente)</h4>
+                            <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 0.3rem; font-weight: 500;">Befestigung</label>
+                                    <select id="carport-fastening" style="width: 100%; padding: 0.5rem;">
+                                        <option value="ankerplatte">Ankerplatte</option>
+                                        <option value="einbetonieren">Einbetonieren</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Infobox (bleibt rechts) -->
+    <div class="infobox-toggle" id="infobox-toggle">
+        <span>📋 Info</span>
+    </div>
+    <div class="infobox-panel" id="infobox-panel">
+        <div class="infobox-header">
+            <h3>📋 Dokumentation</h3>
+            <button class="infobox-close" id="infobox-close">×</button>
+        </div>
+        <div class="infobox-content">
+            <div class="infobox-tabs">
+                <button class="tab-button active" data-tab="materialliste">Materialliste</button>
+                <button class="tab-button" data-tab="konstruktion">Konstruktion</button>
+                <button class="tab-button" data-tab="statik">Statik</button>
+                <button class="tab-button" data-tab="preisliste">Preisliste</button>
+            </div>
+
+            <!-- Materialliste Tab -->
+            <div class="tab-content active" id="tab-materialliste">
+                <h4>MATERIALLISTE</h4>
+                <div class="material-table-container">
+                    <table class="material-table" id="material-table">
+                        <thead>
+                            <tr>
+                                <th>Pos.</th>
+                                <th>Bezeichnung</th>
+                                <th>Profil</th>
+                                <th>Länge</th>
+                                <th>Anzahl</th>
+                                <th>Gesamt-Länge</th>
+                                <th>Material</th>
+                            </tr>
+                        </thead>
+                        <tbody id="material-table-body">
+                            <!-- Wird dynamisch befüllt -->
+                        </tbody>
+                        <tfoot id="material-table-footer">
+                            <!-- Wird dynamisch befüllt -->
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Konstruktionsdokumentation Tab -->
+            <div class="tab-content" id="tab-konstruktion">
+                <h4>KONSTRUKTIONS-DOKUMENTATION</h4>
+                <div class="konstruktion-content" id="konstruktion-content">
+                    <!-- Wird dynamisch befüllt -->
+                </div>
+            </div>
+
+            <!-- Statik Tab -->
+            <div class="tab-content" id="tab-statik">
+                <h4>STATIKCHECK</h4>
+                <div class="statik-content" id="statik-content">
+                    <!-- Wird dynamisch befüllt -->
+                </div>
+            </div>
+
+            <!-- Preisliste Tab -->
+            <div class="tab-content" id="tab-preisliste">
+                <h4>PREISLISTE (Netto)</h4>
+                <div class="preisliste-content" id="preisliste-content">
+                    <!-- Wird dynamisch befüllt -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WooCommerce Konfigurationsformular -->
+    <form
+        id="configForm"
+        method="post"
+        action="https://modul-garten.de/anfrage/">
+        <input type="hidden" name="config_json" id="config_json">
+    </form>
+
+    <!-- Preis-Tag -->
+    <div id="price-tag" class="price-tag hidden"></div>
+
+    <!-- Scripts -->
+    <script src="three.min.js"></script>
+    <script src="OrbitControls.js"></script>
+    <script src="EXRLoader.js"></script>
+    <script src="RGBELoader.js"></script>
+    <script src="src/shaders/CopyShader.js"></script>
+    <script src="src/shaders/FXAAShader.js"></script>
+    <script src="src/shaders/BokehShader.js"></script>
+    <script src="src/shaders/LuminosityHighPassShader.js"></script>
+    <script src="src/shaders/ColorGradeShader.js"></script>
+    <script src="src/postprocessing/Pass.js"></script>
+    <script src="src/postprocessing/EffectComposer.js"></script>
+    <script src="src/postprocessing/RenderPass.js"></script>
+    <script src="src/postprocessing/ShaderPass.js"></script>
+    <script src="src/postprocessing/BokehPass.js"></script>
+    <script src="src/postprocessing/UnrealBloomPass.js"></script>
+    <!-- <script src="js/premium-theme.js"></script> -->
+    <script type="module" src="main.js?v=20251118-1515-NOCACHE"></script>
+    
+
+    <script>
+        // Dimensionen: Buttons + Inputs ohne sichtbare Slider
+        (function dimensionControls(){
+            const fields=["width","depth","height","slope"];
+            const clamp=(v,min,max,step)=>{
+                const raw=String(v).replace(",", ".");
+                let num=parseFloat(raw);
+                if(isNaN(num)) num=min;
+                num=Math.max(min, Math.min(max, num));
+                return num;
+            };
+            const digitsForStep=step=>{
+                if(!Number.isFinite(step))return 2;
+                const parts=step.toString().split(".");
+                return parts[1]?.length||0;
+            };
+            const sync=(field,val,format=true)=>{
+                const range=document.getElementById(field);
+                const input=document.getElementById(field+"-input");
+                if(!input)return;
+                const min=parseFloat(input.min)||0;
+                const max=parseFloat(input.max)||0;
+                const step=parseFloat(input.step)||0.01;
+                const next=clamp(val,min,max,step);
+                const decimals=digitsForStep(step);
+                input.value=format?next.toFixed(decimals):val;
+                if(range){
+                    range.value=next;
+                    range.dispatchEvent(new Event("input",{bubbles:true}));
+                }else{
+                    input.dispatchEvent(new Event("input",{bubbles:true}));
+                }
+            };
+            fields.forEach(f=>{
+                const input=document.getElementById(f+"-input");
+                input?.addEventListener("keydown", e=>{
+                    if(e.key==="Enter"){
+                        e.preventDefault();
+                        sync(f, e.target.value, true);
+                    }
+                });
+                document.querySelectorAll(`[data-dim="${f}"]`).forEach(btn=>{
+                    btn.addEventListener("click", ()=>{
+                        const dir=btn.dataset.dir==="dec"?-1:1;
+                        const step=parseFloat(input.step)||0.01;
+                        const current=parseFloat(String(input.value).replace(",", "."))||0;
+                        sync(f, current + dir*step, true);
+                    });
+                });
+            });
+        })();
+    </script>
+
+    <!-- Horizontale Tabs Logik -->
+    <script>
+        (function() {
+            'use strict';
+            
+            function initHorizontalTabs() {
+                const tabs = document.querySelectorAll('.horizontal-tab');
+                const contents = document.querySelectorAll('.horizontal-tab-content');
+                const highlightTargets = document.querySelectorAll('.horizontal-tab[data-tab="konstruktion"], .horizontal-tab[data-tab="dach"], .horizontal-tab[data-tab="gestaltung"], .horizontal-tab[data-tab="feintuning"]');
+
+                function updateTabHighlights(targetTab) {
+                    let highlightClass = null;
+
+                    if (targetTab === 'abmessungen') {
+                        highlightClass = 'tab-highlight-yellow';
+                    } else if (targetTab === 'carport') {
+                        highlightClass = 'tab-highlight-blue';
+                    }
+
+                    highlightTargets.forEach(tab => {
+                        tab.classList.remove('tab-highlight-yellow', 'tab-highlight-blue');
+                        if (highlightClass) {
+                            tab.classList.add(highlightClass);
+                        }
+                    });
+                }
+                
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const targetTab = tab.dataset.tab;
+                        
+                        // Update tabs
+                        tabs.forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                        
+                        // Update content
+                        contents.forEach(content => {
+                            if (content.dataset.content === targetTab) {
+                                content.classList.add('active');
+                            } else {
+                                content.classList.remove('active');
+                            }
+                        });
+
+                        // Update Drainage-Verfügbarkeit wenn Dach-Tab geöffnet wird
+                        if (targetTab === 'dach' && window.uiController) {
+                            console.log("🏠 Dach-Tab geöffnet, aktualisiere Drainage-Verfügbarkeit");
+                            setTimeout(() => {
+                                window.uiController.updateDrainageVerfuegbarkeit();
+                            }, 50);
+                        }
+
+                        updateTabHighlights(targetTab);
+                    });
+                });
+
+                const activeTab = document.querySelector('.horizontal-tab.active');
+                if (activeTab) {
+                    updateTabHighlights(activeTab.dataset.tab);
+                }
+            }
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initHorizontalTabs);
+            } else {
+                initHorizontalTabs();
+            }
+        })();
+    </script>
+
+    <!-- Segment Post Controller Module -->
+    <script type="module">
+        import { SegmentPostController } from './src/ui/SegmentPostController.js';
+        
+        // Globale Instanz für Zugriff aus anderen Scripts
+        window.segmentPostController = new SegmentPostController();
+        console.log("✅ SegmentPostController global verfügbar");
+    </script>
+
+    <!-- Pergola/Carport Mode-Toggle & Segment-Management Script -->
+    <script>
+        (function() {
+            console.log("⚙️ Konfigurations-Modus-Management geladen");
+
+            let segments = [];
+            let segmentCounter = 0;
+            let updateTimer = null;
+            let currentMode = 'pergola';
+            let lastValidSegments = [];
+            const carportExportButton = document.getElementById('carport-export-btn');
+            const defaultExportButtonHTML = carportExportButton ? carportExportButton.innerHTML : '';
+            let segmentList = null;
+            let scrollLeftBtn = null;
+            let scrollRightBtn = null;
+            let gradientLeft = null;
+            let gradientRight = null;
+            // Merkt sich die Basis-Pergola-Konfiguration (z. B. Glas), um sie nach dem Carportmodus wiederherzustellen
+            let savedPergolaBaseConfig = null;
+
+            const syncScrollbars = () => {
+                if(!segmentList)return;
+                const maxScroll=Math.max(0, segmentList.scrollWidth-segmentList.clientWidth);
+                const canLeft=segmentList.scrollLeft>4;
+                const canRight=segmentList.scrollLeft<maxScroll-4;
+                const setVis=(el, visible)=>{
+                    if(!el)return;
+                    el.style.opacity=visible?"1":"0";
+                    el.style.pointerEvents=visible?"auto":"none";
+                };
+                setVis(scrollLeftBtn, canLeft);
+                setVis(gradientLeft, canLeft);
+                setVis(scrollRightBtn, canRight);
+                setVis(gradientRight, canRight);
+            };
+
+            function safeClone(data) {
+                if (data === undefined || data === null) {
+                    return Array.isArray(data) ? [] : (typeof data === 'object' ? {} : data);
+                }
+                try {
+                    return JSON.parse(JSON.stringify(data));
+                } catch (error) {
+                    console.warn('⚠️ Clone-Fallback verwendet:', error);
+                    if (Array.isArray(data)) {
+                        return data.map(item => (typeof item === 'object' && item !== null) ? { ...item } : item);
+                    }
+                    if (typeof data === 'object') {
+                        return { ...data };
+                    }
+                    return data;
+                }
+            }
+
+            function rememberPergolaBaseConfig() {
+                const cfg = window.uiController?.aktuelleKonfiguration;
+                if (!cfg) return;
+                savedPergolaBaseConfig = safeClone({
+                    dachTyp: cfg.dachTyp,
+                    dachForm: cfg.dachForm,
+                    neigung: cfg.neigung,
+                    regenwasserAbfluss: cfg.regenwasserAbfluss,
+                    glasFarbe: cfg.glasFarbe ?? cfg.glasTyp ?? "klar",
+                    glasTyp: cfg.glasTyp ?? cfg.glasFarbe ?? "klar",
+                    epdmFarbe: cfg.epdmFarbe
+                });
+            }
+
+            function restorePergolaBaseConfig() {
+                const cfg = window.uiController?.aktuelleKonfiguration;
+                if (!cfg) return;
+                const fallback = {
+                    dachTyp: "glas",
+                    dachForm: "pultdach",
+                    neigung: 3,
+                    regenwasserAbfluss: "rinne",
+                    glasFarbe: "klar",
+                    glasTyp: "klar",
+                    epdmFarbe: "schwarz"
+                };
+                const source = savedPergolaBaseConfig || fallback;
+                cfg.dachTyp = source.dachTyp || fallback.dachTyp;
+                cfg.dachForm = source.dachForm || fallback.dachForm;
+                cfg.neigung = typeof source.neigung === "number" ? source.neigung : fallback.neigung;
+                cfg.regenwasserAbfluss = source.regenwasserAbfluss || fallback.regenwasserAbfluss;
+                cfg.glasFarbe = source.glasFarbe || fallback.glasFarbe;
+                cfg.glasTyp = source.glasTyp || fallback.glasTyp;
+                cfg.epdmFarbe = source.epdmFarbe || cfg.epdmFarbe || fallback.epdmFarbe;
+
+                const roofTypeSelect = document.getElementById('roof-type');
+                if (roofTypeSelect) roofTypeSelect.value = cfg.dachTyp;
+                window.uiController?.updateOptionCardState && window.uiController.updateOptionCardState('roofType', cfg.dachTyp);
+
+                const roofFormSelect = document.getElementById('dach-typ');
+                if (roofFormSelect) roofFormSelect.value = cfg.dachForm;
+                window.uiController?.updateOptionCardState && window.uiController.updateOptionCardState('dachTyp', cfg.dachForm);
+
+                const slopeInput = document.getElementById('slope-input');
+                const slopeRange = document.getElementById('slope');
+                if (slopeInput && typeof cfg.neigung === "number") slopeInput.value = String(cfg.neigung);
+                if (slopeRange && typeof cfg.neigung === "number") slopeRange.value = String(cfg.neigung);
+
+                const drainageSelect = document.getElementById('drainage');
+                if (drainageSelect) drainageSelect.value = cfg.regenwasserAbfluss;
+                window.uiController?.updateOptionCardState && window.uiController.updateOptionCardState('drainage', cfg.regenwasserAbfluss);
+            }
+
+            function getCarportSegmentsSnapshot() {
+                const cfg = window.uiController?.aktuelleKonfiguration;
+                if (!cfg || !Array.isArray(cfg.carportSegmente)) {
+                    return [];
+                }
+                return safeClone(cfg.carportSegmente);
+            }
+
+            function updateCarportExportState(latestSegments = null) {
+                if (!carportExportButton) return;
+                if (carportExportButton.dataset.loading === 'true') {
+                    carportExportButton.disabled = true;
+                    return;
+                }
+                const cfg = window.uiController?.aktuelleKonfiguration;
+                const list = Array.isArray(latestSegments) ? latestSegments : getCarportSegmentsSnapshot();
+                const canExport = !!cfg?.carportModus && list.length > 0;
+                carportExportButton.disabled = !canExport;
+                carportExportButton.setAttribute('aria-disabled', carportExportButton.disabled ? 'true' : 'false');
+            }
+
+            const COORD_PRECISION = 3;
+
+            function normalizeNumber(value, fallback = 0) {
+                const num = Number(value);
+                return Number.isFinite(num) ? num : fallback;
+            }
+
+            function normalizeRotation(value) {
+                let rotation = Number(value) || 0;
+                rotation %= 360;
+                if (rotation < 0) rotation += 360;
+                return rotation;
+            }
+
+            function clampPrecision(value) {
+                const factor = Math.pow(10, COORD_PRECISION);
+                return Math.round(value * factor) / factor;
+            }
+
+            function computeBoundingBox(segment, fallbackId) {
+                const width = normalizeNumber(segment?.breite, 0);
+                const depth = normalizeNumber(segment?.tiefe, 0);
+                const x = normalizeNumber(segment?.x, 0);
+                const z = normalizeNumber(segment?.z, 0);
+                if (width <= 0 || depth <= 0) return null;
+
+                const rotation = normalizeRotation(segment?.rotation);
+                const swapAxes = rotation === 90 || rotation === 270;
+                const extentX = swapAxes ? depth : width;
+                const extentZ = swapAxes ? width : depth;
+                let minX = x;
+                let maxX = x + extentX;
+                if (maxX < minX) [minX, maxX] = [maxX, minX];
+                let minZ = z;
+                let maxZ = z + extentZ;
+                if (maxZ < minZ) [minZ, maxZ] = [maxZ, minZ];
+
+                return {
+                    id: Number.isFinite(Number(segment?.id)) ? Number(segment.id) : fallbackId,
+                    minX: clampPrecision(minX),
+                    maxX: clampPrecision(maxX),
+                    minZ: clampPrecision(minZ),
+                    maxZ: clampPrecision(maxZ)
+                };
+            }
+
+            function rangesOverlap(minA, maxA, minB, maxB) {
+                return minA < maxB && maxA > minB;
+            }
+
+            function detectCoordinateConflicts(segmentList = []) {
+                const duplicates = [];
+                const bySegment = {};
+                const boxes = segmentList
+                    .map((segment, index) => {
+                        const box = computeBoundingBox(segment, index + 1);
+                        return box ? { segment, box } : null;
+                    })
+                    .filter(Boolean);
+
+                for (let i = 0; i < boxes.length; i++) {
+                    const boxA = boxes[i].box;
+                    for (let j = i + 1; j < boxes.length; j++) {
+                        const boxB = boxes[j].box;
+                        const overlapX = rangesOverlap(boxA.minX, boxA.maxX, boxB.minX, boxB.maxX);
+                        const overlapZ = rangesOverlap(boxA.minZ, boxA.maxZ, boxB.minZ, boxB.maxZ);
+                        if (!overlapX || !overlapZ) continue;
+
+                        const overlapRange = {
+                            minX: Math.max(boxA.minX, boxB.minX),
+                            maxX: Math.min(boxA.maxX, boxB.maxX),
+                            minZ: Math.max(boxA.minZ, boxB.minZ),
+                            maxZ: Math.min(boxA.maxZ, boxB.maxZ)
+                        };
+
+                        duplicates.push({
+                            segments: [boxA.id, boxB.id],
+                            range: overlapRange
+                        });
+
+                        bySegment[boxA.id] = bySegment[boxA.id] || [];
+                        bySegment[boxA.id].push({ otherId: boxB.id, overlap: overlapRange });
+
+                        bySegment[boxB.id] = bySegment[boxB.id] || [];
+                        bySegment[boxB.id].push({ otherId: boxA.id, overlap: overlapRange });
+                    }
+                }
+
+                return { duplicates, bySegment };
+            }
+
+            function formatMeters(value) {
+                const number = Number(value);
+                if (Number.isNaN(number)) {
+                    return value;
+                }
+                return `${number.toFixed(2).replace('.', ',')} m`;
+            }
+
+            function formatRange(min, max) {
+                return `${formatMeters(min)} – ${formatMeters(max)}`;
+            }
+
+            function updateCoordinateWarningDisplay(conflicts = []) {
+                const warningBox = document.getElementById('carport-coordinate-warning');
+                if (!warningBox) return;
+
+                const carportModeEnabled = !!window.uiController?.aktuelleKonfiguration?.carportModus;
+                if (!carportModeEnabled || conflicts.length === 0) {
+                    warningBox.classList.remove('active');
+                    warningBox.removeAttribute('data-conflict-count');
+                    warningBox.innerHTML = '';
+                    return;
+                }
+
+                const listItems = conflicts.map(conflict => {
+                    const segments = conflict.segments.map(id => `Segment ${id}`).join(' ↔ ');
+                    const range = conflict.range;
+                    const xText = `${formatRange(range.minX, range.maxX)}`;
+                    const zText = `${formatRange(range.minZ, range.maxZ)}`;
+                    return `<li>${segments}: X ${xText}, Z ${zText}</li>`;
+                }).join('');
+
+                warningBox.innerHTML = `
+                    <strong>⚠️ Überlagerte Segmente erkannt</strong>
+                    <p>Mindestens zwei Segmente teilen sich dieselbe Position. Verschiebe sie entlang der angegebenen Achse, damit sich die Pergolen nicht überdecken.</p>
+                    <ul>${listItems}</ul>
+                `;
+                warningBox.classList.add('active');
+                warningBox.setAttribute('data-conflict-count', conflicts.length);
+            }
+
+            function applySegmentConflictState(conflictMap = {}) {
+                document.querySelectorAll('[id^="segment-"]').forEach(segmentDiv => {
+                    const id = parseInt(segmentDiv.id.replace('segment-', ''), 10);
+                    const hasConflict = Boolean(conflictMap[id]);
+                    segmentDiv.classList.toggle('segment-conflict', hasConflict);
+
+                    const indicator = segmentDiv.querySelector('.segment-statics-indicator');
+                    if (indicator) {
+                        indicator.classList.toggle('segment-conflict', hasConflict);
+                        indicator.title = hasConflict
+                            ? conflictMap[id].map(entry => {
+                                const xRange = formatRange(entry.overlap.minX, entry.overlap.maxX);
+                                const zRange = formatRange(entry.overlap.minZ, entry.overlap.maxZ);
+                                return `Überlagerung mit Segment ${entry.otherId} (X ${xRange}, Z ${zRange})`;
+                            }).join(' • ')
+                            : '';
+                    }
+                });
+            }
+
+            function handleCoordinateConflicts(segmentList = []) {
+                const carportModeEnabled = !!window.uiController?.aktuelleKonfiguration?.carportModus;
+                if (!carportModeEnabled) {
+                    updateCoordinateWarningDisplay([]);
+                    applySegmentConflictState({});
+                    return { duplicates: [], bySegment: {} };
+                }
+
+                const { duplicates, bySegment } = detectCoordinateConflicts(segmentList);
+                updateCoordinateWarningDisplay(duplicates);
+                applySegmentConflictState(bySegment);
+                return { duplicates, bySegment };
+            }
+
+            function setCarportExportButtonBusy(isBusy) {
+                if (!carportExportButton) return;
+                carportExportButton.dataset.loading = isBusy ? 'true' : 'false';
+                if (isBusy) {
+                    carportExportButton.disabled = true;
+                    carportExportButton.innerHTML = '⏳ Export wird erstellt…';
+                } else {
+                    carportExportButton.innerHTML = defaultExportButtonHTML || '⬇️ Konfiguration exportieren';
+                    updateCarportExportState();
+                }
+            }
+
+            async function capturePergolaScreenshot() {
+                const canvas = document.getElementById('pergola-canvas');
+                if (!canvas) return null;
+                try {
+                    return canvas.toDataURL('image/png');
+                } catch (error) {
+                    console.warn('⚠️ Screenshot konnte nicht erstellt werden:', error);
+                    return null;
+                }
+            }
+
+            function downloadCarportPayload(payload) {
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `carport-konfiguration-${timestamp}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(url), 2000);
+            }
+
+            async function handleCarportExportClick() {
+                const cfg = window.uiController?.aktuelleKonfiguration;
+                const segmentsSnapshot = getCarportSegmentsSnapshot();
+
+                if (!cfg?.carportModus) {
+                    alert('Bitte aktiviere zuerst den Carportmodus.');
+                    return;
+                }
+                if (segmentsSnapshot.length === 0) {
+                    alert('Es sind keine Segmente vorhanden.');
+                    return;
+                }
+
+                setCarportExportButtonBusy(true);
+                try {
+                    const cfgSnapshot = safeClone(cfg);
+                    delete cfgSnapshot.carportSegmente;
+
+                    const screenshot = await capturePergolaScreenshot();
+                    const fastening = document.getElementById('carport-fastening')?.value || cfgSnapshot?.befestigung || null;
+
+                    const exportPayload = {
+                        version: '1.0',
+                        generatedAt: new Date().toISOString(),
+                        source: window.location.href,
+                        fastening,
+                        segmentCount: segmentsSnapshot.length,
+                        baseConfiguration: cfgSnapshot,
+                        segments: segmentsSnapshot,
+                        screenshot,
+                        screenshotNote: screenshot ? 'PNG Data URL' : 'Screenshot nicht verfügbar'
+                    };
+
+                    downloadCarportPayload(exportPayload);
+                } catch (error) {
+                    console.error('❌ Fehler beim Export der Carport-Konfiguration', error);
+                    alert('Export fehlgeschlagen. Details in der Konsole.');
+                } finally {
+                    setCarportExportButtonBusy(false);
+                }
+            }
+
+            if (carportExportButton) {
+                carportExportButton.addEventListener('click', handleCarportExportClick);
+            }
+
+            document.addEventListener('carportModeChanged', () => updateCarportExportState());
+            document.addEventListener('pergolaKonfigurationGeaendert', () => updateCarportExportState());
+            document.addEventListener('carportSegmentsUpdated', event => {
+                updateCarportExportState(event.detail?.segments);
+            });
+
+            function debounce(func, delay) {
+                return function(...args) {
+                    clearTimeout(updateTimer);
+                    updateTimer = setTimeout(() => func.apply(this, args), delay);
+                };
+            }
+
+            function createSegmentUI(segmentId) {
+                const segmentDiv = document.createElement('div');
+                segmentDiv.id = `segment-${segmentId}`;
+                segmentDiv.classList.add('carport-segment');
+                segmentDiv.style.cssText = 'position: relative; min-width: 480px; max-width: 540px; scroll-snap-align: start; flex-shrink: 0;';
+
+                segmentDiv.innerHTML = `
+                    <div class="segment-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.5rem; border-bottom: 2px solid #f0f0f0; gap: 0.5rem;">
+                        <div style="display:flex; align-items:center; gap:0.5rem; flex:1;">
+                            <button type="button" class="segment-toggle" data-id="${segmentId}" aria-label="Segment ein-/ausklappen" style="border:none; background:transparent; cursor:pointer; font-size:0.95rem; transform: rotate(0deg); transition: transform 0.2s;">▼</button>
+                            <strong style="font-size: 1rem; color: #007bff;">📦 Segment ${segmentId}</strong>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div class="segment-statics-indicator" id="segment-statics-${segmentId}" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.5rem; background: #e8f5e9; border-radius: 4px; font-size: 0.75rem;">
+                                <span style="color: #666; font-weight: 500;">Statik:</span>
+                                <span class="statics-icon" style="font-size: 1.1em;">🟢</span>
+                                <span class="statics-text" style="font-weight: 600; color: #2e7d32;">OK</span>
+                            </div>
+                            <button type="button" class="remove-segment" data-id="${segmentId}"
+                                    style="padding: 0.3rem 0.55rem; cursor: pointer; background: #dc3545; color: white; border: none; border-radius: 4px; font-size: 0.8rem; font-weight: 600; transition: background 0.2s;">
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="segment-body" style="margin-top: 0.6rem;">
+                    <!-- Abmessungen -->
+                    <div style="margin-bottom: 1rem;">
+                        <h5 style="margin: 0 0 0.6rem 0; color: #555; font-size: 0.85rem; font-weight: 600;">📏 Abmessungen</h5>
+                        <div class="dimension-columns" style="gap: 1rem;">
+                            <div class="dimension-column">
+                                <div class="dimension-row">
+                                    <div class="dimension-label">
+                                        Breite (m)
+                                        <small>2,00–8,00 m</small>
+                                    </div>
+                                    <div class="dimension-input-group">
+                                        <input type="range" class="segment-width-range dimension-hidden-range" data-id="${segmentId}" min="2" max="8" step="0.01" value="4">
+                                        <input type="text" inputmode="decimal" class="segment-width" data-id="${segmentId}" min="2" max="8" step="0.01" value="4.00" style="field-sizing: content; min-width: 35px; min-height: 35px; text-align: center;">
+                                        <div class="dimension-stepper">
+                                            <button type="button" class="dimension-btn segment-dimension-dec" data-target="segment-width" data-id="${segmentId}">−</button>
+                                            <button type="button" class="dimension-btn segment-dimension-inc" data-target="segment-width" data-id="${segmentId}">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="dimension-row">
+                                    <div class="dimension-label">
+                                        Tiefe (m)
+                                        <small>2,00–6,00 m</small>
+                                    </div>
+                                    <div class="dimension-input-group">
+                                        <input type="range" class="segment-depth-range dimension-hidden-range" data-id="${segmentId}" min="2" max="6" step="0.01" value="4">
+                                        <input type="text" inputmode="decimal" class="segment-depth" data-id="${segmentId}" min="2" max="6" step="0.01" value="4.00" style="field-sizing: content; min-width: 35px; min-height: 35px; text-align: center;">
+                                        <div class="dimension-stepper">
+                                            <button type="button" class="dimension-btn segment-dimension-dec" data-target="segment-depth" data-id="${segmentId}">−</button>
+                                            <button type="button" class="dimension-btn segment-dimension-inc" data-target="segment-depth" data-id="${segmentId}">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dimension-column" style="margin-left: 5px;">
+                                <div class="dimension-row">
+                                    <div class="dimension-label">
+                                        Höhe (m)
+                                        <small>2,40–4,00 m</small>
+                                    </div>
+                                    <div class="dimension-input-group">
+                                        <input type="range" class="segment-height-range dimension-hidden-range" data-id="${segmentId}" min="2.4" max="4" step="0.01" value="2.7">
+                                        <input type="text" inputmode="decimal" class="segment-height" data-id="${segmentId}" min="2.4" max="4" step="0.01" value="2.70" style="field-sizing: content; min-width: 35px; min-height: 35px; text-align: center;">
+                                        <div class="dimension-stepper">
+                                            <button type="button" class="dimension-btn segment-dimension-dec" data-target="segment-height" data-id="${segmentId}">−</button>
+                                            <button type="button" class="dimension-btn segment-dimension-inc" data-target="segment-height" data-id="${segmentId}">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="dimension-row">
+                                    <div class="dimension-label">
+                                        Neigung (°)
+                                        <small>0–5°</small>
+                                    </div>
+                                    <div class="dimension-input-group">
+                                        <input type="range" class="segment-slope-range dimension-hidden-range" data-id="${segmentId}" min="0" max="5" step="0.1" value="2.0">
+                                        <input type="text" inputmode="decimal" class="segment-slope" data-id="${segmentId}" min="0" max="5" step="0.1" value="2.0" style="field-sizing: content; min-width: 35px; min-height: 35px; text-align: center;">
+                                        <div class="dimension-stepper">
+                                            <button type="button" class="dimension-btn segment-dimension-dec" data-target="segment-slope" data-id="${segmentId}">−</button>
+                                            <button type="button" class="dimension-btn segment-dimension-inc" data-target="segment-slope" data-id="${segmentId}">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Position & Ausrichtung inkl. Rotation -->
+                    <div class="segment-section" style="margin-bottom: 1rem;">
+                        <button type="button" class="segment-section-toggle" data-target="segment-pos-${segmentId}" data-default-open="false" aria-expanded="false" style="border:none;background:transparent;cursor:pointer;display:flex;align-items:center;gap:6px;color:#444;font-weight:600;font-size:0.9rem;padding:0;margin:0 0 0.35rem 0;">
+                            <span class="segment-section-chevron">▶︎</span> <span>📍 Position & Ausrichtung</span>
+                        </button>
+                        <div id="segment-pos-${segmentId}" class="segment-section-content segment-position-block" style="display:none; margin-top: 0.4rem;">
+                            <div class="dimension-columns" style="gap: 1rem;">
+                                <div class="dimension-column">
+                                    <div class="dimension-row">
+                                        <div class="dimension-label">
+                                            Position X (m)
+                                            <small>-20 bis 20 m</small>
+                                        </div>
+                                        <div class="dimension-input-group">
+                                            <input type="range" class="segment-x-range dimension-hidden-range" data-id="${segmentId}" min="-20" max="20" step="0.1" value="0">
+                                            <input type="text" inputmode="decimal" class="segment-x" data-id="${segmentId}" min="-20" max="20" step="0.001" value="0.00" style="field-sizing: content; min-width: 35px; min-height: 35px; text-align: center;">
+                                            <div class="dimension-stepper">
+                                                <button type="button" class="dimension-btn segment-dimension-dec segment-position-x-left" data-target="segment-x" data-id="${segmentId}">⬅️</button>
+                                                <button type="button" class="dimension-btn segment-dimension-inc segment-position-x-right" data-target="segment-x" data-id="${segmentId}">➡️</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="dimension-column" style="margin-left: 5px;">
+                                    <div class="dimension-row">
+                                        <div class="dimension-label">
+                                            Position Z (m)
+                                            <small>-20 bis 20 m</small>
+                                        </div>
+                                        <div class="dimension-input-group">
+                                            <input type="range" class="segment-z-range dimension-hidden-range" data-id="${segmentId}" min="-20" max="20" step="0.1" value="0">
+                                            <input type="text" inputmode="decimal" class="segment-z" data-id="${segmentId}" min="-20" max="20" step="0.001" value="0.00" style="field-sizing: content; min-width: 35px; min-height: 35px; text-align: center;">
+                                            <div class="dimension-stepper">
+                                                <button type="button" class="dimension-btn segment-dimension-dec segment-position-z-down" data-target="segment-z" data-id="${segmentId}">⬇️</button>
+                                                <button type="button" class="dimension-btn segment-dimension-inc segment-position-z-up" data-target="segment-z" data-id="${segmentId}">⬆️</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 0.6rem;">
+                                <label style="display: block; margin-bottom: 0.3rem; font-weight: 500; font-size: 0.85rem;">Rotation</label>
+                                <select class="segment-rotation" data-id="${segmentId}" style="width: 100%; padding: 0.4rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.85rem;">
+                                    <option value="0">0° (Nord)</option>
+                                    <option value="90">90° (Ost)</option>
+                                    <option value="180">180° (Süd)</option>
+                                    <option value="270">270° (West)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Zwischenpfosten -->
+                    <div class="segment-section" style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 2px solid #e0e0e0;">
+                        <button type="button" class="segment-section-toggle" data-target="segment-zwischen-${segmentId}" data-default-open="false" aria-expanded="false" style="border:none;background:transparent;cursor:pointer;display:flex;align-items:center;gap:6px;color:#444;font-weight:600;font-size:0.9rem;padding:0;margin:0 0 0.35rem 0;">
+                            <span class="segment-section-chevron">▶︎</span> <span>⚡ Zwischenpfosten</span>
+                        </button>
+                        <div id="segment-zwischen-${segmentId}" class="segment-section-content" style="display:none; margin-top:0.4rem;">
+                            <div class="option-card-grid option-card-grid--small">
+                                <button type="button" class="option-card segment-intermediate-posts-width-btn" data-id="${segmentId}" data-value="width">
+                                    <span class="option-card-label">Querträger (Breite)</span>
+                                </button>
+                                <button type="button" class="option-card segment-intermediate-posts-depth-btn" data-id="${segmentId}" data-value="depth">
+                                    <span class="option-card-label">Längsträger (Tiefe)</span>
+                                </button>
+                            </div>
+                            <div style="margin-top: 0.6rem;">
+                                <label for="segment-zwischenpfosten-profil-${segmentId}" style="display: block; margin-bottom: 0.3rem; font-weight: 500; font-size: 0.85rem;">Profil</label>
+                                <select id="segment-zwischenpfosten-profil-${segmentId}" class="segment-zwischenpfosten-profil" data-id="${segmentId}" style="width: 100%; padding: 0.4rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.85rem;">
+                                    <option value="120x80x4_mittel">120×80 (Standard)</option>
+                                    <option value="160x80x4_mittel">160×80</option>
+                                    <option value="200x120x4_mittel">200×120</option>
+                                </select>
+                                <small style="display: block; margin-top: 0.3rem; font-size: 0.75rem; color: #666;">
+                                    Tip: Zwischenpfosten werden nur erzeugt, wenn mindestens eine Richtung aktiviert ist.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Regenwasserabfluss -->
+                    <!-- Regenwasserabfluss -->
+                    <div class="segment-section" style="margin-top: 1rem; padding-top: 0.2rem;">
+                        <button type="button" class="segment-section-toggle" data-target="segment-drain-${segmentId}" data-default-open="false" aria-expanded="false" style="border:none;background:transparent;cursor:pointer;display:flex;align-items:center;gap:6px;color:#444;font-weight:600;font-size:0.9rem;padding:0;margin:0 0 0.35rem 0;">
+                            <span class="segment-section-chevron">▶︎</span> <span>💧 Regenwasserabfluss</span>
+                        </button>
+                        <div id="segment-drain-${segmentId}" class="segment-section-content" style="display:none; margin-top:0.4rem;">
+                            <label style="display: block; margin-bottom: 0.2rem; font-weight: 500; font-size: 0.85rem;">Dachkonfiguration</label>
+                            <select class="segment-drainage" data-id="${segmentId}" style="width: 100%; padding: 0.4rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.85rem;">
+                                <option value="rinne">Mit Rinne</option>
+                                <option value="vollprofil">Ohne Rinne</option>
+                            </select>
+                            <small style="display: block; margin-top: 0.3rem; font-size: 0.75rem; color: #666;">
+                                <strong>Mit Rinne:</strong> U-Profil als Rinne am vorderen Teil<br>
+                                <strong>Ohne Rinne:</strong> Vollprofil ohne sichtbare Rinne
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Pfosten versetzen, kürzen, entfernen (wird dynamisch eingefügt) -->
+                    <div class="segment-section" style="margin-top: 0.8rem;">
+                        <button type="button" class="segment-section-toggle" data-target="segment-post-${segmentId}" data-default-open="false" aria-expanded="false" style="border:none;background:transparent;cursor:pointer;display:flex;align-items:center;gap:6px;color:#444;font-weight:600;font-size:0.9rem;padding:0;margin:0 0 0.35rem 0;">
+                            <span class="segment-section-chevron">▶︎</span> <span>🔧 Pfosten versetzen, kürzen, entfernen</span>
+                        </button>
+                        <div id="segment-post-${segmentId}" class="segment-section-content" style="display:none;">
+                            <div id="segment-post-controls-${segmentId}"></div>
+                        </div>
+                    </div>
+                    </div> <!-- Ende segment-body -->
+                `;
+
+                return segmentDiv;
+            }
+
+            function initSegmentSectionToggles(segmentDiv){
+                const toggles=segmentDiv.querySelectorAll('.segment-section-toggle');
+                toggles.forEach(btn=>{
+                    const targetId=btn.getAttribute('data-target');
+                    const target=targetId?segmentDiv.querySelector(`#${targetId}`):null;
+                    if(!target)return;
+                    const chevron=btn.querySelector('.segment-section-chevron');
+                    const defaultOpen=btn.getAttribute('data-default-open')==="true";
+                    const setState=(open)=>{
+                        target.style.display=open?"block":"none";
+                        btn.setAttribute('aria-expanded', open.toString());
+                        if(chevron){
+                            chevron.textContent=open?"▼":"▶︎";
+                        }
+                    };
+                    setState(defaultOpen);
+                    btn.addEventListener('click', ()=>{
+                        const open=target.style.display==="none"||target.style.display==="";
+                        setState(open);
+                    });
+                });
+            }
+
+            function syncSliderAndInput(rangeInput, numberInput) {
+                rangeInput.addEventListener('input', () => {
+                    const step = parseFloat(numberInput.step) || 0.01;
+                    const decimals = step >= 1 ? 0 : (step === 0.1 ? 1 : (step === 0.01 ? 2 : 3));
+                    numberInput.value = parseFloat(rangeInput.value).toFixed(decimals);
+                });
+                numberInput.addEventListener('input', () => {
+                    rangeInput.value = numberInput.value;
+                });
+            }
+
+            function setSegmentPositionWarning(segmentId, message) {
+                const segmentDiv = document.getElementById(`segment-${segmentId}`);
+                if (!segmentDiv) return;
+                let warn = segmentDiv.querySelector('.segment-position-warning');
+                if (!warn) {
+                    warn = document.createElement('div');
+                    warn.className = 'segment-position-warning';
+                    warn.style.cssText = 'margin-top: 0.3rem; color: #c62828; font-size: 0.8rem; font-weight: 600;';
+                    const posBlock = segmentDiv.querySelector('.segment-position-block') || segmentDiv.querySelector('div');
+                    (posBlock || segmentDiv).appendChild(warn);
+                }
+                warn.textContent = message;
+                warn.style.display = message ? 'block' : 'none';
+            }
+
+            function clearAllPositionWarnings() {
+                document.querySelectorAll('.segment-position-warning').forEach(el => el.remove());
+            }
+
+            function applySegmentValuesToInputs(seg) {
+                const segmentDiv = document.getElementById(`segment-${seg.id}`);
+                if (!segmentDiv) return;
+                const map = [
+                    { cls: '.segment-width', val: seg.breite },
+                    { cls: '.segment-width-range', val: seg.breite },
+                    { cls: '.segment-depth', val: seg.tiefe },
+                    { cls: '.segment-depth-range', val: seg.tiefe },
+                    { cls: '.segment-height', val: seg.hoehe },
+                    { cls: '.segment-height-range', val: seg.hoehe },
+                    { cls: '.segment-x', val: seg.x },
+                    { cls: '.segment-x-range', val: seg.x },
+                    { cls: '.segment-z', val: seg.z },
+                    { cls: '.segment-z-range', val: seg.z },
+                    { cls: '.segment-rotation', val: seg.rotation },
+                    { cls: '.segment-slope', val: seg.neigung },
+                    { cls: '.segment-slope-range', val: seg.neigung }
+                ];
+                map.forEach(({ cls, val }) => {
+                    const el = segmentDiv.querySelector(cls);
+                    if (el) el.value = val;
+                });
+            }
+
+            function updateSegments() {
+                segments = [];
+                const segmentDivs = Array.from(document.querySelectorAll('[id^="segment-"]')).filter(div => /^segment-\d+$/.test(div.id));
+                segmentDivs.forEach(segmentDiv => {
+                    const id = segmentDiv.id.replace('segment-', '');
+                    
+                    // Prüfe ob alle erforderlichen Elemente existieren
+                    const widthInput = segmentDiv.querySelector('.segment-width');
+                    const depthInput = segmentDiv.querySelector('.segment-depth');
+                    const xInput = segmentDiv.querySelector('.segment-x');
+                    const zInput = segmentDiv.querySelector('.segment-z');
+                    const rotationInput = segmentDiv.querySelector('.segment-rotation');
+                    const heightInput = segmentDiv.querySelector('.segment-height');
+                    const slopeInput = segmentDiv.querySelector('.segment-slope');
+                    const drainageInput = segmentDiv.querySelector('.segment-drainage');
+                    const baseCfg = window.uiController?.aktuelleKonfiguration || {};
+                    const toNum = (val, fallback) => {
+                        const parsed = parseFloat(val);
+                        return Number.isFinite(parsed) ? parsed : fallback;
+                    };
+                    
+                    if (!widthInput || !depthInput || !xInput || !zInput || !rotationInput || !heightInput || !slopeInput) {
+                        console.warn(`⚠️ Segment ${id}: Nicht alle Eingabefelder gefunden, überspringe`);
+                        return;
+                    }
+                    
+                    const segment = {
+                        id: parseInt(id),
+                        breite: toNum(widthInput.value, toNum(baseCfg.breite, 4)),
+                        tiefe: toNum(depthInput.value, toNum(baseCfg.tiefe, 3)),
+                        x: toNum(xInput.value, 0),
+                        z: toNum(zInput.value, 0),
+                        rotation: parseInt(rotationInput.value) || 0,
+                        hoehe: toNum(heightInput.value, toNum(baseCfg.hoehe, 2.7)),
+                        neigung: toNum(slopeInput.value, toNum(baseCfg.neigung, 3)),
+                        regenwasserAbfluss: drainageInput ? drainageInput.value : (baseCfg.regenwasserAbfluss || 'rinne'),
+                        dachTyp: baseCfg.dachTyp || baseCfg.dach || 'glas',
+                        glasFarbe: baseCfg.glasFarbe || baseCfg.glasTyp || 'klar',
+                        epdmFarbe: baseCfg.epdmFarbe || 'schwarz'
+                    };
+
+                    console.log("[SEGMENT UI] updateSegments push", {
+                        id,
+                        raw: {
+                            breite: widthInput?.value,
+                            tiefe: depthInput?.value,
+                            hoehe: heightInput?.value,
+                            neigung: slopeInput?.value,
+                            x: xInput?.value,
+                            z: zInput?.value
+                        },
+                        parsed: {
+                            breite: segment.breite,
+                            tiefe: segment.tiefe,
+                            hoehe: segment.hoehe,
+                            neigung: segment.neigung,
+                            x: segment.x,
+                            z: segment.z,
+                            dachTyp: segment.dachTyp,
+                            regenwasserAbfluss: segment.regenwasserAbfluss
+                        }
+                    });
+
+                    // Füge Zwischenpfosten-Konfiguration hinzu
+                    const widthBtn = segmentDiv.querySelector('.segment-intermediate-posts-width-btn');
+                    const depthBtn = segmentDiv.querySelector('.segment-intermediate-posts-depth-btn');
+                    const zwischenPfostenProfil = segmentDiv.querySelector('.segment-zwischenpfosten-profil');
+
+                    segment.zwischenpfostenBreite = widthBtn && widthBtn.classList.contains('active');
+                    segment.zwischenpfostenTiefe = depthBtn && depthBtn.classList.contains('active');
+                    segment.zwischenpfostenProfil = zwischenPfostenProfil ? zwischenPfostenProfil.value : '120x80x4_mittel';
+
+                    // Füge Pfostenwerte hinzu, falls vorhanden
+                    if (window.segmentPostController) {
+                        const postValues = window.segmentPostController.getSegmentPostValues(parseInt(id));
+                        if (postValues) {
+                            segment.pfostenVersaetze = {};
+                            segment.pfostenKuerzung = {};
+                            segment.pfostenAktiv = {};
+
+                            Object.keys(postValues).forEach(postId => {
+                                const axis = postValues[postId].offsetAxis || 'x';
+                                const val = postValues[postId].offset;
+                                segment.pfostenVersaetze[postId] = axis === 'z' ? { achse: 'z', wert: val } : val;
+                                segment.pfostenKuerzung[postId] = postValues[postId].shorten;
+                                segment.pfostenAktiv[postId] = postValues[postId].active;
+                            });
+                        }
+                    }
+
+                    segments.push(segment);
+                });
+
+                const conflictResult = handleCoordinateConflicts(segments);
+                if (conflictResult.duplicates.length > 0) {
+                    // Revert to last valid values
+                    if (lastValidSegments.length > 0) {
+                        lastValidSegments.forEach(seg => applySegmentValuesToInputs(seg));
+                        segments = lastValidSegments.map(s => ({ ...s }));
+                    }
+                    // Warn per segment
+                    Object.entries(conflictResult.bySegment || {}).forEach(([id, list]) => {
+                        const msg = list.map(entry => `Überlagerung mit Segment ${entry.otherId}`).join(' • ');
+                        setSegmentPositionWarning(id, msg);
+                    });
+                    return;
+                } else {
+                    clearAllPositionWarnings();
+                    lastValidSegments = segments.map(s => ({ ...s }));
+                }
+                console.log("📐 Segmente aktualisiert:", segments);
+
+                if (window.uiController && window.uiController.aktuelleKonfiguration) {
+                    const segmentSnapshot = segments.map(seg => ({ ...seg }));
+                    
+                    // KRITISCH: Stelle sicher dass carportModus gesetzt ist
+                    const wasCarportMode = window.uiController.aktuelleKonfiguration.carportModus;
+                    
+                    // Setze Segmente in die Konfiguration
+                    window.uiController.aktuelleKonfiguration.carportSegmente = segmentSnapshot;
+                    
+                    // Stelle sicher dass carportModus NICHT versehentlich zurückgesetzt wird
+                    if (wasCarportMode !== false) {
+                        window.uiController.aktuelleKonfiguration.carportModus = true;
+                    }
+                    
+                    console.log("[SEGMENT COMMIT] Carport-Segmente in Config gesetzt:", {
+                        segmentCount: segmentSnapshot.length,
+                        carportModus: window.uiController.aktuelleKonfiguration.carportModus,
+                        segments: segmentSnapshot.map(s => ({
+                            id: s.id,
+                            breite: s.breite,
+                            tiefe: s.tiefe,
+                            hoehe: s.hoehe,
+                            neigung: s.neigung,
+                            dachTyp: s.dachTyp,
+                            regenwasserAbfluss: s.regenwasserAbfluss
+                        }))
+                    });
+                    
+                    // Statik pro Segment aktualisieren
+                    updateSegmentStatics(segments);
+                    
+                    // WICHTIG: Cache löschen UND dann mit Verzögerung Update aufrufen
+                    if (window.uiController.infobox) {
+                        window.uiController.infobox.letzteMaterialien = null;
+                    }
+                    
+                    setTimeout(() => {
+                        // Nochmal sicherstellen dass Segmente UND carportModus gesetzt sind
+                        window.uiController.aktuelleKonfiguration.carportSegmente = segmentSnapshot;
+                        if (wasCarportMode !== false) {
+                            window.uiController.aktuelleKonfiguration.carportModus = true;
+                        }
+                        
+                        console.log("🔄 Rufe onKonfigurationGeaendert auf mit:", {
+                            carportModus: window.uiController.aktuelleKonfiguration.carportModus,
+                            segmentCount: window.uiController.aktuelleKonfiguration.carportSegmente?.length,
+                            segments: window.uiController.aktuelleKonfiguration.carportSegmente
+                        });
+                        
+                        // Cache NOCHMAL löschen direkt vor Update
+                        if (window.uiController.infobox) {
+                            window.uiController.infobox.letzteMaterialien = null;
+                        }
+                        
+                        window.uiController.onKonfigurationGeaendert();
+                    }, 150);
+                }
+
+                document.dispatchEvent(new CustomEvent('carportSegmentsUpdated', { detail: { segments } }));
+                updateCarportExportState(segments);
+                syncScrollbars();
+            }
+            
+            function updateSegmentStatics(segments) {
+                console.log('🔍 updateSegmentStatics aufgerufen!', {
+                    segmentsCount: segments.length,
+                    hasStaticsCheck: !!window.StaticsCheck,
+                    hasUIController: !!window.uiController
+                });
+
+                if (!window.StaticsCheck) {
+                    console.error('⚠️ StaticsCheck nicht verfügbar - warte auf Initialisierung');
+                    // Versuche es nach 1 Sekunde nochmal
+                    setTimeout(() => updateSegmentStatics(segments), 1000);
+                    return;
+                }
+
+                // Hole nur die Haupt-Segment-Divs (nicht die Unterelemente wie segment-post-controls)
+                const allSegmentDivs = document.querySelectorAll('[id^="segment-"]');
+                const segmentDivs = Array.from(allSegmentDivs).filter(div => {
+                    const id = div.id;
+                    // Nur IDs die genau "segment-" + Nummer sind
+                    return /^segment-\d+$/.test(id);
+                });
+                
+                console.log(`  📦 Gefundene Segment-Divs im DOM: ${segmentDivs.length}`);
+
+                segmentDivs.forEach((segmentDiv, idx) => {
+                    const segmentId = segmentDiv.id.replace('segment-', '');
+                    const indicator = document.getElementById(`segment-statics-${segmentId}`);
+                    // Finde das Segment anhand seiner ID, nicht nach Array-Index
+                    const seg = segments.find(s => s.id === parseInt(segmentId)) || {};
+                    
+                    console.log(`  🔎 Verarbeite Segment ${segmentId}:`, {
+                        breite: seg.breite,
+                        tiefe: seg.tiefe,
+                        hasIndicator: !!indicator
+                    });
+                    
+                    if (!indicator) {
+                        console.warn(`  ⚠️ Indicator segment-statics-${segmentId} nicht gefunden - überspringe`);
+                        return;
+                    }
+                    
+                    const baseCfg = window.uiController?.aktuelleKonfiguration || {};
+                    const config = {
+                        breite: parseFloat(seg.breite) || 4,
+                        tiefe: parseFloat(seg.tiefe) || 4,
+                        hoehe: parseFloat(seg.hoehe) || parseFloat(baseCfg.hoehe) || 2.7,
+                        neigung: parseFloat(seg.neigung) || parseFloat(baseCfg.neigung) || 0,
+                        pfostenProfil: baseCfg.pfostenProfil || '160x80x4',
+                        dachTyp: seg.dachTyp || baseCfg.dachTyp || 'glas',
+                        zentralerMittelpfosten: !!baseCfg.zentralerMittelpfosten,
+                        typ: baseCfg.typ || 'freistehend',
+                        zwischenpfostenBreite: !!seg.zwischenpfostenBreite,
+                        zwischenpfostenTiefe: !!seg.zwischenpfostenTiefe
+                    };
+                    
+                    console.log(`  🔧 Config für Segment ${segmentId}:`, config);
+                    
+                    const result = window.StaticsCheck.compute(config, {});
+                    const icon = indicator.querySelector('.statics-icon');
+                    const text = indicator.querySelector('.statics-text');
+                    
+                    console.log(`  � Indicator-Struktur Segment ${segmentId}:`, {
+                        hasIcon: !!icon,
+                        hasText: !!text,
+                        indicatorHTML: indicator.innerHTML
+                    });
+                    
+                    if (!icon || !text) {
+                        console.error(`  ❌ Segment ${segmentId}: Icon oder Text nicht gefunden!`);
+                        return;
+                    }
+                    
+                    console.log(`  �📊 StaticsCheck Ergebnis Segment ${segmentId}:`, {
+                        status: result.status,
+                        statusType: typeof result.status,
+                        messages: result.messages,
+                        limiting_element: result.limiting_element
+                    });
+                    
+                    // Normalisiere Status zu Kleinbuchstaben-String
+                    const status = String(result.status || 'red').toLowerCase();
+                    console.log(`  🎯 Normalisierter Status: "${status}"`);
+                    
+                    if (status === 'green') {
+                        indicator.style.background = '#e8f5e9';
+                        icon.textContent = '🟢';
+                        text.textContent = 'OK';
+                        text.style.color = '#2e7d32';
+                    } else if (status === 'yellow') {
+                        indicator.style.background = '#fff3e0';
+                        icon.textContent = '🟡';
+                        text.textContent = 'Grenzwertig';
+                        text.style.color = '#f57c00';
+                    } else {
+                        indicator.style.background = '#ffebee';
+                        icon.textContent = '🔴';
+                        text.textContent = 'Kritisch';
+                        text.style.color = '#c62828';
+                    }
+                });
+            }
+
+            // Separate Funktion nur für Pfosten-Updates (ohne debounce für schnelleres Feedback)
+            function updateSegmentsWithPosts() {
+                updateSegments();
+            }
+
+            const debouncedUpdate = updateSegments;
+
+            // Hilfsfunktion zum Erstellen eines Segments mit vorgegebenen Werten
+            function getBaseSegmentDefaults() {
+                const cfg = window.uiController?.aktuelleKonfiguration || {};
+                const readValue=(id,fallback)=>{
+                    const input=document.getElementById(id)||document.getElementById(`${id}-input`);
+                    if(!input)return fallback;
+                    const parsed=parseFloat(input.value);
+                    return Number.isFinite(parsed)?parsed:fallback;
+                };
+                return{
+                    breite:Number.isFinite(parseFloat(cfg.breite))?parseFloat(cfg.breite):readValue('width',4),
+                    tiefe:Number.isFinite(parseFloat(cfg.tiefe))?parseFloat(cfg.tiefe):readValue('depth',3),
+                    hoehe:Number.isFinite(parseFloat(cfg.hoehe))?parseFloat(cfg.hoehe):readValue('height',2.7),
+                    neigung:Number.isFinite(parseFloat(cfg.neigung))?parseFloat(cfg.neigung):readValue('slope',3),
+                    regenwasserAbfluss:cfg.regenwasserAbfluss||document.getElementById('drainage')?.value||'rinne'
+                };
+            }
+
+            function createSegmentWithValues(values, options = {}) {
+                const shouldInherit = options.useBaseDimensions !== false;
+                const normalizedValues={...values};
+                if(shouldInherit){
+                    const defaults=getBaseSegmentDefaults();
+                    ["breite","tiefe","hoehe","neigung","regenwasserAbfluss"].forEach(key=>{
+                        if((normalizedValues[key]===undefined||normalizedValues[key]===null)&&defaults[key]!==undefined&&defaults[key]!==null){
+                            normalizedValues[key]=defaults[key];
+                        }
+                    });
+                }
+                segmentCounter++;
+                const currentSegmentId = segmentCounter;
+                const segmentUI = createSegmentUI(currentSegmentId);
+                document.getElementById('carport-segment-list-main').appendChild(segmentUI);
+                initSegmentSectionToggles(segmentUI);
+
+                // Initiale Pfostenwerte aus Template (aktiv/Versatz/Kürzung)
+                if(window.segmentPostController){
+                    const defs=window.segmentPostController.postDefinitions||[];
+                    const initial={};
+                    defs.forEach(pd=>{
+                        initial[pd.id]={offset:0, shorten:0, active:true, offsetAxis:pd.offsetAxis||"x"};
+                    });
+                    const applyActive=obj=>{
+                        if(!obj||typeof obj!=="object")return;
+                        Object.entries(obj).forEach(([postId,val])=>{
+                            if(initial[postId]!==undefined){
+                                initial[postId].active=val!==false;
+                            }
+                        });
+                    };
+                    applyActive(normalizedValues.pfostenAktiv);
+                    applyActive(normalizedValues.pfostenAktiv?.individuell);
+
+                    const applyShorten=obj=>{
+                        if(!obj||typeof obj!=="object")return;
+                        Object.entries(obj).forEach(([postId,val])=>{
+                            const num=parseFloat(val);
+                            if(initial[postId]!==undefined && Number.isFinite(num)){
+                                initial[postId].shorten=num;
+                            }
+                        });
+                    };
+                    applyShorten(normalizedValues.pfostenKuerzung);
+                    applyShorten(normalizedValues.pfostenKuerzung?.individuell);
+
+                    const applyOffset=(postId,payload)=>{
+                        if(initial[postId]===undefined)return;
+                        if(payload===null||payload===undefined)return;
+                        if(typeof payload==="object"){
+                            const axis=(payload.achse||payload.axis||initial[postId].offsetAxis||"x")==="z"?"z":"x";
+                            const val=parseFloat(payload.wert??payload.value);
+                            if(Number.isFinite(val)){
+                                initial[postId].offsetAxis=axis;
+                                initial[postId].offset=val;
+                            }
+                        }else{
+                            const val=parseFloat(payload);
+                            if(Number.isFinite(val)){
+                                initial[postId].offset=val;
+                            }
+                        }
+                    };
+                    const vers=normalizedValues.pfostenVersaetze||{};
+                    if(vers.vorne!==undefined){
+                        applyOffset("vorne_links", vers.vorne);
+                        applyOffset("vorne_rechts", vers.vorne);
+                    }
+                    if(vers.hinten!==undefined){
+                        applyOffset("hinten_links", vers.hinten);
+                        applyOffset("hinten_rechts", vers.hinten);
+                    }
+                    Object.entries(vers.individuell||vers||{}).forEach(([postId,val])=>{
+                        if(postId==="vorne"||postId==="hinten")return;
+                        applyOffset(postId,val);
+                    });
+
+                    if(typeof window.segmentPostController.setSegmentPostValues==="function"){
+                        window.segmentPostController.setSegmentPostValues(currentSegmentId, initial);
+                    }
+                }
+
+                // Werte setzen mit korrekter Formatierung
+                if (normalizedValues.breite !== undefined) {
+                    const breiteVal = parseFloat(normalizedValues.breite);
+                    segmentUI.querySelector('.segment-width-range').value = breiteVal;
+                    segmentUI.querySelector('.segment-width').value = breiteVal.toFixed(2);
+                }
+        if (normalizedValues.tiefe !== undefined) {
+            const tiefeVal = parseFloat(normalizedValues.tiefe);
+            segmentUI.querySelector('.segment-depth-range').value = tiefeVal;
+            segmentUI.querySelector('.segment-depth').value = tiefeVal.toFixed(2);
+        }
+                if (normalizedValues.hoehe !== undefined) {
+                    const hoeheVal = parseFloat(normalizedValues.hoehe);
+                    segmentUI.querySelector('.segment-height-range').value = hoeheVal;
+                    segmentUI.querySelector('.segment-height').value = hoeheVal.toFixed(2);
+                }
+                if (normalizedValues.neigung !== undefined) {
+                    const neigungVal = parseFloat(normalizedValues.neigung);
+                    segmentUI.querySelector('.segment-slope-range').value = neigungVal;
+                    segmentUI.querySelector('.segment-slope').value = neigungVal.toFixed(1);
+                }
+                if (normalizedValues.x !== undefined) {
+                    const xVal = parseFloat(normalizedValues.x);
+                    segmentUI.querySelector('.segment-x-range').value = xVal;
+                    segmentUI.querySelector('.segment-x').value = xVal.toFixed(2);
+                }
+                if (normalizedValues.z !== undefined) {
+                    const zVal = parseFloat(normalizedValues.z);
+                    segmentUI.querySelector('.segment-z-range').value = zVal;
+                    segmentUI.querySelector('.segment-z').value = zVal.toFixed(2);
+                }
+                if (normalizedValues.rotation !== undefined) {
+                    segmentUI.querySelector('.segment-rotation').value = normalizedValues.rotation;
+                }
+                if (normalizedValues.regenwasserAbfluss !== undefined) {
+                    const drainageSelect = segmentUI.querySelector('.segment-drainage');
+                    if (drainageSelect) {
+                        drainageSelect.value = normalizedValues.regenwasserAbfluss;
+                    }
+                }
+
+                // Zwischenpfosten-Werte setzen
+                if (normalizedValues.zwischenpfostenBreite) {
+                    const widthBtn = segmentUI.querySelector('.segment-intermediate-posts-width-btn');
+                    if (widthBtn) widthBtn.classList.add('active');
+                }
+                if (normalizedValues.zwischenpfostenTiefe) {
+                    const depthBtn = segmentUI.querySelector('.segment-intermediate-posts-depth-btn');
+                    if (depthBtn) depthBtn.classList.add('active');
+                }
+                if (normalizedValues.zwischenpfostenProfil) {
+                    const profilSelect = segmentUI.querySelector('.segment-zwischenpfosten-profil');
+                    if (profilSelect) profilSelect.value = normalizedValues.zwischenpfostenProfil;
+                }
+
+                // Accordion Handling
+                const body=segmentUI.querySelector('.segment-body');
+                const toggleBtn=segmentUI.querySelector('.segment-toggle');
+                if(toggleBtn&&body){
+                    let collapsed=false;
+                    const setCollapsed=(val)=>{
+                        collapsed=!!val;
+                        body.style.display=collapsed?"none":"block";
+                        toggleBtn.style.transform=collapsed?"rotate(-90deg)":"rotate(0deg)";
+                    };
+                    toggleBtn.addEventListener('click',()=>{
+                        setCollapsed(!collapsed);
+                    });
+                    // Start expanded, damit Inhalte direkt sichtbar sind
+                    setCollapsed(false);
+                }
+
+                // Sync Slider und Input
+                const widthRange = segmentUI.querySelector('.segment-width-range');
+                const widthInput = segmentUI.querySelector('.segment-width');
+                syncSliderAndInput(widthRange, widthInput);
+
+                const depthRange = segmentUI.querySelector('.segment-depth-range');
+                const depthInput = segmentUI.querySelector('.segment-depth');
+                syncSliderAndInput(depthRange, depthInput);
+
+                const heightRange = segmentUI.querySelector('.segment-height-range');
+                const heightInput = segmentUI.querySelector('.segment-height');
+                syncSliderAndInput(heightRange, heightInput);
+
+                // Bei Höhenänderung auch max. Kürzung aktualisieren
+                heightRange.addEventListener('input', () => {
+                    if (window.segmentPostController) {
+                        const hoehe = parseFloat(heightRange.value) || 2.7;
+                        window.segmentPostController.updateMaxShorten(currentSegmentId, hoehe);
+                    }
+                });
+                heightInput.addEventListener('input', () => {
+                    if (window.segmentPostController) {
+                        const hoehe = parseFloat(heightInput.value) || 2.7;
+                        window.segmentPostController.updateMaxShorten(currentSegmentId, hoehe);
+                    }
+                });
+
+                const slopeRange = segmentUI.querySelector('.segment-slope-range');
+                const slopeInput = segmentUI.querySelector('.segment-slope');
+                syncSliderAndInput(slopeRange, slopeInput);
+
+                const xRange = segmentUI.querySelector('.segment-x-range');
+                const xInput = segmentUI.querySelector('.segment-x');
+                syncSliderAndInput(xRange, xInput);
+
+                const zRange = segmentUI.querySelector('.segment-z-range');
+                const zInput = segmentUI.querySelector('.segment-z');
+                syncSliderAndInput(zRange, zInput);
+
+                // Stepper-Button-Logik für Segment-Dimensionen
+            const clamp = (v, min, max, step) => {
+                    const raw = String(v).replace(",", ".");
+                    let num = parseFloat(raw);
+                    if (isNaN(num)) num = min;
+                    num = Math.max(min, Math.min(max, num));
+                    return num;
+                };
+                const digitsForStep = step => {
+                    if (!Number.isFinite(step)) return 2;
+                    const parts = step.toString().split(".");
+                    return parts[1]?.length || 0;
+                };
+
+                // Mapping von target Namen zu Input-Elementen
+                const segmentInputs = {
+                    'segment-width': widthInput,
+                    'segment-depth': depthInput,
+                    'segment-height': heightInput,
+                    'segment-slope': slopeInput,
+                    'segment-x': xInput,
+                    'segment-z': zInput
+                };
+                const segmentRanges = {
+                    'segment-width': widthRange,
+                    'segment-depth': depthRange,
+                    'segment-height': heightRange,
+                    'segment-slope': slopeRange,
+                    'segment-x': xRange,
+                    'segment-z': zRange
+                };
+
+                // Event-Listener für Stepper-Buttons
+                segmentUI.querySelectorAll('.segment-dimension-inc, .segment-dimension-dec').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const target = btn.dataset.target;
+                        const input = segmentInputs[target];
+                        const range = segmentRanges[target];
+
+                        if (!input) return;
+
+                        const min = parseFloat(input.min) || 0;
+                        const max = parseFloat(input.max) || 0;
+                        const step = parseFloat(input.step) || 0.01;
+
+                        // Position X: Richtung umkehren (+ wird links/→, - wird rechts/←)
+                        let dir = btn.classList.contains('segment-dimension-inc') ? 1 : -1;
+                        if (target === 'segment-x') {
+                            dir = -dir; // Umkehrung für intuitive Steuerung
+                        }
+
+                        const current = parseFloat(String(input.value).replace(",", ".")) || 0;
+                        const next = clamp(current + dir * step, min, max, step);
+                        const decimals = digitsForStep(step);
+
+                        input.value = next.toFixed(decimals);
+                        if (range) {
+                            range.value = next;
+                        }
+
+                        // Trigger input event für Update
+                        input.dispatchEvent(new Event('input', {bubbles: true}));
+                    });
+                });
+
+                // Enter-Taste für Text-Inputs
+                Object.values(segmentInputs).forEach(input => {
+                    input.addEventListener('keydown', e => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const min = parseFloat(input.min) || 0;
+                            const max = parseFloat(input.max) || 0;
+                            const step = parseFloat(input.step) || 0.01;
+                            const val = clamp(input.value, min, max, step);
+                            const decimals = digitsForStep(step);
+                            input.value = val.toFixed(decimals);
+
+                            // Finde zugehörige Range
+                            const targetName = Object.keys(segmentInputs).find(k => segmentInputs[k] === input);
+                            const range = segmentRanges[targetName];
+                            if (range) {
+                                range.value = val;
+                            }
+
+                            input.dispatchEvent(new Event('input', {bubbles: true}));
+                        }
+                    });
+                });
+
+                // Event-Listener für alle Felder
+                segmentUI.querySelectorAll('input, select').forEach(input => {
+                    input.addEventListener('input', debouncedUpdate);
+                });
+
+                // Highlight on hover/click
+                segmentUI.addEventListener('mouseenter', ()=>segmentUI.classList.add('segment-hover'));
+                segmentUI.addEventListener('mouseleave', ()=>segmentUI.classList.remove('segment-hover'));
+
+                // Zwischenpfosten-Buttons Event-Listener
+                const widthBtn = segmentUI.querySelector('.segment-intermediate-posts-width-btn');
+                const depthBtn = segmentUI.querySelector('.segment-intermediate-posts-depth-btn');
+
+                if (widthBtn) {
+                    widthBtn.addEventListener('click', () => {
+                        widthBtn.classList.toggle('active');
+                        if (window.segmentPostController) {
+                            const breiteVal = parseFloat(widthInput?.value) || parseFloat(widthRange?.value) || 0;
+                            const tiefeVal = parseFloat(depthInput?.value) || parseFloat(depthRange?.value) || 0;
+                            const hoeheVal = parseFloat(heightInput?.value) || parseFloat(heightRange?.value) || 2.7;
+                            window.segmentPostController.rerenderSegmentPostUI(currentSegmentId, {
+                                breite: breiteVal,
+                                tiefe: tiefeVal,
+                                hoehe: hoeheVal,
+                                zwischenpfostenBreite: widthBtn.classList.contains('active'),
+                                zwischenpfostenTiefe: depthBtn?.classList.contains('active')
+                            }, updateSegmentsWithPosts);
+                        }
+                        debouncedUpdate();
+                    });
+                }
+
+                if (depthBtn) {
+                    depthBtn.addEventListener('click', () => {
+                        depthBtn.classList.toggle('active');
+                        if (window.segmentPostController) {
+                            const breiteVal = parseFloat(widthInput?.value) || parseFloat(widthRange?.value) || 0;
+                            const tiefeVal = parseFloat(depthInput?.value) || parseFloat(depthRange?.value) || 0;
+                            const hoeheVal = parseFloat(heightInput?.value) || parseFloat(heightRange?.value) || 2.7;
+                            window.segmentPostController.rerenderSegmentPostUI(currentSegmentId, {
+                                breite: breiteVal,
+                                tiefe: tiefeVal,
+                                hoehe: hoeheVal,
+                                zwischenpfostenBreite: widthBtn?.classList.contains('active'),
+                                zwischenpfostenTiefe: depthBtn.classList.contains('active')
+                            }, updateSegmentsWithPosts);
+                        }
+                        debouncedUpdate();
+                    });
+                }
+
+                // Entfernen-Button
+                segmentUI.querySelector('.remove-segment').addEventListener('click', (e) => {
+                    const id = e.target.dataset.id;
+                    
+                    // Entferne Pfostenwerte aus dem Controller
+                    if (window.segmentPostController) {
+                        window.segmentPostController.removeSegment(parseInt(id));
+                    }
+                    
+                    document.getElementById(`segment-${id}`).remove();
+                    updateSegments();
+                });
+
+                // Füge Pfostensteuerung hinzu
+                if (window.segmentPostController) {
+                    const postControlsContainer = segmentUI.querySelector(`#segment-post-controls-${currentSegmentId}`);
+                    if (postControlsContainer) {
+                        const hoehe = values.hoehe || 2.7;
+                        const zwischenBreite = !!normalizedValues.zwischenpfostenBreite;
+                        const zwischenTiefe = !!normalizedValues.zwischenpfostenTiefe;
+                        postControlsContainer.innerHTML = window.segmentPostController.createSegmentPostUI(currentSegmentId, hoehe, {
+                            breite: normalizedValues.breite,
+                            tiefe: normalizedValues.tiefe,
+                            zwischenpfostenBreite: zwischenBreite,
+                            zwischenpfostenTiefe: zwischenTiefe
+                        });
+
+                        // Setup Event-Listener für Pfostensteuerung
+                        setTimeout(() => {
+                            window.segmentPostController.setupSegmentPostListeners(currentSegmentId, (segmentId) => {
+                                console.log(`🔧 Pfosten in Segment ${segmentId} geändert`);
+                                updateSegmentsWithPosts();
+                            });
+                        }, 100);
+
+                        console.log(`✅ Pfostensteuerung für Segment ${currentSegmentId} hinzugefügt`);
+                    }
+                }
+
+        // updateSegments mit Verzögerung, damit DOM bereit ist
+        // ABER: Nicht wenn wir gerade ein Template laden (skipUpdate flag)
+        if (!options.skipUpdate) {
+            setTimeout(() => {
+                updateSegments();
+                syncScrollbars();
+            }, 150);
+        } else {
+            syncScrollbars();
+        }
+    }
+
+            function switchMode(mode) {
+                currentMode = mode;
+                const pergolaSettings = document.getElementById('pergola-mode-settings');
+                const mainStaticsCard = document.getElementById('main-statics-card');
+
+                if (mode === 'pergola') {
+                    pergolaSettings.style.display = 'contents';
+                    document.dispatchEvent(new CustomEvent('carportModeChanged', { detail: { aktiv: false }}));
+
+                    // Statik-Card anzeigen
+                    if (mainStaticsCard) mainStaticsCard.style.display = 'block';
+
+                    // Alle Segmente entfernen
+                    document.getElementById('carport-segment-list-main').innerHTML = '';
+                    segments = [];
+                    segmentCounter = 0;
+
+                    if (window.uiController) {
+                        window.uiController.aktuelleKonfiguration.carportModus = false;
+                        window.uiController.aktuelleKonfiguration.carportSegmente = [];
+                        restorePergolaBaseConfig();
+                        // Cache der Materialien zurücksetzen beim Moduswechsel
+                        if (window.uiController.infobox) {
+                            window.uiController.infobox.letzteMaterialien = null;
+                        }
+                        window.uiController.updateDrainageVerfuegbarkeit();
+                        window.uiController.updateTypeVerfuegbarkeit();
+                        window.uiController.updateDachformVerfuegbarkeit && window.uiController.updateDachformVerfuegbarkeit();
+                        window.uiController.onKonfigurationGeaendert();
+                        // Info-Box aktualisieren
+                        if (window.uiController.infobox) {
+                            window.uiController.infobox.aktualisiereInhalte();
+                        }
+                    }
+                    console.log("🏛️ Pergola-Modus aktiv");
+                    updateCarportExportState([]);
+                } else {
+                    rememberPergolaBaseConfig();
+                    pergolaSettings.style.display = 'none';
+                    document.dispatchEvent(new CustomEvent('carportModeChanged', { detail: { aktiv: mode === 'carport' }}));
+
+                    // Statik-Card ausblenden im Carport-Modus
+                    if (mainStaticsCard) mainStaticsCard.style.display = 'none';
+
+                    if (window.uiController) {
+                        window.uiController.aktuelleKonfiguration.carportModus = true;
+                        // Carportmodus: Flachdach und Rinne als Default
+                        window.uiController.aktuelleKonfiguration.dachForm = 'flachdach';
+                        window.uiController.aktuelleKonfiguration.neigung = 0;
+                        window.uiController.aktuelleKonfiguration.regenwasserAbfluss = 'rinne';
+                        
+                        // UI-Elemente aktualisieren
+                        const dachFormSelect = document.getElementById('dach-typ');
+                        if (dachFormSelect) dachFormSelect.value = 'flachdach';
+                        window.uiController.updateOptionCardState('dachTyp', 'flachdach');
+                        
+                        const slopeInput = document.getElementById('slope-input');
+                        const slopeRange = document.getElementById('slope');
+                        if (slopeInput) slopeInput.value = '0.0';
+                        if (slopeRange) slopeRange.value = '0';
+                        
+                        const drainageSelect = document.getElementById('regenwasser-abfluss');
+                        if (drainageSelect) drainageSelect.value = 'rinne';
+                        window.uiController.updateOptionCardState('regenwasserAbfluss', 'rinne');
+                        // Cache der Materialien zurücksetzen beim Moduswechsel
+                        if (window.uiController.infobox) {
+                            window.uiController.infobox.letzteMaterialien = null;
+                        }
+                        // Wenn keine Segmente vorhanden: aktuelles Pergola-Setup als erstes Segment übernehmen
+                        if (segments.length === 0) {
+                            const baseCfg = window.uiController.aktuelleKonfiguration || {};
+                            const firstSegment = {
+                                breite: baseCfg.breite,
+                                tiefe: baseCfg.tiefe,
+                                hoehe: baseCfg.hoehe,
+                                neigung: 0,  // Carport: immer Flachdach
+                                x: 0,
+                                z: 0,
+                                rotation: baseCfg.rotation || 0,
+                                regenwasserAbfluss: 'rinne',  // Carport: immer mit Rinne
+                                material: baseCfg.material,
+                                farbe: baseCfg.farbe,
+                                dachTyp: baseCfg.dachTyp,
+                                epdmFarbe: baseCfg.epdmFarbe,
+                                glasTyp: baseCfg.glasTyp,
+                                glasFarbe: baseCfg.glasFarbe,
+                                pfostenAktiv: baseCfg.pfostenAktiv,
+                                pfostenVersaetze: baseCfg.pfostenVersaetze,
+                                pfostenKuerzung: baseCfg.pfostenKuerzung,
+                                pfostenProfil: baseCfg.pfostenProfil,
+                                zwischenpfostenBreite: baseCfg.zwischenpfostenBreite,
+                                zwischenpfostenTiefe: baseCfg.zwischenpfostenTiefe
+                            };
+                            console.log("📦 Übernehme aktuelle Pergola als erstes Carport-Segment:", firstSegment);
+                            if (typeof createSegmentWithValues === "function") {
+                                createSegmentWithValues(firstSegment, { useBaseDimensions: false, skipUpdate: false });
+                            } else {
+                                console.warn("⚠️ createSegmentWithValues nicht verfügbar – Segment kann nicht übernommen werden.");
+                            }
+                        }
+
+                        window.uiController.updateDrainageVerfuegbarkeit();
+                        window.uiController.updateTypeVerfuegbarkeit();
+                        window.uiController.updateDachformVerfuegbarkeit && window.uiController.updateDachformVerfuegbarkeit();
+                        setTimeout(() => {
+                            window.uiController.updateDrainageVerfuegbarkeit();
+                            window.uiController.updateTypeVerfuegbarkeit();
+                            window.uiController.updateDachformVerfuegbarkeit && window.uiController.updateDachformVerfuegbarkeit();
+                        }, 100);
+                        if (segments.length > 0) {
+                            updateSegments();
+                            setTimeout(() => {
+                                if (window.uiController.infobox) {
+                                    window.uiController.infobox.aktualisiereInhalte();
+                                }
+                            }, 50);
+                        }
+                    }
+                    console.log("🚗 Carport-Modus aktiv");
+                    updateCarportExportState(segments);
+                }
+            }
+
+            function loadTemplate(templateName) {
+                console.log(`📐 Lade Template: ${templateName}`);
+
+                // Clear existing segments
+                document.getElementById('carport-segment-list-main').innerHTML = '';
+                segments = [];
+                segmentCounter = 0;
+
+                // Cache zurücksetzen
+                if (window.uiController?.infobox) {
+                    window.uiController.infobox.letzteMaterialien = null;
+                }
+
+                // Update active template button
+                const templateButtons = document.querySelectorAll('#template-option-cards .option-card');
+                templateButtons.forEach(btn => {
+                    if (btn.dataset.template === templateName) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+
+                                const templates = {
+                    'u-form': [
+                        { breite: 2, tiefe: 6, hoehe: 2.5, neigung: 0, x: 2, z: 0, rotation: 0, regenwasserAbfluss: 'rinne', zwischenpfostenTiefe:true, pfostenAktiv:{mitte_links:false} },
+                        { breite: 4, tiefe: 3, hoehe: 2.5, neigung: 0, x: 4, z: 0, rotation: 0, regenwasserAbfluss: 'rinne', pfostenAktiv:{vorne_links:false, vorne_rechts:false, hinten_links:false, hinten_rechts:false} },
+                        { breite: 2, tiefe: 6, hoehe: 2.5, neigung: 0, x: 8, z: 0, rotation: 0, regenwasserAbfluss: 'rinne', zwischenpfostenTiefe:true, pfostenAktiv:{mitte_rechts:false} }
+                    ],
+                    'kreuz': [
+                        { breite: 4, tiefe: 4, hoehe: 2.5, neigung: 0, x: 0, z: 0, rotation: 0, regenwasserAbfluss: 'rinne', pfostenAktiv:{vorne_links:false, hinten_links:false} },
+                        { breite: 4, tiefe: 4, hoehe: 2.5, neigung: 0, x: -4, z: 0, rotation: 0, regenwasserAbfluss: 'rinne' },
+                        { breite: 4, tiefe: 4, hoehe: 2.5, neigung: 0, x: -4, z: 4, rotation: 0, regenwasserAbfluss: 'rinne' },
+                        { breite: 4, tiefe: 4, hoehe: 2.5, neigung: 0, x: -4, z: -4, rotation: 0, regenwasserAbfluss: 'rinne' },
+                        { breite: 4, tiefe: 4, hoehe: 2.5, neigung: 0, x: -8, z: 0, rotation: 0, regenwasserAbfluss: 'rinne', pfostenAktiv:{vorne_rechts:false} }
+                    ],
+                    'l-form': [
+                        { breite: 4, tiefe: 4, hoehe: 2.5, neigung: 0, x: 4, z: 0, rotation: 0, regenwasserAbfluss: 'rinne', pfostenAktiv:{vorne_links:false, hinten_links:false} },
+                        { breite: 4, tiefe: 4, hoehe: 2.5, neigung: 0, x: 0, z: 4, rotation: 0, regenwasserAbfluss: 'rinne'},
+                        { breite: 4, tiefe: 4, hoehe: 2.5, neigung: 0, x: 0, z: 0, rotation: 0, regenwasserAbfluss: 'rinne'}                    
+                    ],
+                    't-form': [
+                        { breite: 4, tiefe: 4, hoehe: 2.5, neigung: 0, x: 4, z: 4, rotation: 0, regenwasserAbfluss: 'rinne', pfostenAktiv:{vorne_links:false} },
+                        { breite: 4, tiefe: 4, hoehe: 2.5, neigung: 0, x: 0, z: 0, rotation: 0, regenwasserAbfluss: 'rinne', pfostenAktiv:{vorne_rechts:false, hinten_rechts:false} },
+                        { breite: 4, tiefe: 4, hoehe: 2.5, neigung: 0, x: 4, z: 0, rotation: 0, regenwasserAbfluss: 'rinne', pfostenAktiv:{hinten_rechts:false} },
+                        { breite: 4, tiefe: 4, hoehe: 2.5, neigung: 0, x: 8, z: 0, rotation: 0, regenwasserAbfluss: 'rinne', pfostenAktiv:{vorne_links:false, hinten_links:false} }
+                    ],
+                   // 'Test': [
+                   //     {breite: 4, tiefe: 4, hoehe: 2.5, neigung: 0, x: -8, z: 0, rotation: 0, regenwasserAbfluss: "rinne", zwischenpfostenTiefe: true, pfostenAktiv: { individuell: {mitte_links: true, mitte_rechts: true}}, pfostenVersaetze: {individuell: {mitte_links: { achse: "z", wert: -1.30 }}}}
+                   // ]
+                };
+
+                const templateOptions = {};
+
+                const templateSegments = templates[templateName];
+                if (templateSegments) {
+                    const templateSetting=templateOptions[templateName]||{useBaseDimensions:true};
+                    // Setze skipUpdate flag, damit createSegmentWithValues NICHT bei jedem Segment updateSegments() aufruft
+                    const settingsWithSkip = { ...templateSetting, skipUpdate: true };
+                    
+                    templateSegments.forEach(segmentValues => {
+                        createSegmentWithValues(segmentValues, settingsWithSkip);
+                    });
+                    
+                    console.log(`✅ Template "${templateName}" geladen mit ${templateSegments.length} Segmenten`);
+                    
+                    // JETZT erst updateSegments() aufrufen, nachdem ALLE Segmente erstellt wurden
+                    setTimeout(() => {
+                        console.log(`🔄 Aktualisiere Material-/Preislisten nach Template-Laden`);
+                        updateSegments();
+                    }, 200);
+                }
+            }
+            window.loadTemplate = loadTemplate;
+
+    function init() {
+                const addSegmentBtn = document.getElementById('add-segment-btn-main');
+                segmentList = document.getElementById('carport-segment-list-main');
+                scrollLeftBtn = document.getElementById('carport-scroll-left');
+                scrollRightBtn = document.getElementById('carport-scroll-right');
+                gradientLeft = document.getElementById('carport-scroll-gradient-left');
+                gradientRight = document.getElementById('carport-scroll-gradient-right');
+                const carportTabButton = document.getElementById('carport-tab-button');
+                updateCarportExportState();
+
+                const scrollSegments=(dir)=>{
+                    if(!segmentList)return;
+                    const firstCard=segmentList.querySelector('.carport-segment');
+                    const cardWidth=firstCard?firstCard.getBoundingClientRect().width:segmentList.clientWidth;
+                    const step=Math.max(260, (cardWidth||300)+16);
+                    segmentList.scrollBy({left:dir*step, behavior:'smooth'});
+                };
+                if(scrollLeftBtn)scrollLeftBtn.addEventListener('click', ()=>scrollSegments(-1));
+                if(scrollRightBtn)scrollRightBtn.addEventListener('click', ()=>scrollSegments(1));
+                if(segmentList){
+                    segmentList.addEventListener('scroll', syncScrollbars);
+                    window.addEventListener('resize', syncScrollbars);
+                }
+
+                const highlightSegmentCard = (id)=>{
+                    const cards=document.querySelectorAll('.carport-segment');
+                    cards.forEach(c=>c.classList.remove('segment-highlight'));
+                    const target=document.getElementById(`segment-${id}`);
+                    if(target&&segmentList){
+                        target.classList.add('segment-highlight');
+                        const offset=target.offsetLeft-12;
+                        segmentList.scrollTo({left: offset, behavior:'smooth'});
+                        target.scrollIntoView({behavior:'smooth', block:'start', inline:'nearest'});
+                    }
+                };
+
+                // Carport-Tab: Aktiviere Carport-Modus wenn Tab geklickt wird
+                if (carportTabButton) {
+                    carportTabButton.addEventListener('click', () => {
+                        if (currentMode !== 'carport') {
+                            switchMode('carport');
+                        }
+                    });
+                }
+
+                document.addEventListener('carportSegmentSelected', (e)=>{
+                    const id=e.detail?.segmentId;
+                    if(id)highlightSegmentCard(id);
+                });
+
+                const refreshScrollUI=()=>{
+                    syncScrollbars();
+                };
+                refreshScrollUI();
+
+                // Grundkonfiguration-Tab: Aktiviere Pergola-Modus (nur dieser Tab!)
+                const grundkonfigTabButton = document.querySelector('.horizontal-tab[data-tab="abmessungen"]');
+                if (grundkonfigTabButton) {
+                    grundkonfigTabButton.addEventListener('click', (e) => {
+                        if (currentMode === 'carport') {
+                            const confirmExit = window.confirm('Achtung: Beim Wechsel zur Grundkonfiguration werden Carport-Segment-Einstellungen überschrieben. Möchtest du wirklich zurück zur Grundkonfiguration wechseln?');
+                            if (!confirmExit) {
+                                e.preventDefault();
+                                // Zurück zum Carport-Tab und Content
+                                const carportTab = document.querySelector('.horizontal-tab[data-tab="carport"]');
+                                const carportContent = document.querySelector('.horizontal-tab-content[data-content="carport"]');
+                                if (carportTab && carportContent) {
+                                    document.querySelectorAll('.horizontal-tab').forEach(t => t.classList.remove('active'));
+                                    document.querySelectorAll('.horizontal-tab-content').forEach(c => c.classList.remove('active'));
+                                    carportTab.classList.add('active');
+                                    carportContent.classList.add('active');
+                                    // Highlight wie im Carport-Modus
+                                    document.querySelectorAll('.horizontal-tab[data-tab="konstruktion"], .horizontal-tab[data-tab="dach"], .horizontal-tab[data-tab="gestaltung"], .horizontal-tab[data-tab="feintuning"]').forEach(tab=>{
+                                        tab.classList.remove('tab-highlight-yellow');
+                                        tab.classList.add('tab-highlight-blue');
+                                    });
+                                }
+                                return;
+                            }
+                        }
+                        if (currentMode !== 'pergola') {
+                            switchMode('pergola');
+                        }
+                    });
+                }
+
+                // Alle anderen Tabs (Dach, Gestaltung, Konstruktion, Feintuning):
+                // Kein Modus-Wechsel - funktionieren unabhängig vom Modus
+
+                       // Segment hinzufügen
+                if (addSegmentBtn) {
+                    addSegmentBtn.addEventListener('click', () => {
+                        // Basiswerte aus aktueller Konfiguration übernehmen (anstatt starrer 4×4-Defaults)
+                        const baseDefaults = getBaseSegmentDefaults();
+                        const newWidth = Number(baseDefaults.breite) || 4;
+                        const newDepth = Number(baseDefaults.tiefe) || 4;
+                        const newHeight = Number(baseDefaults.hoehe) || 2.5;
+                        const newSlope = Number(baseDefaults.neigung) || 0;
+
+                        // Berechne die X-Position für das neue Segment
+                        let newX = 0;
+                        const cfgSegs = Array.isArray(window.uiController?.aktuelleKonfiguration?.carportSegmente)
+                            ? window.uiController.aktuelleKonfiguration.carportSegmente : [];
+                        const sourceSegs = cfgSegs.length ? cfgSegs : (segments||[]);
+
+                        if (sourceSegs.length > 0) {
+                            // Rechtsbündig anhängen: größtes rechtes Segmentende ermitteln und das neue Segment direkt daneben setzen
+                            const rightEdges = sourceSegs.map(seg => {
+                                const xVal = parseFloat(seg?.x) || 0;
+                                const bVal = parseFloat(seg?.breite) || newWidth;
+                                return xVal + bVal; // Annahme: x = linke Kante
+                            });
+                            const maxEdge = Math.max(...rightEdges);
+                            newX = maxEdge; // direkt rechts anfügen (ohne Abstand)
+                        } else {
+                            // Nutze aktuelle UI-Werte (falls Konfig noch nicht gesetzt)
+                            const uiSegments = Array.from(document.querySelectorAll('[id^="segment-"]')).filter(div => /^segment-\d+$/.test(div.id));
+                            if (uiSegments.length > 0) {
+                                const edges = uiSegments.map(div => {
+                                    const xVal = parseFloat(div.querySelector('.segment-x')?.value) || 0;
+                                    const bVal = parseFloat(div.querySelector('.segment-width')?.value) || 0;
+                                    return xVal + bVal;
+                                });
+                                const maxEdge = Math.max(...edges);
+                                newX = maxEdge;
+                            }
+                        }
+
+                        // Verwende createSegmentWithValues für automatische Positionierung
+                        createSegmentWithValues({
+                            breite: newWidth,
+                            tiefe: newDepth,
+                            hoehe: newHeight,
+                            neigung: newSlope,
+                            x: newX,
+                            z: 0,
+                            rotation: 0,
+                            regenwasserAbfluss: baseDefaults.regenwasserAbfluss || 'rinne'
+                        });
+                        syncScrollbars();
+                    });
+                }
+
+                // Template selection handler
+                const templateButtons = document.querySelectorAll('#template-option-cards .option-card');
+                templateButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        // Active state setzen
+                        templateButtons.forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+
+                        const template = button.dataset.template;
+                        if (template) {
+                            loadTemplate(template);
+                        }
+                    });
+                });
+
+                // Carport Befestigungsart
+                const carportFastening = document.getElementById('carport-fastening');
+                if (carportFastening) {
+                    carportFastening.addEventListener('change', (e) => {
+                        if (window.uiController) {
+                            window.uiController.aktuelleKonfiguration.befestigung = e.target.value;
+                            console.log("🔩 Befestigung geändert zu:", e.target.value);
+                            window.uiController.onKonfigurationGeaendert();
+                        }
+                    });
+                }
+
+                console.log("✅ Konfigurations-Modus-Management initialisiert");
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+
+    <!-- Compact Info Setup -->
+    <script>
+    (function setupCompactInfo() {
+      function ensureBox() {
+        let box = document.getElementById('compact-info');
+        if (!box) {
+          box = document.createElement('div');
+          box.id = 'compact-info';
+          box.className = 'canvas-compact-info';
+          box.setAttribute('aria-live','polite');
+          const container = document.querySelector('.canvas-container') || document.body;
+          container.appendChild(box);
+        }
+        return box;
+      }
+
+      function valOf(id){
+        const el=document.getElementById(id);
+        return el?el.value:undefined;
+      }
+
+      function selectedText(sel){
+        try {
+          return sel?.selectedOptions?.[0]?.textContent?.trim() || '';
+        } catch(e){
+          return '';
+        }
+      }
+
+      function update() {
+        const box = ensureBox();
+        const show = !document.body.classList.contains('compact-info-hidden');
+        box.hidden = !show;
+        if(!show)return;
+
+        // Check if in Carport mode
+        const carportMode = window.uiController?.aktuelleKonfiguration?.carportModus;
+
+        if (carportMode) {
+          // Carport Mode: Show segment information
+          const segments = window.uiController?.aktuelleKonfiguration?.carportSegmente || [];
+          if (segments.length > 0) {
+            let html = `<div class="compact-info-header"><strong>Carport</strong> <span style="font-weight: normal; font-size: 0.85em;">(${segments.length} Segmente)</span></div>`;
+
+            // Dachtyp und Farbe
+            const roofSel = document.getElementById('roof-type');
+            const roofType = selectedText(roofSel) || '–';
+            const color = selectedText(document.getElementById('color')) || '–';
+
+            html += '<div class="compact-info-meta">';
+            html += `<div class="compact-info-line"><strong>Dach:</strong> ${roofType}</div>`;
+            html += `<div class="compact-info-line"><strong>Farbe:</strong> ${color}</div>`;
+            html += '</div>';
+
+            // Berechne Gesamtmaße (Bounding Box)
+            if (segments.length > 0) {
+              let minX = Infinity, maxX = -Infinity;
+              let minZ = Infinity, maxZ = -Infinity;
+              let maxH = -Infinity;
+
+              segments.forEach(seg => {
+                const x = seg.x || 0;
+                const z = seg.z || 0;
+                const breite = seg.breite || 0;
+                const tiefe = seg.tiefe || 0;
+                const hoehe = seg.hoehe || 0;
+
+                minX = Math.min(minX, x);
+                maxX = Math.max(maxX, x + breite);
+                minZ = Math.min(minZ, z);
+                maxZ = Math.max(maxZ, z + tiefe);
+                maxH = Math.max(maxH, hoehe);
+              });
+
+              const totalB = (maxX - minX).toFixed(1);
+              const totalT = (maxZ - minZ).toFixed(1);
+              const totalH = maxH.toFixed(1);
+
+              html += `<div class="compact-info-total"><strong>Gesamt B×T×H:</strong> ${totalB}×${totalT}×${totalH}m</div>`;
+            }
+
+            // Kompakte Segment-Liste mit Scrolling
+            html += '<div class="compact-info-segments-list">';
+            segments.forEach((seg, idx) => {
+              const size = `${seg.breite?.toFixed(1) || '–'}×${seg.tiefe?.toFixed(1) || '–'}×${seg.hoehe?.toFixed(1) || '–'}`;
+              const drainageText = seg.regenwasserAbfluss === 'vollprofil' ? 'Ohne Rinne' : 'Mit Rinne';
+              html += `<div class="compact-info-segment-compact">`;
+              html += `<span class="segment-num">${idx + 1}</span>`;
+              html += `<span class="segment-size">${size}m</span>`;
+              html += `<span class="segment-drain">${drainageText}</span>`;
+              html += `</div>`;
+            });
+            html += '</div>';
+
+            box.innerHTML = html;
+          } else {
+            box.innerHTML = '<div class="compact-info-line">Carport-Modus aktiv</div>';
+          }
+        } else {
+          // Normal Mode: Show single configuration
+          const w = parseFloat(valOf('width-input')||valOf('width')||0);
+          const d = parseFloat(valOf('depth-input')||valOf('depth')||0);
+          const h = parseFloat(valOf('height-input')||valOf('height')||0);
+          const size = `${isFinite(w)?w.toFixed(2):'–'} × ${isFinite(d)?d.toFixed(2):'–'} × ${isFinite(h)?h.toFixed(2):'–'} m`;
+
+          const typSel = document.getElementById('dach-typ');
+          const typLabel = selectedText(typSel) || '–';
+          const roofSel = document.getElementById('roof-type');
+          const roofType = selectedText(roofSel) || '–';
+          const glassActive = document.querySelector('.glass-color-option.active .glass-color-label');
+          const glassLabel = glassActive ? glassActive.textContent.trim() : '';
+          const dachLabel = roofType.toLowerCase().includes('epdm') ? roofType : (glassLabel ? `Glas - ${glassLabel}` : roofType);
+
+          const drainageSel = document.getElementById('drainage');
+          const drainage = selectedText(drainageSel) || '–';
+          const color = selectedText(document.getElementById('color')) || '–';
+
+          box.innerHTML = `<div class="compact-info-line"><strong>B×T×H:</strong> ${size}</div>`
+                         + `<div class="compact-info-line"><strong>Typ:</strong> ${typLabel}</div>`
+                         + `<div class="compact-info-line"><strong>Dachtyp:</strong> ${dachLabel}</div>`
+                         + `<div class="compact-info-line"><strong>Regenwasserabfluss:</strong> ${drainage}</div>`
+                         + `<div class="compact-info-line"><strong>Farbe:</strong> ${color}</div>`;
+        }
+      }
+
+      function hook(el, ev){
+        if(el){
+          el.addEventListener(ev, update, {passive:true});
+        }
+      }
+
+      function init() {
+        document.body.classList.add('compact-info-hidden');
+        update();
+
+        // Inputs and sliders
+        ['width','depth','height'].forEach(id=>{
+          hook(document.getElementById(id), 'input');
+          hook(document.getElementById(id+'-input'),'input');
+        });
+
+        // Selects
+        ['roof-type','drainage','color','epdm-color','dach-typ'].forEach(id=> hook(document.getElementById(id),'change'));
+
+        // Option cards / glass color
+        document.querySelectorAll('.glass-color-option').forEach(btn=> hook(btn,'click'));
+        document.getElementById('drainage-cards')?.addEventListener('click', update);
+        document.getElementById('color-cards')?.addEventListener('click', update);
+        document.getElementById('ncs-color-cards')?.addEventListener('click', update);
+        document.getElementById('roof-type-cards')?.addEventListener('click', update);
+        document.getElementById('dach-typ-cards')?.addEventListener('click', update);
+
+        // Listen to configuration changes
+        document.addEventListener('pergolaKonfigurationGeaendert', update);
+
+        // Update when segments change
+        const segmentObserver = new MutationObserver(update);
+        const carportSegmentsEl = document.getElementById('carport-segments');
+        if (carportSegmentsEl) {
+          segmentObserver.observe(carportSegmentsEl, { childList: true, subtree: true });
+        }
+
+        // Periodic safety net
+        setInterval(update, 1500);
+        
+        // Mobile Anfrage Button Event Listener
+        const mobileAnfrageBtn = document.getElementById('mobile-anfrage-btn');
+        if (mobileAnfrageBtn) {
+            mobileAnfrageBtn.addEventListener('click', () => {
+                const priceTagAnfrageBtn = document.querySelector('.price-tag__anfrage-btn');
+                if (priceTagAnfrageBtn) {
+                    priceTagAnfrageBtn.click();
+                }
+            });
+        }
+        
+        // Mobile Preis-Display synchronisieren - erweitert
+        function updateMobilePrice() {
+            const totalAmount = document.querySelector('.price-tag__total-amount');
+            const mobilePriceAmount = document.querySelector('.mobile-price-amount');
+            if (totalAmount && mobilePriceAmount) {
+                mobilePriceAmount.textContent = totalAmount.textContent;
+            }
+        }
+        
+        // Event-Listener für Preisaktualisierung
+        document.addEventListener('pergolaKonfigurationGeaendert', updateMobilePrice);
+        
+        // MutationObserver für price-tag__total-amount
+        const priceObserver = new MutationObserver(updateMobilePrice);
+            const priceElement = document.querySelector('.price-tag__total-amount');
+            if (priceElement) {
+                priceObserver.observe(priceElement, { childList: true, characterData: true, subtree: true });
+            }
+            
+        // Initiale Aktualisierung
+        setTimeout(updateMobilePrice, 500);
+        setInterval(updateMobilePrice, 2000);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+    </script>
+
+    <script>
+        // Basisdaten-Toggle (zeigt/versteckt die kompakte Info)
+        (function(){
+            const compactToggle=document.getElementById('compact-info-toggle');
+            const compactInfo=document.getElementById('compact-info');
+            if(!compactToggle||!compactInfo)return;
+            const apply=show=>{
+                compactInfo.hidden=!show;
+                document.body.classList.toggle("compact-info-hidden", !show);
+                compactToggle.classList.toggle("active", show);
+                compactToggle.setAttribute("aria-pressed", show ? "true" : "false");
+            };
+            // Standard: ausgeblendet, Button sichtbar
+            apply(false);
+            compactToggle.addEventListener("click", ()=>apply(compactInfo.hidden));
+        })();
+    </script>
+
+    <script>
+        // Carport Overlay Vorlagen (separat, normale Vorlagen bleiben unberührt)
+        (function(){
+            const overlay=document.getElementById('carport-overlay-templates');
+            const list=document.getElementById('carport-overlay-list');
+            const panel=document.getElementById('carport-overlay-panel');
+            const toggleBtn=document.getElementById('carport-overlay-toggle');
+            const flyout=document.getElementById('template-flyout');
+            const compact=document.getElementById('compact-info');
+            const canvasContainer=document.querySelector('.canvas-container');
+            if(!overlay||!list||!panel||!toggleBtn)return;
+
+            const templates=[
+                {label:"U-Form", detail:"3 Segmente", tpl:"u-form"},
+                {label:"Kreuz", detail:"5 Segmente", tpl:"kreuz"},
+                {label:"L-Form", detail:"4 Segmente", tpl:"l-form"},
+                {label:"T-Form", detail:"4 Segmente", tpl:"t-form"}
+            ];
+            window.carportTemplateList=templates;
+
+            const carportDropdown=document.getElementById('carport-template-select');
+            if(carportDropdown){
+                carportDropdown.innerHTML='<option value=\"\">Vorlage wählen…</option>';
+                templates.forEach(t=>{
+                    const opt=document.createElement('option');
+                    opt.value=t.tpl;
+                    opt.textContent=`${t.label} (${t.detail||''})`.trim();
+                    carportDropdown.appendChild(opt);
+                });
+                carportDropdown.addEventListener('change', e=>{
+                    const tpl=e.target.value;
+                    if(tpl){
+                        if(typeof window.loadTemplate==='function'){
+                            window.loadTemplate(tpl);
+                        }else{
+                            document.dispatchEvent(new CustomEvent('carportTemplateSelect',{detail:{template:tpl}}));
+                        }
+                    }
+                });
+            }
+
+            templates.forEach(t=>{
+                const btn=document.createElement("button");
+                btn.type="button";
+                btn.className="carport-overlay-chip";
+                btn.innerHTML=`${t.label}${t.detail?`<small>${t.detail}</small>`:""}`;
+                btn.addEventListener("click", ()=>{
+                    if(typeof window.loadTemplate==="function"){
+                        window.loadTemplate(t.tpl);
+                        return;
+                    }
+                    const existing=document.querySelector(`#template-option-cards .option-card[data-template=\"${t.tpl}\"]`);
+                    if(existing){ existing.click(); return; }
+                    document.dispatchEvent(new CustomEvent('carportTemplateSelect',{detail:{template:t.tpl}}));
+                });
+                list.appendChild(btn);
+            });
+
+            const showOverlay=(show)=>{
+                overlay.hidden=!show;
+                if(!show){
+                    panel.hidden=true;
+                    toggleBtn.setAttribute("aria-expanded","false");
+                }
+            };
+            const togglePanel=()=>{
+                const isOpen=!panel.hidden;
+                panel.hidden=isOpen;
+                toggleBtn.setAttribute("aria-expanded", (!isOpen).toString());
+            };
+
+            const positionOverlay=()=>{
+                if(!canvasContainer)return;
+                const containerRect=canvasContainer.getBoundingClientRect();
+                const flyRect=flyout?.getBoundingClientRect();
+                const compactRect=compact?.getBoundingClientRect();
+                const baseLeft=compactRect?(compactRect.right - containerRect.left + 12):16;
+                const flyLeft=flyRect?(flyRect.right - containerRect.left + 12):baseLeft;
+                overlay.style.left=`${Math.max(16, flyLeft)}px`;
+                const top=compactRect?(compactRect.top - containerRect.top):16;
+                overlay.style.top=`${Math.max(16, top)}px`;
+            };
+
+            toggleBtn.addEventListener("click", (e)=>{
+                e.stopPropagation();
+                togglePanel();
+            });
+            document.addEventListener("click", (e)=>{
+                if(!overlay.contains(e.target)){
+                    panel.hidden=true;
+                    toggleBtn.setAttribute("aria-expanded","false");
+                }
+            });
+            document.addEventListener('carportModeChanged', e=>{
+                const aktiv=!!e.detail?.aktiv;
+                toggleBtn.hidden=!aktiv;
+                if(!aktiv){
+                    showOverlay(false);
+                }
+                const hint = document.getElementById('carport-interaction-hint');
+                if (hint) {
+                    hint.hidden = !aktiv;
+                }
+            });
+            toggleBtn.hidden=true;
+            showOverlay(false);
+            positionOverlay();
+            window.addEventListener('resize', positionOverlay);
+            setTimeout(positionOverlay, 400);
+        })();
+    </script>
+
+    <script>
+        // Kompakte Vorlagen-Dropdowns (Pultdach/Flachdach Glas, EPDM)
+        (function(){
+            const dropdowns=[
+                {id:"preset-dropdown-glas-pult", category:"glas-pult"},
+                {id:"preset-dropdown-glas-flach", category:"glas-flach"},
+                {id:"preset-dropdown-epdm", category:"epdm"}
+            ];
+
+            const templates={
+                "glas-pult":[
+                    {label:"3×3 m · 160x80 / 120x80 · 3°", size:[3,3], profile:"160x80x4", mittel:"120x80x4", neigung:3},
+                    {label:"4×3 m · 160x80 / 120x80 · 3°", size:[4,3], profile:"160x80x4", mittel:"120x80x4", neigung:3},
+                    {label:"5×3 m · 200x100 / 160x80 · 3°", size:[5,3], profile:"200x100x4", mittel:"160x80x4", neigung:3},
+                    {label:"6×4 m · 200x100 / 120x80 · 3°", size:[6,4], profile:"200x100x4", mittel:"120x80x4", neigung:3, zwischen:true}
+                ],
+                "glas-flach":[
+                    {label:"3×3 m · 160x80 / 120x80", size:[3,3], profile:"160x80x4", mittel:"120x80x4"},
+                    {label:"4×3 m · 160x80 / 120x80", size:[4,3], profile:"160x80x4", mittel:"120x80x4"},
+                    {label:"5×3 m · 200x100 / 160x80", size:[5,3], profile:"200x100x4", mittel:"160x80x4"}
+                ],
+                "epdm":[
+                    {label:"3×3 m · 160x80 / 100x80", size:[3,3], profile:"160x80x4", mittel:"100x80x4", dachTyp:"epdm"},
+                    {label:"4×3 m · 160x80 / 100x80", size:[4,3], profile:"160x80x4", mittel:"100x80x4", dachTyp:"epdm"},
+                    {label:"5×3 m · 200x100 / 160x80", size:[5,3], profile:"200x100x4", mittel:"160x80x4", dachTyp:"epdm"},
+                    {label:"6×4 m · 200x100 / 120x80", size:[6,4], profile:"200x100x4", mittel:"120x80x4", dachTyp:"epdm", zwischen:true}
+                ]
+            };
+
+            function populateSelect(select, category){
+                const opts=[...templates[category]||[]];
+                const label=select.options?.[0]?.textContent||"Vorlage wählen…";
+                select.innerHTML="";
+                select.dataset.defaultLabel=label;
+                const placeholder=document.createElement("option");
+                placeholder.value="";
+                placeholder.textContent=label;
+                select.appendChild(placeholder);
+                opts.forEach((tpl, idx)=>{
+                    const opt=document.createElement("option");
+                    opt.value=String(idx);
+                    opt.textContent=tpl.label;
+                    select.appendChild(opt);
+                });
+            }
+
+            function setValue(id, val, evtName="change"){
+                const el=document.getElementById(id);
+                if(!el)return;
+                el.value=val;
+                el.dispatchEvent(new Event(evtName,{bubbles:true}));
+            }
+
+            function applyPreset(tpl, category){
+                const ui=window.uiController;
+                if(!ui)return;
+                const [breite,tiefe]=tpl.size||[];
+                const neigung=tpl.neigung||0;
+                const dachForm=neigung>0?"pultdach":"flachdach";
+                const dachTyp=tpl.dachTyp|| (category==="epdm"?"epdm":"glas");
+                // Flachdach immer mit Rinne (kein Überstand)
+                const drainage = dachForm==="flachdach" ? "rinne" : (dachTyp==="glas"?"glasueberstand":"rinne");
+                setValue("width-input", breite?.toFixed?.(2) ?? breite, "input");
+                setValue("width", breite?.toFixed?.(2) ?? breite, "input");
+                setValue("depth-input", tiefe?.toFixed?.(2) ?? tiefe, "input");
+                setValue("depth", tiefe?.toFixed?.(2) ?? tiefe, "input");
+                setValue("slope-input", neigung.toFixed(1), "input");
+                setValue("slope", neigung.toString(), "input");
+                setValue("dach-typ", dachForm, "change");
+                setValue("roof-type", dachTyp, "change");
+                setValue("drainage", drainage, "change");
+                // Flachdach: Neigungssteuerung sofort ausblenden/disable (UI-Parität zu manueller Auswahl)
+                if(dachForm==="flachdach"){
+                    const slopeGroup=document.getElementById("roof-slope-group");
+                    if(slopeGroup)slopeGroup.style.display="none";
+                    const slopeInput=document.getElementById("slope-input");
+                    const slopeRange=document.getElementById("slope");
+                    if(slopeInput){slopeInput.disabled=true; slopeInput.value="0.0";}
+                    if(slopeRange){slopeRange.disabled=true; slopeRange.value="0";}
+                    ui.aktuelleKonfiguration.neigung=0;
+                }
+                const cfg=ui.aktuelleKonfiguration;
+                cfg.carportModus=false;
+                cfg.carportSegmente=[];
+                cfg.dachForm=dachForm;
+                cfg.dachTyp=dachTyp;
+                cfg.neigung=dachForm==="flachdach"?0:neigung;
+                if(tpl.profile){
+                    cfg.pfostenProfil=tpl.profile;
+                    cfg.laengstraegerProfil=tpl.profile;
+                    cfg.quertraegerProfil=tpl.profile;
+                    ui.profileKonfig.setzeAktuellesProfil(tpl.profile);
+                    // Rahmenprofil auch direkt in der aktiven Pergola anwenden (damit Materialliste sofort stimmt)
+                    const pergola=ui.renderEngine?.gibPergola?.();
+                    pergola?.setzeAktivesProfil?.(tpl.profile);
+                }
+                if(tpl.mittel){
+                    cfg.mitteltraegerProfil=tpl.mittel;
+                    cfg.mitteltraegerLaengsProfil=tpl.mittel;
+                    cfg.mitteltraegerQuerProfil=tpl.mittel;
+                    ui.profileKonfig.setzeMitteltraegerOverride(tpl.mittel);
+                    // Mittelträger-Override direkt an alle relevanten Profilkonfigurationen der Szene durchreichen
+                    const pergola=ui.renderEngine?.gibPergola?.();
+                    pergola?.laengstraeger?.profileKonfig?.setzeMitteltraegerOverride?.(tpl.mittel);
+                    pergola?.quertraeger?.profileKonfig?.setzeMitteltraegerOverride?.(tpl.mittel);
+                    pergola?.koordinatenSystem?.profileKonfig?.setzeMitteltraegerOverride?.(tpl.mittel);
+                }else{
+                    ui.profileKonfig.setzeMitteltraegerOverride(null);
+                    const pergola=ui.renderEngine?.gibPergola?.();
+                    pergola?.laengstraeger?.profileKonfig?.setzeMitteltraegerOverride?.(null);
+                    pergola?.quertraeger?.profileKonfig?.setzeMitteltraegerOverride?.(null);
+                    pergola?.koordinatenSystem?.profileKonfig?.setzeMitteltraegerOverride?.(null);
+                }
+                cfg.zwischenpfostenBreite=!!tpl.zwischen;
+                cfg.zwischenpfostenTiefe=false;
+                cfg.regenwasserAbfluss=drainage;
+                ui.updateOptionCardState("dachTyp", dachForm);
+                ui.updateOptionCardState("roofType", dachTyp);
+                ui.updateOptionCardState("drainage", cfg.regenwasserAbfluss);
+                ui.updateDrainageVerfuegbarkeit?.();
+                ui.updateNeigungsSteuerung?.();
+                ui.onKonfigurationGeaendert();
+                // Sicherheit: Nach Render nochmals Regeln anwenden (Async, falls Events überschrieben)
+                setTimeout(()=>{
+                    ui.updateDrainageVerfuegbarkeit?.();
+                    ui.updateNeigungsSteuerung?.();
+                    // Bei EPDM + Flachdach sicherstellen, dass Rinne aktiv bleibt
+                    if(dachTyp==="epdm" && dachForm==="flachdach"){
+                        const drainSel=document.getElementById("drainage");
+                        if(drainSel && drainSel.value!=="rinne"){
+                            drainSel.value="rinne";
+                            cfg.regenwasserAbfluss="rinne";
+                            ui.updateOptionCardState("drainage","rinne");
+                            ui.onKonfigurationGeaendert();
+                        }
+                    }
+                    // Flachdach: Neigungselement final ausblenden/deaktivieren
+                    if(dachForm==="flachdach"){
+                        const slopeGroup=document.getElementById("roof-slope-group");
+                        if(slopeGroup)slopeGroup.style.display="none";
+                        const slopeInput=document.getElementById("slope-input");
+                        const slopeRange=document.getElementById("slope");
+                        if(slopeInput){slopeInput.disabled=true; slopeInput.value="0.0";}
+                        if(slopeRange){slopeRange.disabled=true; slopeRange.value="0";}
+                        cfg.neigung=0;
+                        ui.updateNeigungsSteuerung?.();
+                    }
+                    // Drainage noch einmal sicher durchsetzen (beugt Lücken bei EPDM vor)
+                    const drainageSelect=document.getElementById("drainage");
+                    if(drainageSelect && drainageSelect.value!==cfg.regenwasserAbfluss){
+                        drainageSelect.value=cfg.regenwasserAbfluss;
+                        ui.updateOptionCardState("drainage", cfg.regenwasserAbfluss);
+                        ui.onKonfigurationGeaendert();
+                    }
+                },0);
+
+                // Label im Dropdown auf Auswahl setzen
+                const selectIdMap={
+                    "glas-pult":"preset-dropdown-glas-pult",
+                    "glas-flach":"preset-dropdown-glas-flach",
+                    "epdm":"preset-dropdown-epdm"
+                };
+                const select = document.getElementById(selectIdMap[category]);
+                if(select && select.options.length){
+                    const defaultLabel = select.dataset.defaultLabel || (category==="glas-pult" ? "Pultdach mit Glas" : category==="glas-flach" ? "Flachdach mit Glas" : "EPDM-Dachfolie");
+                    select.options[0].textContent = `Auswahl: ${tpl.label}`;
+                    select.dataset.defaultLabel = defaultLabel;
+                }
+            }
+
+            dropdowns.forEach(({id, category})=>{
+                const sel=document.getElementById(id);
+                if(!sel)return;
+                populateSelect(sel, category);
+                sel.addEventListener("change", e=>{
+                    const idx=parseInt(e.target.value,10);
+                    if(Number.isNaN(idx))return;
+                    const tpl=templates[category]?.[idx];
+                    tpl&&applyPreset(tpl, category);
+                    e.target.value="";
+                    // Platzhalter-Labels der anderen Dropdowns zurücksetzen, damit nur die letzte Auswahl sichtbar bleibt
+                    dropdowns.forEach(({id:otherId, category:otherCat})=>{
+                        if(otherId===id)return;
+                        const other=document.getElementById(otherId);
+                        if(other && other.options.length){
+                            const defaultLabel = other.dataset.defaultLabel || (otherCat==="glas-pult" ? "Pultdach mit Glas" : otherCat==="glas-flach" ? "Flachdach mit Glas" : "EPDM-Dachfolie");
+                            other.options[0].textContent = defaultLabel;
+                        }
+                    });
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -1495,12 +1495,24 @@ export class UIController{
 
         // Share-Button Klick
         shareBtn.addEventListener("click", () => {
+            // Aktuelle Profilkonfiguration aus RenderEngine holen
+            const pergola = this.renderEngine?.gibPergola?.();
+            if (pergola) {
+                const mitteltraegerOverride = pergola.laengstraeger?.profileKonfig?.mitteltraegerOverride || 
+                                              pergola.quertraeger?.profileKonfig?.mitteltraegerOverride || 
+                                              null;
+                // Konfiguration mit Profilinfos aktualisieren
+                if (mitteltraegerOverride) {
+                    this.aktuelleKonfiguration.mitteltraegerOverride = mitteltraegerOverride;
+                }
+            }
+            
             const shareUrl = this.shareLink.createShareUrl(this.aktuelleKonfiguration);
             if (shareUrl) {
                 linkInput.value = shareUrl;
                 modal.style.display = "flex";
                 linkInput.select();
-                console.log("🔗 Share-Modal geöffnet");
+                console.log("🔗 Share-Modal geöffnet mit Profil:", this.aktuelleKonfiguration.pfostenProfil, "Mittel:", this.aktuelleKonfiguration.mitteltraegerOverride);
             } else {
                 console.error("❌ Fehler beim Erstellen des Share-Links");
             }
@@ -1553,6 +1565,22 @@ export class UIController{
             
             // Konfiguration übernehmen
             this.aktuelleKonfiguration = { ...this.aktuelleKonfiguration, ...config };
+            
+            // Profilkonfiguration anwenden (wichtig für Statik!)
+            const pergola = this.renderEngine?.gibPergola?.();
+            if (pergola && config.pfostenProfil) {
+                pergola.pfosten?.profileKonfig?.setzeAktuellesProfil?.(config.pfostenProfil);
+                pergola.laengstraeger?.profileKonfig?.setzeAktuellesProfil?.(config.pfostenProfil);
+                pergola.quertraeger?.profileKonfig?.setzeAktuellesProfil?.(config.pfostenProfil);
+                pergola.koordinatenSystem?.setzeProfil?.(config.pfostenProfil);
+                
+                // Mittelträger-Override setzen
+                if (config.mitteltraegerOverride) {
+                    pergola.laengstraeger?.profileKonfig?.setzeMitteltraegerOverride?.(config.mitteltraegerOverride);
+                    pergola.quertraeger?.profileKonfig?.setzeMitteltraegerOverride?.(config.mitteltraegerOverride);
+                    pergola.koordinatenSystem?.profileKonfig?.setzeMitteltraegerOverride?.(config.mitteltraegerOverride);
+                }
+            }
             
             // UI aktualisieren
             this.updateSliderValues();

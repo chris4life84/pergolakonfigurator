@@ -311,6 +311,9 @@
                 <button id="compact-info-toggle" class="template-flyout-toggle compact-primary" type="button" aria-pressed="false">
                     📋 Basisdaten
                 </button>
+                <button id="share-config-btn" class="template-flyout-toggle" type="button" title="Konfiguration teilen">
+                    🔗 Teilen
+                </button>
                 <button id="carport-overlay-toggle" class="template-flyout-toggle" aria-expanded="false" hidden style="display:none;">
                     🚗 Carport-Vorlagen
                 </button>
@@ -3564,5 +3567,185 @@
             });
         })();
     </script>
+
+    <!-- Share Link Modal -->
+    <div id="share-modal" class="share-modal" style="display: none;">
+        <div class="share-modal-overlay"></div>
+        <div class="share-modal-content">
+            <div class="share-modal-header">
+                <h3>🔗 Konfiguration teilen</h3>
+                <button type="button" class="share-modal-close" aria-label="Schließen">×</button>
+            </div>
+            <div class="share-modal-body">
+                <p>Kopieren Sie diesen Link, um Ihre Konfiguration zu teilen:</p>
+                <div class="share-link-container">
+                    <input type="text" id="share-link-input" class="share-link-input" readonly>
+                    <button type="button" id="copy-share-link-btn" class="copy-share-link-btn">
+                        📋 Kopieren
+                    </button>
+                </div>
+                <div id="copy-success-message" class="copy-success-message" style="display: none;">
+                    ✅ Link wurde in die Zwischenablage kopiert!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .share-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .share-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .share-modal-content {
+            position: relative;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 90%;
+            z-index: 1;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .share-modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .share-modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: #333;
+        }
+
+        .share-modal-close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            line-height: 1;
+            color: #666;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .share-modal-close:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .share-modal-body {
+            padding: 1.5rem;
+        }
+
+        .share-modal-body p {
+            margin: 0 0 1rem 0;
+            color: #666;
+        }
+
+        .share-link-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .share-link-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            background: #f8f8f8;
+        }
+
+        .share-link-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .copy-share-link-btn {
+            padding: 0.75rem 1.5rem;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .copy-share-link-btn:hover {
+            background: #45a049;
+        }
+
+        .copy-share-link-btn:active {
+            transform: scale(0.98);
+        }
+
+        .copy-success-message {
+            padding: 0.75rem;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        @media (max-width: 600px) {
+            .share-modal-content {
+                width: 95%;
+                margin: 1rem;
+            }
+
+            .share-link-container {
+                flex-direction: column;
+            }
+
+            .copy-share-link-btn {
+                width: 100%;
+            }
+        }
+    </style>
 </body>
 </html>

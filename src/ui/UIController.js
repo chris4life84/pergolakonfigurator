@@ -16,6 +16,7 @@ import{
 from"./PriceTag.js";
 import { DimensionHandles } from "./DimensionHandles.js";
 import StaticsCheck from"../core/StaticsCheck.js";
+import { ShareLink } from "../utils/ShareLink.js";
 export class UIController{
     constructor(e){
         this.renderEngine=e,
@@ -25,6 +26,7 @@ export class UIController{
         this.individualPostController=null,
         this.priceTag=null,
         this.optionCardGroups={},
+        this.shareLink=new ShareLink(),
         this.aktuelleKonfiguration={
             breite:4,
             tiefe:3,
@@ -99,11 +101,13 @@ export class UIController{
         this.initIndividualPostController(),
         this.initBemassungToggle(),
         this.initDragHandlesToggle(),
+        this.initShareButton(),
         this.dimensionHandles=new DimensionHandles(this.renderEngine, this),
         this.updateStatus("UI-Controller erfolgreich initialisiert", "success"),
         this.updateSliderValues(),
         this.updateHoehenInfo(),
         this.updatePfostenKuerzungMaxWerte(),
+        this.loadConfigFromUrl(),
         this.onKonfigurationGeaendert(),
         this.aktualisiereProfilauswahl("green"),
         console.log("✅ UI-Controller bereit"),
@@ -1474,5 +1478,124 @@ export class UIController{
         e?(e.addEventListener("click", ()=>{
             this.renderEngine.toggleBemassung()?(e.classList.add("active"), console.log("📏 Bemaßung eingeblendet")):(e.classList.remove("active"), console.log("📏 Bemaßung ausgeblendet"))
         }), console.log("📏 Bemaßungs-Toggle erfolgreich initialisiert")):console.warn("⚠️ Bemaßungs-Toggle Button nicht gefunden")
+    }
+    initShareButton(){
+        const shareBtn = document.getElementById("share-config-btn");
+        const modal = document.getElementById("share-modal");
+        const closeBtn = modal?.querySelector(".share-modal-close");
+        const overlay = modal?.querySelector(".share-modal-overlay");
+        const copyBtn = document.getElementById("copy-share-link-btn");
+        const linkInput = document.getElementById("share-link-input");
+        const successMsg = document.getElementById("copy-success-message");
+
+        if (!shareBtn || !modal) {
+            console.warn("⚠️ Share-Button oder Modal nicht gefunden");
+            return;
+        }
+
+        // Share-Button Klick
+        shareBtn.addEventListener("click", () => {
+            const shareUrl = this.shareLink.createShareUrl(this.aktuelleKonfiguration);
+            if (shareUrl) {
+                linkInput.value = shareUrl;
+                modal.style.display = "flex";
+                linkInput.select();
+                console.log("🔗 Share-Modal geöffnet");
+            } else {
+                console.error("❌ Fehler beim Erstellen des Share-Links");
+            }
+        });
+
+        // Modal schließen
+        const closeModal = () => {
+            modal.style.display = "none";
+            successMsg.style.display = "none";
+        };
+
+        closeBtn?.addEventListener("click", closeModal);
+        overlay?.addEventListener("click", closeModal);
+
+        // ESC-Taste zum Schließen
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && modal.style.display === "flex") {
+                closeModal();
+            }
+        });
+
+        // Link kopieren
+        copyBtn?.addEventListener("click", async () => {
+            try {
+                await navigator.clipboard.writeText(linkInput.value);
+                successMsg.style.display = "block";
+                console.log("✅ Link in Zwischenablage kopiert");
+                
+                setTimeout(() => {
+                    successMsg.style.display = "none";
+                }, 3000);
+            } catch (error) {
+                console.error("❌ Fehler beim Kopieren:", error);
+                // Fallback für ältere Browser
+                linkInput.select();
+                document.execCommand("copy");
+                successMsg.style.display = "block";
+                setTimeout(() => {
+                    successMsg.style.display = "none";
+                }, 3000);
+            }
+        });
+
+        console.log("🔗 Share-Button erfolgreich initialisiert");
+    }
+    loadConfigFromUrl(){
+        const config = this.shareLink.loadFromUrl();
+        if (config) {
+            console.log("🔗 Lade Konfiguration aus URL...", config);
+            
+            // Konfiguration übernehmen
+            this.aktuelleKonfiguration = { ...this.aktuelleKonfiguration, ...config };
+            
+            // UI aktualisieren
+            this.updateSliderValues();
+            this.updateAllSelectsFromConfig();
+            this.updatePfostenVersatzUI();
+            this.updatePfostenKuerzungUI();
+            this.updateZentralerMittelpfostenUI();
+            this.updateZwischenpfostenUI();
+            
+            // Render-Engine aktualisieren
+            this.onKonfigurationGeaendert();
+            
+            // URL bereinigen (Parameter entfernen, damit die URL nicht zu lang bleibt)
+            if (window.history && window.history.replaceState) {
+                const url = new URL(window.location.href);
+                url.searchParams.delete('config');
+                window.history.replaceState({}, document.title, url.toString());
+            }
+            
+            console.log("✅ Konfiguration erfolgreich aus URL geladen");
+        }
+    }
+    updateAllSelectsFromConfig(){
+        // Material
+        const materialSelect = document.getElementById("material");
+        if (materialSelect) materialSelect.value = this.aktuelleKonfiguration.material;
+        
+        // Farbe
+        const colorSelect = document.getElementById("color");
+        if (colorSelect) colorSelect.value = this.aktuelleKonfiguration.farbe;
+        
+        // Typ
+        const typeCards = document.querySelectorAll('[data-group="type"] .option-card');
+        typeCards.forEach(card => {
+            card.classList.toggle("active", card.dataset.value === this.aktuelleKonfiguration.typ);
+        });
+        
+        // Dachtyp
+        const roofTypeCards = document.querySelectorAll('[data-group="roofType"] .option-card');
+        roofTypeCards.forEach(card => {
+            card.classList.toggle("active", card.dataset.value === this.aktuelleKonfiguration.dachTyp);
+        });
+        
+        // Weitere Selects nach Bedarf...
     }
 }

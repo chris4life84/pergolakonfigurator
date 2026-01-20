@@ -107,9 +107,9 @@ export class UIController{
         this.updateSliderValues(),
         this.updateHoehenInfo(),
         this.updatePfostenKuerzungMaxWerte(),
-        this.loadConfigFromUrl(),
         this.onKonfigurationGeaendert(),
         this.aktualisiereProfilauswahl("green"),
+        this.loadConfigFromUrl(),
         console.log("✅ UI-Controller bereit"),
         document.addEventListener("staticsAction", e=>{
             try{
@@ -1557,13 +1557,36 @@ export class UIController{
             // UI aktualisieren
             this.updateSliderValues();
             this.updateAllSelectsFromConfig();
-            this.updatePfostenVersatzUI();
-            this.updatePfostenKuerzungUI();
-            this.updateZentralerMittelpfostenUI();
-            this.updateZwischenpfostenUI();
             
-            // Render-Engine aktualisieren
+            // Pfosten-Versatz aktualisieren
+            if (config.pfostenVersaetze) {
+                this.aktualisierePfostenVersatz("vorne", config.pfostenVersaetze.vorne || 0, false);
+                this.aktualisierePfostenVersatz("hinten", config.pfostenVersaetze.hinten || 0, false);
+            }
+            
+            // Pfosten-Kürzung aktualisieren
+            if (config.pfostenKuerzung) {
+                this.aktualisierePfostenKuerzung("vorne", config.pfostenKuerzung.vorne || 0, false);
+                this.aktualisierePfostenKuerzung("hinten", config.pfostenKuerzung.hinten || 0, false);
+                this.aktualisierePfostenKuerzung("mitte", config.pfostenKuerzung.mitte || 0, false);
+            }
+            
+            // Zentraler Mittelpfosten
+            this.syncCenterPostToggle();
+            
+            // Zwischenpfosten
+            const btnWidth = document.getElementById("intermediate-posts-width-btn");
+            const btnDepth = document.getElementById("intermediate-posts-depth-btn");
+            if (btnWidth) btnWidth.classList.toggle("active", !!config.zwischenpfostenBreite);
+            if (btnDepth) btnDepth.classList.toggle("active", !!config.zwischenpfostenTiefe);
+            
+            // Render-Engine und 3D-Szene aktualisieren
             this.onKonfigurationGeaendert();
+            
+            // Profilauswahl neu berechnen (wichtig für Statik!)
+            setTimeout(() => {
+                this.aktualisiereProfilauswahl("green");
+            }, 100);
             
             // URL bereinigen (Parameter entfernen, damit die URL nicht zu lang bleibt)
             if (window.history && window.history.replaceState) {

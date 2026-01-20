@@ -46,7 +46,7 @@ export const RAHMEN_PROFILE={
             empfohlenFuer:["grosse_pergola",
             "gewerblich",
             "windlast_hoch"],
-            maxSpannweite:8,
+            maxSpannweite:10,
             maxHoehe:5,
             mitteltraegerProfil:"120x80x4"
         },
@@ -232,7 +232,7 @@ export const RAHMEN_PROFILE={
             empfohlenFuer:["mitteltraeger",
             "pergola",
             "schwerlast"],
-            maxSpannweite:8,
+            maxSpannweite:10,
             maxHoehe:5
         },
         kosten:{

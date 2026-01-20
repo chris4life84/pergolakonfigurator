@@ -15,10 +15,10 @@ export const MAX_SPANNWEITEN={
     },
     "200x120x4":{
         ohneMittelpfosten:5.5,
-        mitMittelpfosten:8,
+        mitMittelpfosten:10,
         beschreibung:"Verstärkt-Profil",
         tragheitsmoment:96e-6,
-        hinweis:"Verstärktes Profil für große Spannweiten"
+        hinweis:"Verstärktes Profil für große Spannweiten bis 10m mit Mittelpfosten"
     },
     "200x100x4":{
         ohneMittelpfosten:5,

@@ -122,7 +122,7 @@ export class PergolaKonfiguration{
             }),
             n
         };
-        if(void 0!==e.breite&&(n.breite=Math.max(2, Math.min(8, e.breite))), void 0!==e.tiefe&&(n.tiefe=Math.max(2, Math.min(6, e.tiefe))), void 0!==e.hoehe&&(n.hoehe=Math.max(2.4, Math.min(4, e.hoehe))), void 0!==e.neigung&&(n.neigung=Math.max(0, Math.min(5, e.neigung))), void 0!==e.regenwasserAbfluss){
+        if(void 0!==e.breite&&(n.breite=Math.max(2, Math.min(10, e.breite))), void 0!==e.tiefe&&(n.tiefe=Math.max(2, Math.min(6, e.tiefe))), void 0!==e.hoehe&&(n.hoehe=Math.max(2.4, Math.min(4, e.hoehe))), void 0!==e.neigung&&(n.neigung=Math.max(0, Math.min(5, e.neigung))), void 0!==e.regenwasserAbfluss){
             ["rinne",
             "glasueberstand",
             "vollprofil"].includes(e.regenwasserAbfluss)&&(n.regenwasserAbfluss=e.regenwasserAbfluss)
@@ -202,7 +202,7 @@ export class PergolaKonfiguration{
             n.carportSegmente=e.carportSegmente.map(seg=>{
                 const t={
                     id:seg.id||0,
-                    breite:Math.max(2, Math.min(8, seg.breite||4)),
+                    breite:Math.max(2, Math.min(10, seg.breite||4)),
                     tiefe:Math.max(2, Math.min(6, seg.tiefe||4)),
                     hoehe:Math.max(2.4, Math.min(4, seg.hoehe||2.7)),
                     x:Math.max(-20, Math.min(20, seg.x||0)),

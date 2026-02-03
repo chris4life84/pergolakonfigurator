@@ -1,5 +1,39 @@
 import StaticsCheck from"../core/StaticsCheck.js";
-import{PRICE_TABLE,EXTRA_POSITIONS,VAT_RATE}from"../data/pricing.js";
+import{
+    normalisierePfostenId as normalisierePfostenIdUtil,
+    formatMillimeter as formatMillimeterUtil,
+    formatMeter as formatMeterUtil,
+    extractAnzahlSuffix as extractAnzahlSuffixUtil,
+    ermittlePfostenLabel as ermittlePfostenLabelUtil,
+    ermittleVersatzAnzeige as ermittleVersatzAnzeigeUtil,
+    berechneAbhaengigeWerteFuerKonfiguration as berechneAbhaengigeWerteUtil,
+    normalisiereProfil,
+    erstelleProfilLabel
+}from"../utils/InfoboxFormatters.js";
+import{
+    erstelleSegmentKonfiguration as erstelleSegmentKonfigurationUtil,
+    kombiniereSegmentMaterialien as kombiniereSegmentMaterialienUtil,
+    skaliereMaterialsammlung as skaliereMaterialsammlungUtil,
+    multipliziereItem as multipliziereItemUtil,
+    berechneAlumeterAusSammlung as berechneAlumeterAusSammlungUtil,
+    leseIndividuellenVersatzEintrag as leseIndividuellenVersatzEintragUtil,
+    lesePfostenVersatz as lesePfostenVersatzUtil,
+    lesePfostenVersatzTiefe as lesePfostenVersatzTiefeUtil,
+    segmenteSindIdentisch as segmenteSindIdentischUtil,
+    segmentEntsprichtBasis as segmentEntsprichtBasisUtil,
+    generiereStandardPfostenListe,
+    erstelleProfilInfo
+}from"../utils/InfoboxMaterialCalculator.js";
+import{
+    renderStatikMarkup as renderStatikMarkupUtil,
+    renderProfilauswahl as renderProfilauswahlUtil,
+    renderCarportHinweis
+}from"../utils/InfoboxStatikRenderer.js";
+import{
+    berechnePreise as berechnePreiseUtil,
+    renderPreisliste as renderPreislisteUtil
+}from"../utils/InfoboxPreisRenderer.js";
+import { Logger } from "../utils/Logger.js";
 export class Infobox{
     constructor(e, t, n, i, r=null){
         this.konfiguration=e,
@@ -13,192 +47,39 @@ export class Infobox{
         this.panel=document.getElementById("infobox-panel"),
         this.closeBtn=document.getElementById("infobox-close"),
         this.tabButtons=document.querySelectorAll(".tab-button"),
+        this.logger=new Logger("Infobox"),
         this.initializeEventListeners()
     }
+    // Delegate to extracted utility functions
     normalisierePfostenId(e){
-        return"string"!=typeof e?"":e.replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/[\s-]+/g, "_").toLowerCase()
+        return normalisierePfostenIdUtil(e)
     }
     formatMillimeter(e){
-        return`${Math.round(Number(e)||0)}mm`
+        return formatMillimeterUtil(e)
     }
     formatMeter(e, t=2){
-        return`${(Number(e)||0).toFixed(t)} m`
+        return formatMeterUtil(e, t)
     }
     extractAnzahlSuffix(e=""){
-        if(!e)return"";
-        const t=String(e).match(/^[\d\s.,+-]+(.*)$/);
-        return t?t[1].trim():""
+        return extractAnzahlSuffixUtil(e)
     }
     ermittlePfostenLabel(e){
-        const t=this.normalisierePfostenId(e);
-        return{
-            vorne_links:"vorne links",
-            vorne_rechts:"vorne rechts",
-            hinten_links:"hinten links",
-            hinten_rechts:"hinten rechts",
-            vorne_mitte:"vorne (Mitte)",
-            hinten_mitte:"hinten (Mitte)",
-            mitte_links:"seitlich links (Mitte)",
-            mitte_rechts:"seitlich rechts (Mitte)",
-            mitte_zentral:"zentral (Mitte)"
-        }
-        [t]||t.replace(/_/g, " ")
+        return ermittlePfostenLabelUtil(e)
     }
     ermittleVersatzAnzeige(e, t){
-        if(!Number.isFinite(e)||Math.abs(e)<1e-4)return"0 mm";
-        const n=Math.round(1e3*e),
-        i="z"===t?n>0?"nach hinten (+)":"nach vorne (−)":n>0?"nach innen (+)":"nach außen (−)";
-        return`${Math.abs(n)} mm ${i}`
+        return ermittleVersatzAnzeigeUtil(e, t)
     }
     berechneAbhaengigeWerteFuerKonfiguration(e){
-        const t=Number(e.neigung)||0,
-        n=Number(e.tiefe)||0,
-        i=Math.tan(t*Math.PI/180)*n,
-        r=Number(e.hoehe)||0;
-        return{
-            hoehenDifferenz:i,
-            vordereHoehe:r,
-            hintereHoehe:r+i,
-            durchgangsHoehe:r-.16,
-            anzahlEckpfosten:"freistehend"===e.typ?4:2,
-            glasflaeche:"glas"===e.dachTyp||"glas"===e.dach?Number(e.breite||0)*n:0
-        }
+        return berechneAbhaengigeWerteUtil(e)
     }
     erstelleSegmentKonfiguration(e, t={}){
-        const n={
-            ...e,
-            pfostenVersaetze:{
-                ...e.pfostenVersaetze,
-                individuell:{
-                    ...(e.pfostenVersaetze?.individuell||{})
-                }
-            },
-            pfostenKuerzung:{
-                ...e.pfostenKuerzung,
-                individuell:{
-                    ...(e.pfostenKuerzung?.individuell||{})
-                }
-            },
-            pfostenAktiv:{
-                ...e.pfostenAktiv,
-                individuell:{
-                    ...(e.pfostenAktiv?.individuell||{})
-                }
-            }
-        };
-        ["breite",
-        "tiefe",
-        "hoehe",
-        "neigung",
-        "typ",
-        "material",
-        "farbe",
-        "dach",
-        "dachTyp",
-        "pfostenProfil",
-        "regenwasserAbfluss",
-        "befestigung"].forEach(e=>{
-            void 0!==t[e]&&(n[e]=t[e])
-        }),
-        t.pfostenVersaetze&&(n.pfostenVersaetze.individuell={
-            ...t.pfostenVersaetze
-        }),
-        t.pfostenKuerzung&&(n.pfostenKuerzung.individuell={
-            ...t.pfostenKuerzung
-        }),
-        t.pfostenAktiv&&(n.pfostenAktiv.individuell={
-            ...t.pfostenAktiv
-        }),
-        n.carportModus=!1,
-        n.carportSegmente=[];
-        return n
+        return erstelleSegmentKonfigurationUtil(e, t)
     }
     kombiniereSegmentMaterialien(segmentSammlungen=[]){
-        const kategorien=["pfosten","laengstraeger","quertraeger","glas","aluschienen"],
-        kombinierteMaterialien={
-            pfosten:[],
-            laengstraeger:[],
-            quertraeger:[],
-            glas:[],
-            aluschienen:[],
-            gesamtAlu:0,
-            gesamtGlas:0
-        },
-        gruppen={};
-        kategorien.forEach(kat=>gruppen[kat]=new Map());
-        const baueSchluessel=item=>[
-            item.bezeichnung||"",
-            item.profil||"",
-            item.material||"",
-            item.preisInfo?.kategorie||"",
-            item.preisInfo?.schluessel||"",
-            item.preisInfo?.typ||""
-        ].join("|");
-        const kloneItem=item=>JSON.parse(JSON.stringify(item));
-        const formatAnzahl=(entry)=>{
-            if(entry.preisInfo&&Number.isFinite(entry.preisInfo.anzahl)){
-                const suffix=entry.__anzahlSuffix||this.extractAnzahlSuffix(entry.anzahl)||"Stk";
-                entry.anzahl=`${entry.preisInfo.anzahl} ${suffix}`.trim();
-            }
-        };
-        segmentSammlungen.forEach(materialSet=>{
-            kategorien.forEach(kat=>{
-                (materialSet[kat]||[]).forEach(item=>{
-                    const key=baueSchluessel(item);
-                    if(!gruppen[kat].has(key)){
-                        const copy=kloneItem(item);
-                        copy.__anzahlSuffix=this.extractAnzahlSuffix(copy.anzahl);
-                        gruppen[kat].set(key, copy);
-                    }else{
-                        const existing=gruppen[kat].get(key);
-                        if(existing.preisInfo&&item.preisInfo){
-                            existing.preisInfo.menge=(existing.preisInfo.menge||0)+(item.preisInfo.menge||0);
-                            existing.preisInfo.anzahl=(existing.preisInfo.anzahl||0)+(item.preisInfo.anzahl||0);
-                        }
-                    }
-                })
-            }),
-            kombinierteMaterialien.gesamtAlu+=materialSet.gesamtAlu||0,
-            kombinierteMaterialien.gesamtGlas+=materialSet.gesamtGlas||0
-        });
-        kategorien.forEach(kat=>{
-            kombinierteMaterialien[kat]=Array.from(gruppen[kat].values()).map(entry=>{
-                if(entry.preisInfo){
-                    if(entry.preisInfo.typ==="meter"){
-                        entry.gesamtLaenge=this.formatMeter(entry.preisInfo.menge);
-                    }else if(entry.preisInfo.typ==="qm"){
-                        entry.gesamtLaenge=`${(entry.preisInfo.menge||0).toFixed(2)} m²`;
-                    }
-                    formatAnzahl(entry);
-                }
-                delete entry.__anzahlSuffix;
-                return entry;
-            })
-        });
-        return kombinierteMaterialien;
+        return kombiniereSegmentMaterialienUtil(segmentSammlungen)
     }
     skaliereMaterialsammlung(e, t=1){
-        if(1===t||!e)return e;
-        const n={
-            pfosten:[],
-            laengstraeger:[],
-            quertraeger:[],
-            glas:[],
-            aluschienen:[],
-            aluprofile:[],
-            gesamtAlu:(e.gesamtAlu||0)*t,
-            gesamtGlas:(e.gesamtGlas||0)*t
-        };
-        return["pfosten",
-        "laengstraeger",
-        "quertraeger",
-        "glas",
-        "aluschienen"].forEach(i=>{
-            (e[i]||[]).forEach(e=>{
-                n[i].push(this.multipliziereItem(e, t))
-            })
-        }),
-        n
+        return skaliereMaterialsammlungUtil(e, t)
     }
     initializeEventListeners(){
         this.toggle?.addEventListener("click", ()=>this.togglePanel()),
@@ -231,7 +112,7 @@ export class Infobox{
     }
     wendeProfilAn(e){
         let t;
-        console.log(`🔧 Wende Profil an: ${e}`),
+        this.logger.debug(`Wende Profil an: ${e}`),
         "120x80x4"===e?t="80x60x4":"160x80x4"===e?t="100x80x4":"200x100x4"===e&&(t="160x80x4_mittel"),
         document.dispatchEvent(new CustomEvent("profilAenderung", {
             detail:{
@@ -282,64 +163,23 @@ export class Infobox{
             r=StaticsCheck.compute(t, {
                 midLongOverride:n, midTransOverride:i
             });
-            this.konfiguration&&r&&(this.konfiguration.letzteStatikPruefung=r),
-            e.innerHTML=(s?`
-                <div style="padding: 1rem; margin-bottom: 0.75rem; border-left: 4px solid #ff9800; background: #fff3e0; color: #e65100;">
-                    ⚠️ Carport-Modus mit ${s} Segment${s>1?"en":""}: Statik basiert auf der Basis-Pergola. Bitte jedes Segment separat prüfen.
-                </div>`:"")+this.renderStatikMarkup(r)
+            this.konfiguration&&r&&(this.konfiguration.letzteStatikPruefung=r);
+            const pfostenProfil=(this.konfiguration?.gibAktuelleKonfiguration?.()||{}).pfostenProfil||"160x80x4",
+            mitteltraegerOverride=this.laengstraegerInstanz?.profileKonfig?.mitteltraegerOverride||"100x80x4";
+            e.innerHTML=renderCarportHinweis(s)+renderStatikMarkupUtil(r, pfostenProfil, mitteltraegerOverride)
         }
         catch(t){
-            console.error("Statik-Rendering fehlgeschlagen:", t),
+            this.logger.error("Statik-Rendering fehlgeschlagen:", t),
             e.innerHTML='<div style="color:#f44336;">Statik-Modul konnte nicht geladen werden.</div>'
         }
     }
     renderStatikMarkup(e){
-        if(!e)return"<div>Keine Daten</div>";
-        const t="green"===e.status?"🟢":"yellow"===e.status?"🟡":"🔴",
-        n=(e.messages||[]).map(e=>`<li>${e}</li>`).join("")||"<li>Alle Nachweise erfüllt.</li>",
-        i=((e.suggestions||[]).map(e=>`<li>${e}</li>`).join(""), (e.advisories||[]).map(e=>`<li>${e}</li>`).join(""), (e, t=3)=>Number.isFinite(e)?e.toFixed(t):"-"),
-        r=e=>Number.isFinite(e)?e>=1?"background-color: #ffcdd2; color: #c62828; font-weight: bold;":e>=.85?"background-color: #fff9c4; color: #f57f17; font-weight: bold;":"":"",
-        l=(e.calculated_values?.long_beams||[]).map((e, t)=>`\n            <tr>\n                <td>${e.type||t}</td>\n                <td>${i(e.w)} kN/m</td>\n                <td>${i(e.L,2)} m</td>\n                <td>${i(e.M_kNm,2)} kNm</td>\n                <td>${i(e.V_kN,2)} kN</td>\n                <td>${i(1e3*e.delta,2)} mm</td>\n                <td style="${r(e.util_sigma)}">${i(100*e.util_sigma,1)}%</td>\n                <td style="${r(e.util_defl)}">${i(100*e.util_defl,1)}%</td>\n            </tr>\n        `).join(""),
-        a=(e.calculated_values?.trans_beams||[]).map((e, t)=>`\n            <tr>\n                <td>${e.position||t}</td>\n                <td>${i(e.w)} kN/m</td>\n                <td>${i(e.L,2)} m</td>\n                <td>${i(e.M_kNm,2)} kNm</td>\n                <td>${i(e.V_kN,2)} kN</td>\n                <td>${i(1e3*e.delta,2)} mm</td>\n                <td style="${r(e.util_sigma)}">${i(100*e.util_sigma,1)}%</td>\n                <td style="${r(e.util_defl)}">${i(100*e.util_defl,1)}%</td>\n            </tr>\n        `).join(""),
-        s=e.calculated_values?.posts||{},
-        o=(this.konfiguration?.gibAktuelleKonfiguration?.()||{}).pfostenProfil||"160x80x4",
-        m=this.laengstraegerInstanz?.profileKonfig?.mitteltraegerOverride||"100x80x4";
-        return`\n            <div class="statik-status" style="margin-bottom:0.75rem;">\n                <strong>Status:</strong> ${t}\n                <span style="margin-left:0.5rem;color:#666;">${"green"===e.status?"maßgebend":"kritisch"}: ${e.limiting_element||"-"}</span>\n            </div>\n            <div style="margin:0.5rem 0 0.75rem 0;">\n                <strong>Hinweise:</strong>\n                <ul>${n}</ul>\n            </div>\n            ${this.renderProfilauswahl(o,m)}\n            <div class="statics-legend" style="color:#777;font-size:0.85em;line-height:1.2;margin:0.25rem 0 0.75rem 0;">\n                <strong style="color:#666">Legende:</strong>\n                <span style="margin-left:0.5rem;">w = Linienlast (kN/m)</span>\n                <span style="margin-left:0.75rem;">L = Spannweite (m)</span>\n                <span style="margin-left:0.75rem;">M = Biegemoment (kNm)</span>\n                <span style="margin-left:0.75rem;">V = Querkraft (kN)</span>\n                <span style="margin-left:0.75rem;">δ = Durchbiegung (mm)</span>\n                <span style="margin-left:0.75rem;">σ‑Util = Ausnutzung Biegespannung (%)</span>\n                <span style="margin-left:0.75rem;">δ‑Util = Ausnutzung Durchbiegung (%)</span>\n            </div>\n            <div style="margin:0.75rem 0;">\n                <h5>Längsträger</h5>\n                <table class="material-table"><thead>\n                    <tr><th>Typ</th><th>w</th><th>L</th><th>M</th><th>V</th><th>δ</th><th>σ-Util</th><th>δ-Util</th></tr>\n                </thead><tbody>${l}</tbody></table>\n            </div>\n            <div style="margin:0.75rem 0;">\n                <h5>Querträger</h5>\n                <table class="material-table"><thead>\n                    <tr><th>Pos</th><th>w</th><th>L</th><th>M</th><th>V</th><th>δ</th><th>σ-Util</th><th>δ-Util</th></tr>\n                </thead><tbody>${a}</tbody></table>\n            </div>\n            <div style="margin:0.75rem 0;">\n                <h5>Pfosten</h5>\n                <div>Last pro Pfosten: <strong>${i(s.N_per_post_kN,2)} kN</strong> (zulässig: ${i(s.N_allow,0)} kN) – Ausnutzung: ${i(100*(s.util||0),1)}% – Anzahl Pfosten: ${s.nPosts||0}</div>\n            </div>\n        `
+        const pfostenProfil=(this.konfiguration?.gibAktuelleKonfiguration?.()||{}).pfostenProfil||"160x80x4",
+        mitteltraegerOverride=this.laengstraegerInstanz?.profileKonfig?.mitteltraegerOverride||"100x80x4";
+        return renderStatikMarkupUtil(e, pfostenProfil, mitteltraegerOverride)
     }
     renderProfilauswahl(e, t){
-        const n=[{
-            id:"120x80x4",
-            label:"120×80×4",
-            mittel:["80x60x4"]
-        },
-        {
-            id:"160x80x4",
-            label:"160×80×4",
-            mittel:["100x80x4",
-            "120x80x4_mittel"]
-        },
-        {
-            id:"200x100x4",
-            label:"200×100×4",
-            mittel:["160x80x4_mittel"]
-        }
-        ],
-        i=(n.find(t=>t.id===e)||n[1], n.map(t=>{
-            const n=t.id===e?"background: #2196f3; color: white; border: 2px solid #1976d2;":"background: white; color: #666; border: 2px solid #ddd;";
-            return`\n                <button \n                    type="button" \n                    class="profil-btn" \n                    data-profil="${t.id}"\n                    style="padding: 0.75rem 1.5rem; margin: 0.25rem; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.95em; ${n}"\n                >\n                    ${t.label}\n                </button>\n            `
-        }).join(""));
-        let r="";
-        if("160x80x4"===e){
-            const e="100x80x4"===t,
-            n="120x80x4_mittel"===t;
-            r=`\n                <div style="margin-top: 1rem; padding: 0.75rem; background: #f5f5f5; border-radius: 6px;">\n                    <div style="margin-bottom: 0.5rem; color: #666; font-size: 0.9em;">\n                        <strong>Mittelträger:</strong>\n                    </div>\n                    <div style="display: flex; gap: 0.5rem;">\n                        <button \n                            type="button" \n                            class="mitteltraeger-btn" \n                            data-mittel="100x80x4"\n                            style="flex: 1; padding: 0.6rem; border-radius: 4px; cursor: pointer; font-weight: ${e?"bold":"normal"}; \n                                   background: ${e?"#2196f3":"white"}; \n                                   color: ${e?"white":"#666"}; \n                                   border: 2px solid ${e?"#1976d2":"#ddd"};"\n                        >\n                            ${"100×80mm"}\n                        </button>\n                        <button \n                            type="button" \n                            class="mitteltraeger-btn" \n                            data-mittel="120x80x4_mittel"\n                            style="flex: 1; padding: 0.6rem; border-radius: 4px; cursor: pointer; font-weight: ${n?"bold":"normal"}; \n                                   background: ${n?"#2196f3":"white"}; \n                                   color: ${n?"white":"#666"}; \n                                   border: 2px solid ${n?"#1976d2":"#ddd"};"\n                        >\n                            ${"120×80mm"}\n                        </button>\n                    </div>\n                </div>\n            `
-        }
-        else{
-            let mittelLabel="";
-            "120x80x4"===e?mittelLabel="80×60mm":"200x100x4"===e&&(mittelLabel="120x80x4_mittel"===t?"120×80mm":"160×80mm"),
-            mittelLabel&&(r=`\n                    <div style="margin-top: 0.75rem; padding: 0.5rem; background: #e3f2fd; border-radius: 4px; color: #1976d2; font-size: 0.85em;">\n                        <strong>Mittelträger:</strong> ${mittelLabel}\n                    </div>\n                `)
-        }
-        return`\n            <div style="margin: 1rem 0; padding: 1rem; background: #fafafa; border-radius: 8px; border: 1px solid #e0e0e0;">\n                <h5 style="margin: 0 0 0.75rem 0; color: #333;">Profilstärke</h5>\n                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">\n                    ${i}\n                </div>\n                ${r}\n            </div>\n        `
+        return renderProfilauswahlUtil(e, t)
     }
     aktualisiereMaterialliste(){
         if(!this.konfiguration)return void console.warn("📋 Infobox: Konfiguration nicht verfügbar");
@@ -516,40 +356,13 @@ export class Infobox{
         return`\n            <tr>\n                <td>${String(e).padStart(1,"0")}</td>\n                <td>${t.bezeichnung}</td>\n                <td>${t.profil}</td>\n                <td>${t.laenge}</td>\n                <td>${t.anzahl}</td>\n                <td>${t.gesamtLaenge}</td>\n                <td>${t.material}</td>\n            </tr>\n        `
     }
     multipliziereItem(e, t){
-        if(1===t)return e;
-        const n={
-            ...e
-        };
-        if("string"==typeof n.anzahl){
-            const e=n.anzahl.match(/^(\d+(?:\.\d+)?)\s*(.*)$/);
-            if(e){
-                const i=parseFloat(e[1])*t;
-                n.anzahl=`${i} ${e[2]}`
-            }
-        }
-        if("string"==typeof n.gesamtLaenge){
-            const e=n.gesamtLaenge.match(/^([\d, \.]+)\s*(.*)$/);
-            if(e){
-                const i=parseFloat(e[1].replace(",", "."))*t;
-                n.gesamtLaenge=`${i.toFixed(2).replace(".",",")} ${e[2]}`
-            }
-        }
-        return n.preisInfo&&(n.preisInfo={
-            ...n.preisInfo
-        }, "number"==typeof n.preisInfo.menge&&(n.preisInfo.menge*=t), "number"==typeof n.preisInfo.anzahl&&(n.preisInfo.anzahl*=t)),
-        n
+        return multipliziereItemUtil(e, t)
     }
     gibLetzteMaterialien(){
         return this.letzteMaterialien
     }
     berechneAlumeterAusSammlung(e){
-        if(!e)return 0;
-        const sumKategorie=t=>["pfosten","laengstraeger","quertraeger"].reduce((n,i)=>{
-            const r=t?.[i]||[];
-            return n+r.reduce((t,n)=>t+(Number(n?.preisInfo?.menge)||0), 0)
-        }, 0);
-        if(Array.isArray(e))return e.reduce((t,n)=>t+this.berechneAlumeterAusSammlung(n), 0);
-        return sumKategorie(e)
+        return berechneAlumeterAusSammlungUtil(e)
     }
     berechneMaterialien(e, t, opts={}){
         const n=[],
@@ -1177,106 +990,19 @@ export class Infobox{
         }
     }
     segmenteSindIdentisch(segmentList=[], referenzKonfiguration={}){
-        if(segmentList.length<=1)return !0;
-        const first=segmentList[0];
-        const keys=["breite","tiefe","hoehe","neigung","dachTyp","pfostenProfil"];
-        const isClose=(a,b)=>Math.abs((Number(a)||0)-(Number(b)||0))<1e-3;
-        const compareBitmask=(segA, segB)=>{
-            return keys.every(key=>{
-                if(["breite","tiefe","hoehe","neigung"].includes(key))return isClose(segA[key], segB[key]??referenzKonfiguration[key]);
-                return (segA[key]??referenzKonfiguration[key])===(segB[key]??referenzKonfiguration[key])
-            })
-        };
-        for(let i=1;i<segmentList.length;i++){
-            if(!compareBitmask(first, segmentList[i]))return !1
-        }
-        return !0
+        return segmenteSindIdentischUtil(segmentList, referenzKonfiguration)
     }
     segmentEntsprichtBasis(segmentKonfig={}, basisKonfig={}, originalesSegment={}){
-        if(!basisKonfig)return !1;
-        const keys=["breite","tiefe","hoehe","neigung","dachTyp","pfostenProfil"];
-        const isClose=(a,b)=>Math.abs((Number(a)||0)-(Number(b)||0))<1e-3;
-        const eps=1e-4;
-        const diffNumber=(val, base=0)=>Math.abs((Number(val)||0)-(Number(base)||0))>eps;
-        const hatIndividuellePfosten=()=>{
-            const segVers=segmentKonfig?.pfostenVersaetze||{},
-            basisVers=basisKonfig?.pfostenVersaetze||{};
-            if(diffNumber(segVers.vorne, basisVers.vorne))return !0;
-            if(diffNumber(segVers.hinten, basisVers.hinten))return !0;
-            const indivVers=segVers.individuell||{};
-            for(const key of Object.keys(indivVers||{})){
-                const eintrag=this.leseIndividuellenVersatzEintrag(indivVers[key]);
-                const wert=eintrag?eintrag.wert:indivVers[key];
-                if(Math.abs(Number(wert)||0)>eps)return !0;
-            }
-            const segKurz=segmentKonfig?.pfostenKuerzung||{},
-            basisKurz=basisKonfig?.pfostenKuerzung||{};
-            if(diffNumber(segKurz.vorne, basisKurz.vorne))return !0;
-            if(diffNumber(segKurz.hinten, basisKurz.hinten))return !0;
-            if(diffNumber(segKurz.mitte, basisKurz.mitte))return !0;
-            const indivKurz=segKurz.individuell||{};
-            for(const key of Object.keys(indivKurz||{})){
-                if(Math.abs(Number(indivKurz[key])||0)>eps)return !0;
-            }
-            const segAktiv=segmentKonfig?.pfostenAktiv||{},
-            basisAktiv=basisKonfig?.pfostenAktiv||{};
-            const normalizeBool=(val, fallback=!0)=>val===void 0?fallback:!1!==val,
-            baseVorne=normalizeBool(basisAktiv.vorne, !0),
-            baseHinten=normalizeBool(basisAktiv.hinten, !0),
-            segVorne=normalizeBool(segAktiv.vorne, baseVorne),
-            segHinten=normalizeBool(segAktiv.hinten, baseHinten);
-            if(segVorne!==baseVorne)return !0;
-            if(segHinten!==baseHinten)return !0;
-            const indivAktiv=segAktiv.individuell||{};
-            for(const key of Object.keys(indivAktiv||{})){
-                if(!normalizeBool(indivAktiv[key], !0))return !0;
-            }
-            return !1
-        };
-        if(hatIndividuellePfosten())return !1;
-        return keys.every(key=>{
-            const basisWert=basisKonfig[key];
-            const segmentWert=segmentKonfig[key];
-            if(["breite","tiefe","hoehe","neigung"].includes(key))return isClose(segmentWert, basisWert);
-            return (segmentWert??basisWert)===(basisWert)
-        })
+        return segmentEntsprichtBasisUtil(segmentKonfig, basisKonfig, originalesSegment)
     }
     leseIndividuellenVersatzEintrag(e){
-        if("number"==typeof e)return{
-            achse:"x",
-            wert:Number(e)
-        };
-        if("object"==typeof e&&null!==e){
-            const t="string"==typeof e.achse?e.achse:"string"==typeof e.axis?e.axis:"x",
-            n=Number(e.wert??e.value??0);
-            if(Number.isFinite(n))return{
-                achse:t,
-                wert:n
-            }
-        }
-        return null
+        return leseIndividuellenVersatzEintragUtil(e)
     }
     lesePfostenVersatz(e, t, n){
-        const i=this.normalisierePfostenId(t),
-        r=e.pfostenVersaetze?.individuell||{},
-        l=r[i]??r[t];
-        if(void 0!==l){
-            const e=this.leseIndividuellenVersatzEintrag(l);
-            if(e&&e.achse===n)return e.wert;
-            if(e&&"x"===n&&("x"===e.achse||void 0===e.achse))return e.wert
-        }
-        if("x"===n){
-            if(i.startsWith("vorne"))return Number(e.pfostenVersaetze?.vorne||0);
-            if(i.startsWith("hinten"))return Number(e.pfostenVersaetze?.hinten||0)
-        }
-        return 0
+        return lesePfostenVersatzUtil(e, t, n)
     }
     lesePfostenVersatzTiefe(e, t){
-        const n=this.normalisierePfostenId(t),
-        i=e.pfostenVersaetze?.individuell||{},
-        r=i[n]??i[t],
-        l=this.leseIndividuellenVersatzEintrag(r);
-        return l&&"z"===l.achse?l.wert:0
+        return lesePfostenVersatzTiefeUtil(e, t)
     }
     erstelleVersatzSektion(e){
         const t=this.pfostenInstanz?.gibAllePfosten?.()||[];
@@ -1520,271 +1246,9 @@ export class Infobox{
         container.innerHTML=this.renderPreisliste(preisDetails,config);
     }
     berechnePreise(materialien,config){
-        const materialPositionen=[];
-        const dienstleistungsPositionen=[];
-        let gesamtNetto=0;
-        const findePreis=(kategorie,schluessel)=>{
-            const kat=PRICE_TABLE[kategorie];
-            if(!kat)return null;
-            const item=kat[schluessel]||kat.default;
-            return item||null;
-        };
-        
-        // Hilfsfunktion: Entferne "(Segment X)" aus Bezeichnung
-        const getBasisBezeichnung = (bezeichnung) => {
-            return bezeichnung.replace(/\s*\(Segment\s+\d+\)\s*$/i, '').trim();
-        };
-        
-        // Gruppierung für Preisliste: Sammle Items nach Basis-Bezeichnung
-        const groupedItems = new Map();
-        
-        // Materialpositionen - gruppiert
-        ["pfosten","laengstraeger","quertraeger","glas","aluschienen","seitenprofile","aluprofile"].forEach(kategorie=>{
-            const items=materialien[kategorie]||[];
-            items.forEach(item=>{
-                if(!item.preisInfo)return;
-                const{kategorie:kat,schluessel,typ,menge,anzahl,einheit,displayName}=item.preisInfo;
-                const preisConfig=findePreis(kat,schluessel);
-                if(!preisConfig)return;
-                
-                // Basis-Bezeichnung ohne "(Segment X)"
-                const vollBezeichnung = displayName || item.bezeichnung;
-                const basisBezeichnung = getBasisBezeichnung(vollBezeichnung);
-                
-                // Gruppierungs-Schlüssel: Basis-Bezeichnung + Preiskonfiguration
-                const groupKey = `${basisBezeichnung}|${kat}|${schluessel}|${typ}`;
-                
-                if (!groupedItems.has(groupKey)) {
-                    groupedItems.set(groupKey, {
-                        bezeichnung: basisBezeichnung,
-                        kategorie: kat,
-                        schluessel,
-                        typ,
-                        menge: 0,
-                        anzahl: 0,
-                        preisConfig
-                    });
-                }
-                
-                const grouped = groupedItems.get(groupKey);
-                grouped.menge += menge || 0;
-                grouped.anzahl += anzahl || 0;
-            });
-        });
-        
-        // Erstelle Preispositionen aus gruppierten Items
-        groupedItems.forEach(grouped => {
-            const { bezeichnung, typ, menge, preisConfig } = grouped;
-            let einzelpreis = 0;
-            let gesamtpreis = 0;
-            
-            if(typ==="meter"&&preisConfig.unit==="kilogramm"){
-                const gewicht=preisConfig.weightPerMeter*menge;
-                einzelpreis=preisConfig.pricePerKg;
-                gesamtpreis=gewicht*einzelpreis;
-                materialPositionen.push({
-                    bezeichnung,
-                    menge:`${menge.toFixed(2)} m (${gewicht.toFixed(2)} kg)`,
-                    einzelpreis:`${einzelpreis.toFixed(2)} €/kg`,
-                    gesamtpreis:gesamtpreis
-                });
-            }else if(typ==="qm"&&preisConfig.unit==="sqm"){
-                einzelpreis=preisConfig.price;
-                gesamtpreis=menge*einzelpreis;
-                materialPositionen.push({
-                    bezeichnung,
-                    menge:`${menge.toFixed(2)} m²`,
-                    einzelpreis:`${einzelpreis.toFixed(2)} €/m²`,
-                    gesamtpreis:gesamtpreis
-                });
-            }else if(typ==="meter"&&preisConfig.unit==="meter"){
-                einzelpreis=preisConfig.price;
-                gesamtpreis=menge*einzelpreis;
-                materialPositionen.push({
-                    bezeichnung,
-                    menge:`${menge.toFixed(2)} m`,
-                    einzelpreis:`${einzelpreis.toFixed(2)} €/m`,
-                    gesamtpreis:gesamtpreis
-                });
-            }
-            gesamtNetto+=gesamtpreis;
-        });
-        
-        // Berechne Gesamt-Alumeter für Vorbehandlung (ohne Aluprofile für Glashalterung)
-        let gesamtAlumeter=Number(this.letzteAlumeterSumme)||0;
-        if(!gesamtAlumeter){
-            gesamtAlumeter=this.berechneAlumeterAusSammlung(materialien);
-        }
-        
-        // Dienstleistungen
-        // Vorbehandlung
-        const vorbehandlungPreis=findePreis("vorbehandlung","alumeter");
-        if(vorbehandlungPreis&&gesamtAlumeter>0){
-            const preis=gesamtAlumeter*vorbehandlungPreis.price;
-            dienstleistungsPositionen.push({
-                bezeichnung:"Vorbehandlung",
-                menge:`${gesamtAlumeter.toFixed(2)} m`,
-                einzelpreis:`${vorbehandlungPreis.price.toFixed(2)} €/m`,
-                gesamtpreis:preis,
-                istDienstleistung:true
-            });
-            gesamtNetto+=preis;
-        }
-        
-        // Oberflächenbehandlung
-        const aluFlaeche=materialien.gesamtAlu||0;
-        const oberflaechenPreis=findePreis("oberflaechenbehandlung","sichtbar");
-        if(oberflaechenPreis&&aluFlaeche>0){
-            const preis=aluFlaeche*oberflaechenPreis.price;
-            dienstleistungsPositionen.push({
-                bezeichnung:"Oberflächenbehandlung (Grundierung / Lackierung)",
-                menge:`${aluFlaeche.toFixed(2)} m²`,
-                einzelpreis:`${oberflaechenPreis.price.toFixed(2)} €/m²`,
-                gesamtpreis:preis,
-                istDienstleistung:true
-            });
-            gesamtNetto+=preis;
-        }
-        
-        const normalizeNumber=e=>{
-            const t=Number(e);
-            return Number.isFinite(t)?t:0;
-        };
-        const baseBreite=normalizeNumber(config?.breite);
-        const baseTiefe=normalizeNumber(config?.tiefe);
-        const baseHoehe=normalizeNumber(config?.hoehe);
-        const baseMontageLaenge=baseBreite+baseTiefe+baseHoehe;
-        const carportSegmente=Array.isArray(config?.carportSegmente)?config.carportSegmente:[];
-        const montageSumme=carportSegmente.reduce((sum, segment)=>{
-            const breite=normalizeNumber(segment?.breite)||baseBreite;
-            const tiefe=normalizeNumber(segment?.tiefe)||baseTiefe;
-            const hoehe=normalizeNumber(segment?.hoehe)||baseHoehe;
-            return sum+breite+tiefe+hoehe;
-        }, 0);
-        const fallbackMultiplier=!carportSegmente.length&&config?.carportModus?Math.max(1, Number(config?.carportAnzahl)||0):1;
-        const gesamtLaenge=montageSumme>0?montageSumme:baseMontageLaenge*fallbackMultiplier;
-        const montagePreis=findePreis("montage","gesamt");
-        if(montagePreis&&gesamtLaenge>0){
-            const preis=gesamtLaenge*montagePreis.price;
-            dienstleistungsPositionen.push({
-                bezeichnung:"Montage (B+T+H)",
-                menge:`${gesamtLaenge.toFixed(2)} m`,
-                einzelpreis:`${montagePreis.price.toFixed(2)} €/m`,
-                gesamtpreis:preis,
-                istDienstleistung:true
-            });
-            gesamtNetto+=preis;
-        }
-        
-        // Extra-Positionen (Dienstleistungen)
-        EXTRA_POSITIONS.forEach(extra=>{
-            if(extra.price>0){
-                dienstleistungsPositionen.push({
-                    bezeichnung:extra.label,
-                    menge:"1 Stk",
-                    einzelpreis:`${extra.price.toFixed(2)} €`,
-                    gesamtpreis:extra.price,
-                    istDienstleistung:true
-                });
-                gesamtNetto+=extra.price;
-            }else{
-                dienstleistungsPositionen.push({
-                    bezeichnung:extra.label,
-                    menge:"—",
-                    einzelpreis:"—",
-                    gesamtpreis:0,
-                    leer:true,
-                    istDienstleistung:true
-                });
-            }
-        });
-        const mwst=gesamtNetto*VAT_RATE;
-        const gesamtBrutto=gesamtNetto+mwst;
-        return{
-            materialPositionen:materialPositionen,
-            dienstleistungsPositionen:dienstleistungsPositionen,
-            gesamtNetto:gesamtNetto,
-            mwst:mwst,
-            mwstSatz:VAT_RATE*100,
-            gesamtBrutto:gesamtBrutto
-        };
+        return berechnePreiseUtil(materialien, config, this.letzteAlumeterSumme, (m) => this.berechneAlumeterAusSammlung(m));
     }
     renderPreisliste(preisDetails,config){
-        let posNr=1;
-        const renderRows=(positionen,titel)=>{
-            if(!positionen||positionen.length===0)return{rows:'',summe:0};
-            let summe=0;
-            const rows=positionen.map(pos=>{
-                if(!pos.leer){
-                    summe+=pos.gesamtpreis;
-                }
-                if(pos.leer){
-                    return`<tr style="color:#999;">
-                        <td>${posNr++}</td>
-                        <td>${pos.bezeichnung}</td>
-                        <td style="text-align:center;">${pos.menge}</td>
-                        <td style="text-align:right;">${pos.einzelpreis}</td>
-                        <td style="text-align:right;">—</td>
-                    </tr>`;
-                }
-                return`<tr>
-                    <td>${posNr++}</td>
-                    <td>${pos.bezeichnung}</td>
-                    <td style="text-align:center;">${pos.menge}</td>
-                    <td style="text-align:right;">${pos.einzelpreis}</td>
-                    <td style="text-align:right;"><strong>${pos.gesamtpreis.toFixed(2)} €</strong></td>
-                </tr>`;
-            }).join("");
-            return{rows:`<tr style="background:#e3f2fd;font-weight:bold;">
-                        <td colspan="5" style="padding:0.5rem;text-align:left;">${titel}</td>
-                    </tr>${rows}`,summe};
-        };
-        const materialResult=renderRows(preisDetails.materialPositionen,'📦 MATERIAL');
-        const dienstleistungResult=renderRows(preisDetails.dienstleistungsPositionen,'🔧 DIENSTLEISTUNG');
-        return`
-            <div style="margin-bottom:1rem;padding:0.75rem;background:#f5f5f5;border-radius:4px;">
-                <strong>📐 Konfiguration:</strong> ${(config.breite||0).toFixed(2)}m × ${(config.tiefe||0).toFixed(2)}m × ${(config.hoehe||0).toFixed(2)}m
-            </div>
-            <table class="material-table">
-                <thead>
-                    <tr>
-                        <th style="width:40px;">Pos.</th>
-                        <th>Bezeichnung</th>
-                        <th style="width:120px;text-align:center;">Menge</th>
-                        <th style="width:120px;text-align:right;">Einzelpreis</th>
-                        <th style="width:120px;text-align:right;">Gesamtpreis</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${materialResult.rows}
-                    <tr style="background:#fff3cd;font-weight:bold;">
-                        <td colspan="4" style="text-align:right;padding:0.5rem;">Gesamtpreis Material:</td>
-                        <td style="text-align:right;padding:0.5rem;">${materialResult.summe.toFixed(2)} €</td>
-                    </tr>
-                    ${dienstleistungResult.rows}
-                    <tr style="background:#fff3cd;font-weight:bold;">
-                        <td colspan="4" style="text-align:right;padding:0.5rem;">Gesamtpreis Dienstleistung:</td>
-                        <td style="text-align:right;padding:0.5rem;">${dienstleistungResult.summe.toFixed(2)} €</td>
-                    </tr>
-                </tbody>
-                <tfoot>
-                    <tr style="border-top:2px solid #333;">
-                        <td colspan="4" style="text-align:right;font-weight:bold;">Zwischensumme (Netto):</td>
-                        <td style="text-align:right;font-weight:bold;">${preisDetails.gesamtNetto.toFixed(2)} €</td>
-                    </tr>
-                    <tr>
-                        <td colspan="4" style="text-align:right;">MwSt. (${preisDetails.mwstSatz}%):</td>
-                        <td style="text-align:right;">${preisDetails.mwst.toFixed(2)} €</td>
-                    </tr>
-                    <tr style="border-top:2px solid #333;background:#f0f0f0;">
-                        <td colspan="4" style="text-align:right;font-weight:bold;font-size:1.1em;">Gesamtpreis (Brutto):</td>
-                        <td style="text-align:right;font-weight:bold;font-size:1.1em;color:#2e7d32;">${preisDetails.gesamtBrutto.toFixed(2)} €</td>
-                    </tr>
-                </tfoot>
-            </table>
-            <div style="margin-top:1rem;padding:0.75rem;background:#fff3e0;border-left:4px solid #ff9800;font-size:0.9em;">
-                ℹ️ <strong>Hinweis:</strong> Alle Preise sind Nettopreise. Positionen mit "—" sind zur Information aufgeführt und derzeit nicht kalkuliert.
-            </div>
-        `;
+        return renderPreislisteUtil(preisDetails, config);
     }
 }

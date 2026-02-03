@@ -1,193 +1,500 @@
-export class Befestigung{
-    constructor(e, n, t){
-        this.koordinatenSystem=e,
-        this.konfiguration=n,
-        this.pfosten=t,
-        this.befestigungGruppe=new THREE.Group,
-        this.befestigungGruppe.name="Befestigung",
-        this.befestigungsKonfiguration={
-            ankerplatte:{
-                breite:.25,
-                hoehe:.02,
-                tiefe:.25,
-                offset:.05
-            },
-            betonblock:{
-                breiteExtra:.05,
-                hoehe:1,
-                tiefeExtra:.05,
-                offset:-.02
-            }
-        },
-        this.materialien={},
-        this.befestigungsElemente=[]
+/**
+ * Befestigung-Komponente für den Pergola-Konfigurator
+ *
+ * Erstellt Befestigungselemente für die Pergola-Pfosten:
+ * - Ankerplatten mit Schrauben
+ * - Betonblöcke für Einbetonierung
+ *
+ * Refactored: Erweitert Component3D für einheitliche API
+ */
+
+import { Component3D } from "../core/Component3D.js";
+import { normalizePfostenId } from "../utils/StringNormalizer.js";
+import { COMPONENT_NAMES, COLOR_PALETTE } from "../constants/index.js";
+
+/**
+ * Befestigungs-Konfiguration
+ */
+const BEFESTIGUNGS_CONFIG = {
+    ankerplatte: {
+        breite: 0.25,
+        hoehe: 0.02,
+        tiefe: 0.25,
+        offset: 0.05
+    },
+    betonblock: {
+        breiteExtra: 0.05,
+        hoehe: 1,
+        tiefeExtra: 0.05,
+        offset: -0.02
+    },
+    schraube: {
+        radius: 0.005,
+        hoehe: 0.008,
+        positionen: [
+            { x: -0.08, z: -0.08 },
+            { x: 0.08, z: -0.08 },
+            { x: -0.08, z: 0.08 },
+            { x: 0.08, z: 0.08 }
+        ]
     }
-    normalisierePfostenId(e){
-        return"string"!=typeof e?"":e.replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/[\s-]+/g, "_").toLowerCase()
+};
+
+/**
+ * Farbzuordnung für Pergola-Farben
+ */
+const PERGOLA_FARBEN = {
+    ral7016: 0x383c3c,
+    ral9016: 0xf7f6f6,
+    ral6005: 0x2f4538,
+    ral3004: 0x75161e,
+    "ncs-s0500-n": 0xdfe0e1,
+    "ncs-s2005-g": 0xaeb9b2,
+    "ncs-s3020-b": 0x3a4a67,
+    "ncs-s2050-y80r": 0xa4562b,
+    "ncs-s3060-g10y": 0x2a6345,
+    "ncs-s8500-n": 0x1a191a
+};
+
+/**
+ * Klasse zur Erstellung und Verwaltung von Befestigungselementen
+ * @extends Component3D
+ */
+export class Befestigung extends Component3D {
+    /**
+     * @param {object} koordinatenSystem - Referenz zum KoordinatenSystem
+     * @param {object} konfiguration - Referenz zur PergolaKonfiguration
+     * @param {object} pfosten - Referenz zur Pfosten-Komponente
+     */
+    constructor(koordinatenSystem, konfiguration, pfosten) {
+        super(COMPONENT_NAMES.BEFESTIGUNG, koordinatenSystem, konfiguration);
+
+        /** @type {object} Referenz zur Pfosten-Komponente */
+        this.pfosten = pfosten;
+
+        /** @type {THREE.Group} */
+        this.befestigungGruppe = new THREE.Group();
+        this.befestigungGruppe.name = "Befestigung";
+
+        // Gruppe der Basisklasse überschreiben
+        this.gruppe = this.befestigungGruppe;
+
+        /** @type {object} Befestigungs-Konfiguration */
+        this.befestigungsKonfiguration = BEFESTIGUNGS_CONFIG;
+
+        /** @type {Object<string, THREE.Material>} */
+        this.materialien = {};
+
+        /** @type {THREE.Mesh[]} */
+        this.befestigungsElemente = [];
     }
-    erstelleBefestigung(){
-        console.group("🔧 ERSTELLE BEFESTIGUNG"),
-        console.log("🔍 DEBUG: Befestigung wird erstellt...");
-        try{
+
+    // ========================================================================
+    // HILFSMETHODEN
+    // ========================================================================
+
+    /**
+     * Normalisiert eine Pfosten-ID
+     * @param {string} id - Pfosten-ID
+     * @returns {string}
+     */
+    normalisierePfostenId(id) {
+        return normalizePfostenId(id);
+    }
+
+    /**
+     * Gibt die Pergola-Farbe als Hexwert zurück
+     * @param {string} farbeName - Farbname
+     * @returns {number}
+     */
+    gibPergolaFarbe(farbeName) {
+        return PERGOLA_FARBEN[farbeName] || PERGOLA_FARBEN.ral7016;
+    }
+
+    /**
+     * Berechnet die Kürzung für einen Pfosten
+     * @param {string} pfostenName - Pfosten-Name
+     * @param {object} config - Konfiguration
+     * @param {object} position - Position des Pfostens
+     * @returns {number}
+     */
+    berechneKuerzungFuerPfosten(pfostenName, config, position = null) {
+        if (!config?.pfostenKuerzung) return 0;
+
+        const normalizedId = this.normalisierePfostenId(pfostenName);
+        const id = typeof normalizedId === "string" ? normalizedId : "";
+        const individuell = config.pfostenKuerzung.individuell || {};
+
+        // Prüfe individuelle Kürzung
+        if (individuell[id] !== undefined) {
+            return Number(individuell[id]) || 0;
+        }
+        if (pfostenName !== id && individuell[pfostenName] !== undefined) {
+            return Number(individuell[pfostenName]) || 0;
+        }
+
+        // Gruppenkürzungen
+        const vorneKuerzung = Number(config.pfostenKuerzung.vorne) || 0;
+        const hintenKuerzung = Number(config.pfostenKuerzung.hinten) || 0;
+        const mitteKuerzung = Number(config.pfostenKuerzung.mitte) || 0;
+
+        // Nach Namen bestimmen
+        if (id.includes("mitte") || id.includes("zwischen")) {
+            return mitteKuerzung;
+        }
+        if (id.includes("vorne") || id.includes("front")) {
+            return vorneKuerzung;
+        }
+        if (id.includes("hinten") || id.includes("rear")) {
+            return hintenKuerzung;
+        }
+
+        // Nach Z-Position interpolieren
+        const zPos = position?.z;
+        const tiefe = parseFloat(String(config.tiefe ?? 0).toString().replace(",", ".")) || 0;
+
+        if (typeof zPos === "number" && tiefe > 0) {
+            const faktor = Math.min(Math.max(zPos / tiefe, 0), 1);
+            return vorneKuerzung + (hintenKuerzung - vorneKuerzung) * faktor;
+        }
+
+        return mitteKuerzung;
+    }
+
+    // ========================================================================
+    // MATERIAL-ERSTELLUNG
+    // ========================================================================
+
+    /**
+     * Erstellt die benötigten Materialien
+     * @param {object} config - Konfiguration
+     */
+    erstelleMaterialien(config) {
+        const farbe = this.gibPergolaFarbe(config.farbe);
+
+        this.materialien.ankerplatte = new THREE.MeshStandardMaterial({
+            color: new THREE.Color(farbe),
+            roughness: 0.4,
+            metalness: 0.3,
+            envMapIntensity: 0.6
+        });
+
+        this.materialien.beton = new THREE.MeshStandardMaterial({
+            color: new THREE.Color("#555555"),
+            roughness: 0.8,
+            metalness: 0.03,
+            envMapIntensity: 0.25
+        });
+
+        this.materialien.schraube = new THREE.MeshStandardMaterial({
+            color: new THREE.Color(0x2c2c2c),
+            roughness: 0.4,
+            metalness: 0.3
+        });
+
+        // Schatten für alle Materialien aktivieren
+        Object.values(this.materialien).forEach(mat => {
+            mat.receiveShadow = true;
+            mat.castShadow = true;
+        });
+    }
+
+    // ========================================================================
+    // HAUPTMETHODEN
+    // ========================================================================
+
+    /**
+     * Erstellt alle Befestigungselemente
+     * @returns {THREE.Group}
+     */
+    erstelleBefestigung() {
+        this.logger.group("ERSTELLE BEFESTIGUNG");
+        this.logger.debug("Befestigung wird erstellt...");
+
+        try {
             this.entferneBefestigung();
-            const e=this.konfiguration.gibAktuelleKonfiguration();
-            console.log("🔍 DEBUG: Befestigungs-Konfiguration:", e.befestigung),
-            this.erstelleMaterialien(e);
-            const n=this.pfosten.gibAllePfosten();
-            if(console.log("🔍 DEBUG: Gefundene Pfosten:", n.length), 0===n.length)return console.warn("Keine Pfosten gefunden - keine Befestigung erstellt"),
-            this.befestigungGruppe;
-            n.forEach((e, n)=>{
-                console.log(`🔍 DEBUG: Pfosten ${n+1}:`, {
-                    position:e.position, abmessungen:e.abmessungen, name:e.name
-                })
-            }),
-            "ankerplatte"===e.befestigung?(console.log("🔍 DEBUG: Erstelle Ankerplatten..."), this.erstelleAnkerplatten(n)):"einbetonieren"===e.befestigung&&(console.log("🔍 DEBUG: Erstelle Betonblöcke..."), this.erstelleBetonbloecke(n, e)),
-            console.log(`✅ ${this.befestigungsElemente.length} Befestigungselemente erstellt (${e.befestigung})`)
-        }
-        catch(e){
-            console.error("❌ Fehler beim Erstellen der Befestigung:", e)
-        }
-        return console.groupEnd(),
-        this.befestigungGruppe
-    }
-    erstelleMaterialien(e){
-        const n=this.gibPergolaFarbe(e.farbe);
-        this.materialien.ankerplatte=new THREE.MeshStandardMaterial({
-            color:new THREE.Color(n), roughness:.4, metalness:.3, envMapIntensity:.6
-        }),
-        this.materialien.beton=new THREE.MeshStandardMaterial({
-            color:new THREE.Color("#555555"),  // Sattes Betongrau
-            roughness:.8,
-            metalness:.03,
-            envMapIntensity:.25
-        }),
-        Object.values(this.materialien).forEach(e=>{
-            e.receiveShadow=!0, e.castShadow=!0
-        })
-    }
-    gibPergolaFarbe(e){
-        return{
-            ral7016:3685954,
-            ral9016:16185078,
-            ral6005:3097912,
-            ral3004:7673118,
-            "ncs-s0500-n":14672353,
-            "ncs-s2005-g":11450034,
-            "ncs-s3020-b":3822695,
-            "ncs-s2050-y80r":10765099,
-            "ncs-s3060-g10y":2777141,
-            "ncs-s8500-n":1710618
-        }
-        [e]||3685954
-    }
-    berechneKuerzungFuerPfosten(e, n, t=null){
-        if(!n?.pfostenKuerzung)return 0;
-        const s=this.normalisierePfostenId(e),
-        i="string"==typeof s?s:"",
-        o=n.pfostenKuerzung.individuell||{};
-        if(void 0!==o[i])return Number(o[i])||0;
-        if(e!==i&&void 0!==o[e])return Number(o[e])||0;
-        const r=Number(n.pfostenKuerzung.vorne)||0,
-        l=Number(n.pfostenKuerzung.hinten)||0,
-        g=Number(n.pfostenKuerzung.mitte)||0;
-        if(i.includes("mitte")||i.includes("zwischen"))return g;
-        if(i.includes("vorne")||i.includes("front"))return r;
-        if(i.includes("hinten")||i.includes("rear"))return l;
-        const a=t?.z,
-        u=parseFloat(String(n.tiefe??0).toString().replace(",", "."))||0;
-        if("number"==typeof a&&u>0){
-            return r+(l-r)*Math.min(Math.max(a/u, 0), 1)
-        }
-        return g
-    }
-    erstelleAnkerplatten(e){
-        const n=this.befestigungsKonfiguration.ankerplatte;
-        this.konfiguration.gibAktuelleKonfiguration();
-        console.log(`🔧 DEBUG: erstelleAnkerplatten() aufgerufen mit ${e.length} Pfosten`),
-        console.log(`🔧 DEBUG: Aktuelle befestigungGruppe.children.length = ${this.befestigungGruppe.children.length}`),
-        e.forEach((e, t)=>{
-            const s=e.positionen?.boden, i=e.positionen?.angepassteBoden;
-            if(!i&&!s)return void console.warn(`Pfosten ${t+1} hat keine Position - überspringe Ankerplatte`);
-            const o=e.name||`pfosten_${t+1}`;
-            console.log(`🔍 DEBUG: Erstelle Ankerplatte für Pfosten ${o}`, {
-                bodenOriginal:s, bodenAngepasst:i
+
+            const config = this.konfiguration.gibAktuelleKonfiguration();
+            this.logger.debug("Befestigungs-Konfiguration:", config.befestigung);
+
+            this.erstelleMaterialien(config);
+
+            const allePfosten = this.pfosten.gibAllePfosten();
+            this.logger.debug("Gefundene Pfosten:", allePfosten.length);
+
+            if (allePfosten.length === 0) {
+                this.logger.warn("Keine Pfosten gefunden - keine Befestigung erstellt");
+                return this.befestigungGruppe;
+            }
+
+            allePfosten.forEach((pfosten, index) => {
+                this.logger.debug(`Pfosten ${index + 1}:`, {
+                    position: pfosten.position,
+                    abmessungen: pfosten.abmessungen,
+                    name: pfosten.name
+                });
             });
-            const r=new THREE.BoxGeometry(n.breite, n.hoehe, n.tiefe), l=new THREE.Mesh(r, this.materialien.ankerplatte), g=(i?.y||s.y)-.01;
-            l.position.set(i?.x||s.x, g, i?.z||s.z), l.name=`Ankerplatte_${o}`, this.befestigungGruppe.add(l), this.befestigungsElemente.push(l), console.log(`✅ Ankerplatte ${l.name} erstellt an Y-Position:`, l.position.y, `(PfostenY: ${i?.y||s.y})`), this.erstelleBefestigungsschrauben(l, i||s)
-        })
-    }
-    erstelleBefestigungsschrauben(e, n){
-        const t=new THREE.MeshStandardMaterial({
-            color:new THREE.Color(2894892), roughness:.4, metalness:.3
-        }),
-        s=new THREE.CylinderGeometry(.005, .005, .008, 8);
-        [{
-            x:-.08,
-            z:-.08
-        },
-        {
-            x:.08,
-            z:-.08
-        },
-        {
-            x:-.08,
-            z:.08
-        },
-        {
-            x:.08,
-            z:.08
+
+            if (config.befestigung === "ankerplatte") {
+                this.logger.debug("Erstelle Ankerplatten...");
+                this.erstelleAnkerplatten(allePfosten);
+            } else if (config.befestigung === "einbetonieren") {
+                this.logger.debug("Erstelle Betonblöcke...");
+                this.erstelleBetonbloecke(allePfosten, config);
+            }
+
+            this.logger.debug(`${this.befestigungsElemente.length} Befestigungselemente erstellt (${config.befestigung})`);
+        } catch (error) {
+            this.logger.error("Fehler beim Erstellen der Befestigung:", error);
         }
-        ].forEach((i, o)=>{
-            const r=new THREE.Mesh(s, t), l=e.position.y+.01+.004;
-            r.position.set(n.x+i.x, l, n.z+i.z), r.name=`Schraube_${e.name}_${o+1}`, this.befestigungGruppe.add(r), this.befestigungsElemente.push(r), console.log(`✅ Schraube ${r.name} erstellt an Position:`, r.position)
-        })
+
+        this.logger.groupEnd();
+        return this.befestigungGruppe;
     }
-    erstelleBetonbloecke(e, n){
-        const t=this.befestigungsKonfiguration.betonblock;
-        e.forEach((e, n)=>{
-            const s=e.positionen?.boden||e.positionen?.mittelpunkt, i=e.abmessungen;
-            if(!s||!i)return void console.warn(`Pfosten ${n+1} hat keine Position/Abmessungen - überspringe Betonblock`);
-            console.log(`🔍 DEBUG: Erstelle Betonblock für Pfosten ${n+1}:`, {
-                position:s, abmessungen:i
+
+    // ========================================================================
+    // ANKERPLATTEN
+    // ========================================================================
+
+    /**
+     * Erstellt Ankerplatten für alle Pfosten
+     * @param {Array} pfosten - Liste der Pfosten
+     */
+    erstelleAnkerplatten(pfosten) {
+        const plattenConfig = this.befestigungsKonfiguration.ankerplatte;
+
+        this.logger.debug(`erstelleAnkerplatten() aufgerufen mit ${pfosten.length} Pfosten`);
+        this.logger.debug(`Aktuelle befestigungGruppe.children.length = ${this.befestigungGruppe.children.length}`);
+
+        pfosten.forEach((p, index) => {
+            const bodenOriginal = p.positionen?.boden;
+            const bodenAngepasst = p.positionen?.angepassteBoden;
+
+            if (!bodenAngepasst && !bodenOriginal) {
+                this.logger.warn(`Pfosten ${index + 1} hat keine Position - überspringe Ankerplatte`);
+                return;
+            }
+
+            const name = p.name || `pfosten_${index + 1}`;
+            this.logger.debug(`Erstelle Ankerplatte für Pfosten ${name}`, {
+                bodenOriginal,
+                bodenAngepasst
             });
-            const o=i.breite+2*t.breiteExtra, r=i.tiefe+2*t.tiefeExtra, l=new THREE.BoxGeometry(o, t.hoehe, r), g=new THREE.Mesh(l, this.materialien.beton);
-            g.position.set(s.x, t.offset-t.hoehe/2, s.z), g.name=`Betonblock_${n+1}`, this.befestigungGruppe.add(g), this.befestigungsElemente.push(g), console.log(`✅ Betonblock ${g.name} erstellt:`, {
-                position:g.position, dimensionen:{
-                    breite:o, hoehe:t.hoehe, tiefe:r
+
+            // Geometrie und Mesh erstellen
+            const geometrie = new THREE.BoxGeometry(
+                plattenConfig.breite,
+                plattenConfig.hoehe,
+                plattenConfig.tiefe
+            );
+            const mesh = new THREE.Mesh(geometrie, this.materialien.ankerplatte);
+
+            const pos = bodenAngepasst || bodenOriginal;
+            const yPos = pos.y - 0.01;
+            mesh.position.set(pos.x, yPos, pos.z);
+            mesh.name = `Ankerplatte_${name}`;
+
+            this.befestigungGruppe.add(mesh);
+            this.befestigungsElemente.push(mesh);
+
+            this.logger.debug(`Ankerplatte ${mesh.name} erstellt an Y-Position:`, mesh.position.y, `(PfostenY: ${pos.y})`);
+
+            // Schrauben hinzufügen
+            this.erstelleBefestigungsschrauben(mesh, pos);
+        });
+    }
+
+    /**
+     * Erstellt Befestigungsschrauben für eine Ankerplatte
+     * @param {THREE.Mesh} platte - Ankerplatte
+     * @param {object} position - Position
+     */
+    erstelleBefestigungsschrauben(platte, position) {
+        const schraubenConfig = this.befestigungsKonfiguration.schraube;
+        const geometrie = new THREE.CylinderGeometry(
+            schraubenConfig.radius,
+            schraubenConfig.radius,
+            schraubenConfig.hoehe,
+            8
+        );
+
+        schraubenConfig.positionen.forEach((offset, index) => {
+            const mesh = new THREE.Mesh(geometrie, this.materialien.schraube);
+            const yPos = platte.position.y + 0.01 + schraubenConfig.hoehe / 2;
+
+            mesh.position.set(
+                position.x + offset.x,
+                yPos,
+                position.z + offset.z
+            );
+            mesh.name = `Schraube_${platte.name}_${index + 1}`;
+
+            this.befestigungGruppe.add(mesh);
+            this.befestigungsElemente.push(mesh);
+
+            this.logger.debug(`Schraube ${mesh.name} erstellt an Position:`, mesh.position);
+        });
+    }
+
+    // ========================================================================
+    // BETONBLÖCKE
+    // ========================================================================
+
+    /**
+     * Erstellt Betonblöcke für alle Pfosten
+     * @param {Array} pfosten - Liste der Pfosten
+     * @param {object} config - Konfiguration
+     */
+    erstelleBetonbloecke(pfosten, config) {
+        const betonConfig = this.befestigungsKonfiguration.betonblock;
+
+        pfosten.forEach((p, index) => {
+            const position = p.positionen?.boden || p.positionen?.mittelpunkt;
+            const abmessungen = p.abmessungen;
+
+            if (!position || !abmessungen) {
+                this.logger.warn(`Pfosten ${index + 1} hat keine Position/Abmessungen - überspringe Betonblock`);
+                return;
+            }
+
+            this.logger.debug(`Erstelle Betonblock für Pfosten ${index + 1}:`, {
+                position,
+                abmessungen
+            });
+
+            // Dimensionen
+            const breite = abmessungen.breite + 2 * betonConfig.breiteExtra;
+            const tiefe = abmessungen.tiefe + 2 * betonConfig.tiefeExtra;
+
+            // Geometrie und Mesh
+            const geometrie = new THREE.BoxGeometry(breite, betonConfig.hoehe, tiefe);
+            const mesh = new THREE.Mesh(geometrie, this.materialien.beton);
+
+            mesh.position.set(
+                position.x,
+                betonConfig.offset - betonConfig.hoehe / 2,
+                position.z
+            );
+            mesh.name = `Betonblock_${index + 1}`;
+
+            this.befestigungGruppe.add(mesh);
+            this.befestigungsElemente.push(mesh);
+
+            this.logger.debug(`Betonblock ${mesh.name} erstellt:`, {
+                position: mesh.position,
+                dimensionen: { breite, hoehe: betonConfig.hoehe, tiefe }
+            });
+        });
+    }
+
+    // ========================================================================
+    // CLEANUP
+    // ========================================================================
+
+    /**
+     * Entfernt alle Befestigungselemente
+     */
+    entferneBefestigung() {
+        this.logger.debug(`entferneBefestigung() aufgerufen - ${this.befestigungGruppe.children.length} Children zu löschen`);
+
+        while (this.befestigungGruppe.children.length > 0) {
+            const child = this.befestigungGruppe.children[0];
+            this.logger.debug(`Lösche Child: ${child.name}`);
+
+            this.befestigungGruppe.remove(child);
+
+            if (child.geometry) {
+                child.geometry.dispose();
+            }
+
+            if (child.material) {
+                if (Array.isArray(child.material)) {
+                    child.material.forEach(mat => mat.dispose());
+                } else {
+                    child.material.dispose();
                 }
-            })
-        })
-    }
-    entferneBefestigung(){
-        for(console.log(`🗑️ DEBUG: entferneBefestigung() aufgerufen - ${this.befestigungGruppe.children.length} Children zu löschen`);
-        this.befestigungGruppe.children.length>0;){
-            const e=this.befestigungGruppe.children[0];
-            console.log(`🗑️ DEBUG: Lösche Child: ${e.name}`),
-            this.befestigungGruppe.remove(e),
-            e.geometry&&e.geometry.dispose(),
-            e.material&&(Array.isArray(e.material)?e.material.forEach(e=>e.dispose()):e.material.dispose())
+            }
         }
-        this.befestigungsElemente=[],
-        console.log("🗑️ DEBUG: entferneBefestigung() abgeschlossen")
+
+        this.befestigungsElemente = [];
+        this.logger.debug("entferneBefestigung() abgeschlossen");
     }
-    gibAlleBefestigungsElemente(){
-        return[...this.befestigungsElemente]
+
+    // ========================================================================
+    // GETTER / LEGACY API
+    // ========================================================================
+
+    /**
+     * Gibt alle Befestigungselemente zurück
+     * @returns {THREE.Mesh[]}
+     */
+    gibAlleBefestigungsElemente() {
+        return [...this.befestigungsElemente];
     }
-    gib3DGruppe(){
-        return this.befestigungGruppe
+
+    /**
+     * Legacy: Gibt die 3D-Gruppe zurück
+     * @deprecated Verwende getGroup() stattdessen
+     * @returns {THREE.Group}
+     */
+    gib3DGruppe() {
+        return this.befestigungGruppe;
     }
-    debugBefestigung(){
-        console.group("🔧 BEFESTIGUNG DEBUG"),
-        console.log("Anzahl Elemente:", this.befestigungsElemente.length),
-        console.log("Materialien:", Object.keys(this.materialien)),
-        console.log("Konfiguration:", this.befestigungsKonfiguration),
-        console.groupEnd()
+
+    // ========================================================================
+    // COMPONENT3D INTERFACE
+    // ========================================================================
+
+    /**
+     * Erstellt die Komponente (Component3D Interface)
+     * @returns {THREE.Group}
+     */
+    create() {
+        return this.erstelleBefestigung();
     }
-    dispose(){
-        this.entferneBefestigung(),
-        Object.values(this.materialien).forEach(e=>{
-            e.dispose()
-        }),
-        this.materialien={}
+
+    /**
+     * Gibt alle Elemente zurück (Component3D Interface)
+     * @returns {THREE.Mesh[]}
+     */
+    getAll() {
+        return this.gibAlleBefestigungsElemente();
+    }
+
+    /**
+     * Gibt die 3D-Gruppe zurück (Component3D Interface)
+     * @returns {THREE.Group}
+     */
+    getGroup() {
+        return this.befestigungGruppe;
+    }
+
+    // ========================================================================
+    // DEBUG
+    // ========================================================================
+
+    /**
+     * Debug-Ausgabe für Befestigung
+     */
+    debugBefestigung() {
+        this.logger.group("BEFESTIGUNG DEBUG");
+        this.logger.info("Anzahl Elemente:", this.befestigungsElemente.length);
+        this.logger.info("Materialien:", Object.keys(this.materialien));
+        this.logger.info("Konfiguration:", this.befestigungsKonfiguration);
+        this.logger.groupEnd();
+    }
+
+    /**
+     * Cleanup (Component3D Interface)
+     */
+    dispose() {
+        this.entferneBefestigung();
+
+        Object.values(this.materialien).forEach(mat => {
+            mat.dispose();
+        });
+
+        this.materialien = {};
+        super.dispose();
     }
 }

@@ -17,6 +17,10 @@ from"./PriceTag.js";
 import { DimensionHandles } from "./DimensionHandles.js";
 import StaticsCheck from"../core/StaticsCheck.js";
 import { ShareLink } from "../utils/ShareLink.js";
+import { SliderController } from "./SliderController.js";
+import { PostController } from "./PostController.js";
+import { OptionCardController } from "./OptionCardController.js";
+import { Logger } from "../utils/Logger.js";
 export class UIController{
     constructor(e){
         this.renderEngine=e,
@@ -75,22 +79,27 @@ export class UIController{
             intermediatePostsProfile:"zwischenpfostenProfil"
         },
         this.dragHandlesVisible=!0,
-        console.log("🎨 UI-Controller initialisiert")
+        this.logger=new Logger("UIController"),
+        this.sliderController=null,
+        this.postController=null,
+        this.optionCardController=null,
+        this.logger.debug("UI-Controller initialisiert")
     }
     initialisieren(){
-        console.log("🎨 Initialisiere UI-Controller..."),
+        this.logger.debug("Initialisiere UI-Controller..."),
         this.sammleDOMElemente(),
+        this.erstelleSubController(),
         this.initAccordion(),
-        this.initSlider(),
-        this.initPfostenVersatzSteuerung(),
-        this.initPfostenKuerzungSteuerung(),
-        this.initCenterPostToggle(),
-        this.initIntermediatePostsToggle(),
+        this.sliderController.initialisieren(),
+        this.sliderController.onHeightUpdate(()=>{
+            this.updateHoehenInfo(),
+            this.updatePfostenKuerzungMaxWerte()
+        }),
+        this.postController.initialisieren(),
         this.initKopfbaender(),
         this.initCarportModus(),
-        this.initKeinePfostenButtons(),
         this.initSelects(),
-        this.initOptionCardGroups(),
+        this.optionCardController.initialisieren(),
         this.initGlassColorOptions(),
         this.updateDrainageVerfuegbarkeit(),
         this.initProfilauswahl(),
@@ -104,13 +113,13 @@ export class UIController{
         this.initShareButton(),
         this.dimensionHandles=new DimensionHandles(this.renderEngine, this),
         this.updateStatus("UI-Controller erfolgreich initialisiert", "success"),
-        this.updateSliderValues(),
+        this.sliderController.aktualisiereWerte(),
         this.updateHoehenInfo(),
         this.updatePfostenKuerzungMaxWerte(),
         this.onKonfigurationGeaendert(),
         this.aktualisiereProfilauswahl("green"),
         this.loadConfigFromUrl(),
-        console.log("✅ UI-Controller bereit"),
+        this.logger.debug("UI-Controller bereit"),
         document.addEventListener("staticsAction", e=>{
             try{
                 this.applyStaticsAction(e.detail||{})
@@ -215,174 +224,42 @@ export class UIController{
         },
         Object.entries(this.elemente).forEach(([e, t])=>{})
     }
+    erstelleSubController(){
+        const onChangeCallback=()=>this.onKonfigurationGeaendert();
+        this.sliderController=new SliderController(
+            this.elemente,
+            this.aktuelleKonfiguration,
+            onChangeCallback
+        );
+        this.postController=new PostController(
+            this.elemente,
+            this.aktuelleKonfiguration,
+            onChangeCallback
+        );
+        this.optionCardController=new OptionCardController(
+            this.elemente,
+            this.aktuelleKonfiguration,
+            this.selectPropertyMap,
+            onChangeCallback
+        );
+        this.logger.debug("Sub-Controller erstellt");
+    }
     initSlider(){
-        [{
-            id:"width",
-            property:"breite",
-            decimals:2
-        },
-        {
-            id:"depth",
-            property:"tiefe",
-            decimals:2
-        },
-        {
-            id:"height",
-            property:"hoehe",
-            decimals:2
-        },
-        {
-            id:"slope",
-            property:"neigung",
-            decimals:1
-        }
-        ].forEach(({
-            id:e, property:t, decimals:n
-        })=>{
-            const i=this.elemente[e], o=this.elemente[`${e}Input`];
-            if(!i||!o)return console.warn(`Slider oder Input nicht gefunden: ${e}`);
-            const clampValue=r=>{
-                const s=parseFloat(i.min), a=parseFloat(i.max);
-                const u=isNaN(r)?s:Math.max(s, Math.min(a, r));
-                return u
-            };
-            // Range (falls genutzt) immer live
-            i.addEventListener("input", r=>{
-                const s=parseFloat(r.target.value);
-                o.value=s.toFixed(n), this.aktuelleKonfiguration[t]=s, "height"===e&&(this.updateHoehenInfo(), this.updatePfostenKuerzungMaxWerte()), this.onKonfigurationGeaendert()
-            });
-
-            if("width"===e||"depth"===e||"height"===e||"slope"===e){
-                // Nur Enter soll übernehmen
-                o.addEventListener("keydown", r=>{
-                    if("Enter"!==r.key)return;
-                    r.preventDefault();
-                    const s=parseFloat(String(r.target.value).replace(",", "."));
-                    const a=clampValue(s);
-                    i.value=a, o.value=a.toFixed(n), this.aktuelleKonfiguration[t]=a, this.onKonfigurationGeaendert()
-                }),
-                o.addEventListener("blur", r=>{
-                    const s=parseFloat(String(r.target.value).replace(",", "."));
-                    if(isNaN(s))return;
-                    o.value=s.toFixed(n)
-                })
-            }else{
-                // Standard: live input + format on blur
-                o.addEventListener("input", o=>{
-                    let r=parseFloat(o.target.value);
-                    r=clampValue(r), i.value=r, o.target.value=r.toFixed(n), this.aktuelleKonfiguration[t]=r, "height"===e&&(this.updateHoehenInfo(), this.updatePfostenKuerzungMaxWerte()), this.onKonfigurationGeaendert()
-                }),
-                o.addEventListener("blur", e=>{
-                    const t=parseFloat(e.target.value);
-                    isNaN(t)||(e.target.value=t.toFixed(n))
-                })
-            }
-        })
+        // Delegiert an SliderController
+        this.sliderController?.initialisieren();
     }
     initPfostenVersatzSteuerung(){
-        [{
-            key:"vorne",
-            range:this.elemente.postOffsetFrontRange,
-            input:this.elemente.postOffsetFrontInput
-        },
-        {
-            key:"hinten",
-            range:this.elemente.postOffsetRearRange,
-            input:this.elemente.postOffsetRearInput
-        }
-        ].forEach(({
-            key:e, range:t, input:n
-        })=>{
-            t&&n&&(t.addEventListener("input", t=>{
-                this.aktualisierePfostenVersatz(e, t.target.value, !0)
-            }), n.addEventListener("change", t=>{
-                this.aktualisierePfostenVersatz(e, t.target.value, !0)
-            }), n.addEventListener("blur", ()=>{
-                const t=this.aktuelleKonfiguration.pfostenVersaetze?.[e]??0;
-                this.aktualisierePfostenVersatz(e, t, !1)
-            }))
-        }),
-        this.aktualisierePfostenVersatz("vorne", this.aktuelleKonfiguration.pfostenVersaetze?.vorne??0, !1),
-        this.aktualisierePfostenVersatz("hinten", this.aktuelleKonfiguration.pfostenVersaetze?.hinten??0, !1)
+        // Wird nun von PostController.initialisieren() übernommen
     }
     initPfostenKuerzungSteuerung(){
-        [{
-            key:"vorne",
-            range:this.elemente.postShortenFrontRange,
-            input:this.elemente.postShortenFrontInput
-        },
-        {
-            key:"hinten",
-            range:this.elemente.postShortenRearRange,
-            input:this.elemente.postShortenRearInput
-        },
-        {
-            key:"mitte",
-            range:this.elemente.postShortenMiddleRange,
-            input:this.elemente.postShortenMiddleInput
-        }
-        ].forEach(({
-            key:e, range:t, input:n
-        })=>{
-            t&&n&&(t.addEventListener("input", t=>{
-                this.aktualisierePfostenKuerzung(e, t.target.value, !0)
-            }), n.addEventListener("change", t=>{
-                this.aktualisierePfostenKuerzung(e, t.target.value, !0)
-            }), n.addEventListener("blur", ()=>{
-                const t=this.aktuelleKonfiguration.pfostenKuerzung?.[e]??0;
-                this.aktualisierePfostenKuerzung(e, t, !1)
-            }))
-        }),
-        this.aktualisierePfostenKuerzung("vorne", this.aktuelleKonfiguration.pfostenKuerzung?.vorne??0, !1),
-        this.aktualisierePfostenKuerzung("hinten", this.aktuelleKonfiguration.pfostenKuerzung?.hinten??0, !1),
-        this.aktualisierePfostenKuerzung("mitte", this.aktuelleKonfiguration.pfostenKuerzung?.mitte??0, !1)
+        // Wird nun von PostController.initialisieren() übernommen
     }
     initCenterPostToggle(){
-        const e=this.elemente.centerPostToggle;
-        if(!e)return;
-        const t=(e, t=!0)=>{
-            !!this.aktuelleKonfiguration.zentralerMittelpfosten!==e&&(this.aktuelleKonfiguration.zentralerMittelpfosten=e, t&&this.onKonfigurationGeaendert())
-        };
-        e.checked=!!this.aktuelleKonfiguration.zentralerMittelpfosten,
-        e.addEventListener("change", ()=>{
-            t(e.checked, !0), this.updateMittelpfostenHinweis()
-        }),
-        this.updateMittelpfostenHinweis()
+        // Wird nun von PostController.initialisieren() übernommen
+        this.updateMittelpfostenHinweis();
     }
     initIntermediatePostsToggle(){
-        const checkboxWidth=this.elemente.intermediatePostsWidthToggle,
-        checkboxDepth=this.elemente.intermediatePostsDepthToggle,
-        btnWidth=this.elemente.intermediatePostsWidthBtn,
-        btnDepth=this.elemente.intermediatePostsDepthBtn;
-
-        const syncButtons=()=>{
-            btnWidth&&btnWidth.classList.toggle("active", !!this.aktuelleKonfiguration.zwischenpfostenBreite);
-            btnDepth&&btnDepth.classList.toggle("active", !!this.aktuelleKonfiguration.zwischenpfostenTiefe);
-        };
-        const toggleWidth=()=>{
-            this.aktuelleKonfiguration.zwischenpfostenBreite=!this.aktuelleKonfiguration.zwischenpfostenBreite;
-            checkboxWidth&&(checkboxWidth.checked=this.aktuelleKonfiguration.zwischenpfostenBreite);
-            syncButtons();
-            this.onKonfigurationGeaendert();
-        };
-        const toggleDepth=()=>{
-            this.aktuelleKonfiguration.zwischenpfostenTiefe=!this.aktuelleKonfiguration.zwischenpfostenTiefe;
-            checkboxDepth&&(checkboxDepth.checked=this.aktuelleKonfiguration.zwischenpfostenTiefe);
-            syncButtons();
-            this.onKonfigurationGeaendert();
-        };
-
-        checkboxWidth&&(checkboxWidth.checked=!!this.aktuelleKonfiguration.zwischenpfostenBreite, checkboxWidth.addEventListener("change", toggleWidth));
-        checkboxDepth&&(checkboxDepth.checked=!!this.aktuelleKonfiguration.zwischenpfostenTiefe, checkboxDepth.addEventListener("change", toggleDepth));
-        btnWidth&&btnWidth.addEventListener("click", toggleWidth);
-        btnDepth&&btnDepth.addEventListener("click", toggleDepth);
-        syncButtons();
-
-        const n=this.elemente.intermediatePostsProfile;
-        if(n){
-            const i=this.aktuelleKonfiguration.zwischenpfostenProfil||"120x80x4_mittel";
-            n.value=i;
-        }
+        // Wird nun von PostController.initialisieren() übernommen
     }
     updateMittelpfostenHinweis(){
         const e=this.aktuelleKonfiguration.breite||4,
@@ -444,104 +321,31 @@ export class UIController{
         else console.warn("Kopfbänder-Toggle nicht gefunden")
     }
     initKeinePfostenButtons(){
-        const e=this.elemente.noPostsFrontButton,
-        t=this.elemente.noPostsRearButton;
-        e&&e.addEventListener("click", ()=>{
-            this.togglePfostenAktiv("vorne")
-        }),
-        t&&t.addEventListener("click", ()=>{
-            this.togglePfostenAktiv("hinten")
-        }),
-        this.updateKeinePfostenButtonStatus()
+        // Wird nun von PostController.initialisieren() übernommen
     }
     togglePfostenAktiv(e){
-        this.aktuelleKonfiguration.pfostenAktiv||(this.aktuelleKonfiguration.pfostenAktiv={
-            vorne:!0, hinten:!0
-        }),
-        this.aktuelleKonfiguration.pfostenAktiv[e]=!this.aktuelleKonfiguration.pfostenAktiv[e],
-        this.updateKeinePfostenButtonStatus(),
-        this.onKonfigurationGeaendert()
+        this.postController?.togglePfostenAktiv(e);
     }
     updateKeinePfostenButtonStatus(){
-        const e=this.elemente.noPostsFrontButton,
-        t=this.elemente.noPostsRearButton;
-        if(e){
-            !1!==this.aktuelleKonfiguration.pfostenAktiv?.vorne?(e.classList.remove("active"), e.textContent="Keine vorderen Pfosten"):(e.classList.add("active"), e.textContent="✓ Vordere Pfosten ausgeblendet")
-        }
-        if(t){
-            !1!==this.aktuelleKonfiguration.pfostenAktiv?.hinten?(t.classList.remove("active"), t.textContent="Keine hinteren Pfosten"):(t.classList.add("active"), t.textContent="✓ Hintere Pfosten ausgeblendet")
-        }
+        this.postController?.updateKeinePfostenButtonStatus();
     }
     clampPfostenVersatz(e, t=0){
-        if(null==e)return t;
-        const n=Number.parseFloat(String(e).replace(",", "."));
-        return Number.isFinite(n)?Math.max(0, Math.min(.5, n)):t
+        return this.postController?.clampVersatz(e, t) ?? t;
     }
     berechneMaxPfostenKuerzung(){
-        const e=this.aktuelleKonfiguration.hoehe||2.5;
-        return Math.max(0, e-.03)
+        return this.postController?.berechneMaxKuerzung() ?? 2.47;
     }
     updatePfostenKuerzungMaxWerte(){
-        const e=this.berechneMaxPfostenKuerzung();
-        this.aktuelleKonfiguration.pfostenKuerzung&&void 0===this.aktuelleKonfiguration.pfostenKuerzung.mitte&&(this.aktuelleKonfiguration.pfostenKuerzung.mitte=0),
-        this.elemente.postShortenFrontRange&&(this.elemente.postShortenFrontRange.max=e.toFixed(2)),
-        this.elemente.postShortenRearRange&&(this.elemente.postShortenRearRange.max=e.toFixed(2)),
-        this.elemente.postShortenMiddleRange&&(this.elemente.postShortenMiddleRange.max=e.toFixed(2)),
-        this.elemente.postShortenFrontInput&&(this.elemente.postShortenFrontInput.max=e.toFixed(2)),
-        this.elemente.postShortenRearInput&&(this.elemente.postShortenRearInput.max=e.toFixed(2)),
-        this.elemente.postShortenMiddleInput&&(this.elemente.postShortenMiddleInput.max=e.toFixed(2)),
-        this.aktuelleKonfiguration.pfostenKuerzung&&(this.aktuelleKonfiguration.pfostenKuerzung.vorne>e&&this.aktualisierePfostenKuerzung("vorne", e, !0), this.aktuelleKonfiguration.pfostenKuerzung.hinten>e&&this.aktualisierePfostenKuerzung("hinten", e, !0), this.aktuelleKonfiguration.pfostenKuerzung.mitte>e&&this.aktualisierePfostenKuerzung("mitte", e, !0))
+        this.postController?.aktualisiereKuerzungMaxWerte();
     }
     clampPfostenKuerzung(e, t=0){
-        if(null==e)return t;
-        const n=Number.parseFloat(String(e).replace(",", "."));
-        if(!Number.isFinite(n))return t;
-        const i=this.berechneMaxPfostenKuerzung();
-        return Math.max(0, Math.min(i, n))
+        return this.postController?.clampKuerzung(e, t) ?? t
     }
     aktualisierePfostenVersatz(e, t, n=!0){
-        this.aktuelleKonfiguration.pfostenVersaetze||(this.aktuelleKonfiguration.pfostenVersaetze={
-            vorne:0, hinten:0
-        });
-        const i=this.aktuelleKonfiguration.pfostenVersaetze[e]??0,
-        o=this.clampPfostenVersatz(t, i),
-        r=Math.abs(i-o)>1e-4;
-        this.aktuelleKonfiguration.pfostenVersaetze={
-            ...this.aktuelleKonfiguration.pfostenVersaetze,
-            [e]:o
-        };
-        const s="vorne"===e?this.elemente.postOffsetFrontRange:this.elemente.postOffsetRearRange,
-        a="vorne"===e?this.elemente.postOffsetFrontInput:this.elemente.postOffsetRearInput;
-        s&&(s.value=o),
-        a&&(a.value=o.toFixed(2)),
-        n&&r&&this.onKonfigurationGeaendert()
+        this.postController?.aktualisierePfostenVersatz(e, t, n);
     }
     aktualisierePfostenKuerzung(e, t, n=!0){
-        this.aktuelleKonfiguration.pfostenKuerzung||(this.aktuelleKonfiguration.pfostenKuerzung={
-            vorne:0, hinten:0, mitte:0
-        });
-        const i=this.aktuelleKonfiguration.pfostenKuerzung[e]??0,
-        o=this.clampPfostenKuerzung(t, i),
-        r=Math.abs(i-o)>1e-4;
-        this.aktuelleKonfiguration.pfostenKuerzung={
-            ...this.aktuelleKonfiguration.pfostenKuerzung,
-            [e]:o
-        };
-        const s={
-            vorne:this.elemente.postShortenFrontRange,
-            hinten:this.elemente.postShortenRearRange,
-            mitte:this.elemente.postShortenMiddleRange
-        },
-        a={
-            vorne:this.elemente.postShortenFrontInput,
-            hinten:this.elemente.postShortenRearInput,
-            mitte:this.elemente.postShortenMiddleInput
-        },
-        l=s[e],
-        u=a[e];
-        l&&(l.value=o),
-        u&&(u.value=o.toFixed(2)),
-        n&&r&&this.onKonfigurationGeaendert()
+        this.postController?.aktualisierePfostenKuerzung(e, t, n);
     }
     initSelects(){
         ["type",
@@ -566,117 +370,27 @@ export class UIController{
         this.updateSelectHints()
     }
     initOptionCardGroups(){
-        this.optionCardGroups={
-            type:Array.from(this.elemente.typeOptionCards||[]),
-            roofType:Array.from(this.elemente.roofTypeOptionCards||[]),
-            dachTyp:Array.from(this.elemente.dachTypOptionCards||[]),
-            drainage:Array.from(this.elemente.drainageOptionCards||[]),
-            material:Array.from(this.elemente.materialOptionCards||[]),
-            color:Array.from(this.elemente.colorOptionCards||[]),
-            ncsColor:Array.from(this.elemente.ncsColorCards||[]),
-            pfostenProfil:Array.from(this.elemente.profileOptionCards||[])
-        },
-        Object.entries(this.optionCardGroups).forEach(([e, t])=>{
-            t&&0!==t.length&&t.forEach(t=>{
-                t.addEventListener("click", ()=>{
-                    // Prüfe ob Button disabled ist
-                    if(t.disabled || t.hasAttribute("disabled")){
-                        console.log("🚫 Button ist deaktiviert, Klick ignoriert:", t.dataset.value);
-                        return;
-                    }
-                    const n=t.dataset.value;
-                    n&&this.handleOptionCardSelection(e, n)
-                })
-            })
-        }),
-        // Initialisiere Option Cards mit aktueller Konfiguration
-        this.updateOptionCardState("type", this.aktuelleKonfiguration.typ);
-        this.updateOptionCardState("roofType", this.aktuelleKonfiguration.dachTyp);
-        this.updateOptionCardState("dachTyp", this.aktuelleKonfiguration.dachForm|| (this.aktuelleKonfiguration.neigung > 0 ? "pultdach" : "flachdach"));
-        this.updateOptionCardState("drainage", this.aktuelleKonfiguration.regenwasserAbfluss);
-        this.updateOptionCardState("material", this.aktuelleKonfiguration.material);
-        this.updateOptionCardState("color", this.aktuelleKonfiguration.ncsFarbe || this.aktuelleKonfiguration.farbe);
-        this.updateOptionCardState("pfostenProfil", this.aktuelleKonfiguration.pfostenProfil);
+        // Wird nun von OptionCardController.initialisieren() übernommen
+        // Behalte optionCardGroups für Rückwärtskompatibilität
+        this.optionCardGroups = this.optionCardController?.cardGroups || {};
     }
     handleOptionCardSelection(e, t){
-        // ZUERST: Dachtyp-Speziallogik ausführen (BEVOR Select aktualisiert wird)
-        if("dachTyp"===e){
-            if("flachdach"===t){
-                // Flachdach: Neigung auf 0° setzen
-                this.aktuelleKonfiguration.neigung=0;
-                const slopeInput=this.elemente.slopeInput;
-                const slopeRange=this.elemente.slope;
-                if(slopeInput){
-                    slopeInput.value="0.0";
-                }
-                if(slopeRange){
-                    slopeRange.value="0";
-                }
-                console.log("🏠 Flachdach ausgewählt - Neigung auf 0° gesetzt");
-            } else if("pultdach"===t){
-                // Pultdach: Neigung auf 2° setzen
-                this.aktuelleKonfiguration.neigung=2;
-                const slopeInput=this.elemente.slopeInput;
-                const slopeRange=this.elemente.slope;
-                if(slopeInput){
-                    slopeInput.value="2.0";
-                }
-                if(slopeRange){
-                    slopeRange.value="2";
-                }
-                console.log("🏠 Pultdach ausgewählt - Neigung auf 2° gesetzt");
-            }
-        }
+        // Delegiert an OptionCardController
+        this.optionCardController?.handleSelection(e, t);
 
-        const n=this.elemente[e]||document.getElementById(e);
-        if(n){
-            if(n.value!==t){
-                n.value=t,
-                this.updateOptionCardState(e, t);
-                const i=new Event("change", {
-                    bubbles:!0
-                });
-                n.dispatchEvent(i)
-            }
-            this.updateOptionCardState(e, t)
-        }
-
-        // Für dachTyp: Konfiguration aktualisieren, dann beenden
+        // UIController-spezifische Nachbearbeitung
         if("dachTyp"===e){
-            const mappedProperty=this.selectPropertyMap[e];
-            if(mappedProperty){
-                this.aktuelleKonfiguration[mappedProperty]=t;
-                console.log(`✅ ${mappedProperty} gesetzt auf: ${t}`);
-            }
             this.updateDrainageVerfuegbarkeit();
-            this.onKonfigurationGeaendert();
-            return;
         }
-
-        const i=this.selectPropertyMap[e];
-        if(i&&"ncsColor"!==e&&(this.aktuelleKonfiguration[i]=t), "color"===e){
-            const e=this.aktuelleKonfiguration.farbe;
-            this.aktuelleKonfiguration.farbe=t,
-            this.aktuelleKonfiguration.ncsFarbe=null,
-            this.updateOptionCardState("ncsColor", null),
-            e!==t&&this.onKonfigurationGeaendert()
+        if("pfostenProfil"===e){
+            this.updateProfilInfo(t);
         }
-        if("ncsColor"===e)return this.aktuelleKonfiguration.farbe=t,
-        this.aktuelleKonfiguration.ncsFarbe=t,
-        this.updateOptionCardState("color", null),
-        this.updateOptionCardState(e, t),
-        this.onKonfigurationGeaendert(),
-        void this.updateStatus(`NCS-Farbe gewählt: ${t.toUpperCase()}`, "success");
-        "pfostenProfil"===e&&(this.aktuelleKonfiguration.pfostenProfil=t, this.updateProfilInfo(t), this.onKonfigurationGeaendert());
-
-        this.updateOptionCardState(e, t)
+        if("ncsColor"===e){
+            this.updateStatus(`NCS-Farbe gewählt: ${t.toUpperCase()}`, "success");
+        }
     }
     updateOptionCardState(e, t){
-        const n=this.optionCardGroups?.[e];
-        n&&0!==n.length&&n.forEach(e=>{
-            const n=e.dataset.value===t;
-            e.classList.toggle("active", n), e.setAttribute("aria-pressed", n?"true":"false")
-        })
+        this.optionCardController?.updateState(e, t);
     }
     initGlassColorOptions(){
         const e=Array.from(this.elemente.glassColorOptions||[]);
@@ -832,47 +546,7 @@ export class UIController{
     updateNeigungsSteuerung(){
         const istFlachdach=this.aktuelleKonfiguration.dachForm==="flachdach";
         const istCarport=!!this.aktuelleKonfiguration.carportModus;
-        const slopeInput=this.elemente.slopeInput;
-        const slopeRange=this.elemente.slope;
-        const slopeGroup=this.elemente.slopeGroup;
-        const buttons=Array.from(document.querySelectorAll('[data-dim="slope"]'));
-        const slopeVisible=!istFlachdach&&!istCarport;
-
-        if(slopeGroup){
-            slopeGroup.style.display=slopeVisible?"":"none";
-        }
-        buttons.forEach(btn=>{
-            btn.disabled=istFlachdach;
-            btn.setAttribute("aria-disabled", istFlachdach?"true":"false");
-        });
-        if(slopeInput){
-            slopeInput.disabled=istFlachdach;
-            if(istFlachdach)slopeInput.value="0.0";
-        }
-        if(slopeRange){
-            slopeRange.disabled=istFlachdach;
-            if(istFlachdach)slopeRange.value="0";
-        }
-
-        // Carport-Segment-Neigung synchron halten
-        const segmentSlopes=document.querySelectorAll(".segment-slope, .segment-slope-range");
-        segmentSlopes.forEach(el=>{
-            el.disabled=istFlachdach;
-            if(istFlachdach){
-                el.value="0";
-                el.setAttribute("aria-disabled","true");
-            }else{
-                el.removeAttribute("aria-disabled");
-            }
-        });
-        const segmentSlopeButtons=document.querySelectorAll('.segment-dimension-dec[data-target="segment-slope"], .segment-dimension-inc[data-target="segment-slope"]');
-        segmentSlopeButtons.forEach(btn=>{
-            btn.disabled=istFlachdach;
-            btn.style.opacity=istFlachdach?"0.5":"";
-            btn.style.cursor=istFlachdach?"not-allowed":"";
-            btn.style.pointerEvents=istFlachdach?"none":"auto";
-            btn.setAttribute("aria-disabled", istFlachdach?"true":"false");
-        });
+        this.sliderController?.aktualisiereNeigungsSteuerung(istFlachdach,istCarport);
     }
     updateTypeVerfuegbarkeit(){
         const carportAktiv = this.aktuelleKonfiguration.carportModus;
@@ -987,10 +661,7 @@ export class UIController{
         })
     }
     syncCenterPostToggle(){
-        const e=this.elemente.centerPostToggle;
-        if(!e)return;
-        const t=!!this.aktuelleKonfiguration.zentralerMittelpfosten;
-        e.checked!==t&&(e.checked=t)
+        this.postController?.syncCenterPostToggle();
     }
     updateSelectHints(){
         this.updateTypeHints(),
@@ -1053,12 +724,12 @@ export class UIController{
         toggle.textContent=active?"👁️ Drag-Icons ausblenden":"👁️ Drag-Icons einblenden";
     }
     aktualisiereKonfiguration(e, t){
-        console.log(`🔧 Aktualisiere ${e} = ${t}`),
+        this.logger.debug(`Aktualisiere ${e} = ${t}`),
         this.aktuelleKonfiguration[e]=t,
         this.onKonfigurationGeaendert()
     }
     onKonfigurationGeaendert(){
-        if(console.log("🔄 Konfiguration geändert:", this.aktuelleKonfiguration), this.updateDachformVerfuegbarkeit(), this.updateNeigungsSteuerung(), this.updateDragToggleVisibility(), this.syncCenterPostToggle(), this.updateMittelpfostenHinweis(), this.updateSelectHints(), this.individualPostController&&this.individualPostController.updateVisiblePosts(), this.renderEngine&&this.renderEngine.gibPergola()){
+        if(this.logger.debug("Konfiguration geändert:", this.aktuelleKonfiguration), this.updateDachformVerfuegbarkeit(), this.updateNeigungsSteuerung(), this.updateDragToggleVisibility(), this.syncCenterPostToggle(), this.updateMittelpfostenHinweis(), this.updateSelectHints(), this.individualPostController&&this.individualPostController.updateVisiblePosts(), this.renderEngine&&this.renderEngine.gibPergola()){
             const e=this.renderEngine.gibPergola();
             this.aktuelleKonfiguration.pfostenProfil&&e.setzeAktivesProfil(this.aktuelleKonfiguration.pfostenProfil),
             e.aktualisiereKonfigurationen(this.aktuelleKonfiguration),
@@ -1296,7 +967,7 @@ export class UIController{
         if(this.renderEngine&&this.renderEngine.gibPergola()){
             const e=this.renderEngine.gibPergola();
             this.infobox=new Infobox(e.konfiguration, e.pfosten, e.laengstraeger, e.quertraeger, e.koordinatenSystem),
-            console.log("📋 Infobox initialisiert")
+            this.logger.debug("Infobox initialisiert")
         }
     }
     initPriceTag(){
@@ -1411,17 +1082,10 @@ export class UIController{
         this.elemente.coordinatesContent.innerHTML=t
     }
     updateSliderValues(){
-        this.elemente.widthInput&&(this.elemente.widthInput.value=this.aktuelleKonfiguration.breite.toFixed(2)),
-        this.elemente.depthInput&&(this.elemente.depthInput.value=this.aktuelleKonfiguration.tiefe.toFixed(2)),
-        this.elemente.heightInput&&(this.elemente.heightInput.value=this.aktuelleKonfiguration.hoehe.toFixed(2)),
-        this.elemente.slopeInput&&(this.elemente.slopeInput.value=this.aktuelleKonfiguration.neigung.toFixed(1)),
-        this.elemente.width&&(this.elemente.width.value=this.aktuelleKonfiguration.breite),
-        this.elemente.depth&&(this.elemente.depth.value=this.aktuelleKonfiguration.tiefe),
-        this.elemente.height&&(this.elemente.height.value=this.aktuelleKonfiguration.hoehe),
-        this.elemente.slope&&(this.elemente.slope.value=this.aktuelleKonfiguration.neigung),
-        this.elemente.drainage&&(this.elemente.drainage.value=this.aktuelleKonfiguration.regenwasserAbfluss),
-        this.aktuelleKonfiguration.pfostenVersaetze&&(this.aktualisierePfostenVersatz("vorne", this.aktuelleKonfiguration.pfostenVersaetze.vorne??0, !1), this.aktualisierePfostenVersatz("hinten", this.aktuelleKonfiguration.pfostenVersaetze.hinten??0, !1)),
-        this.aktuelleKonfiguration.pfostenKuerzung&&(this.aktualisierePfostenKuerzung("vorne", this.aktuelleKonfiguration.pfostenKuerzung.vorne??0, !1), this.aktualisierePfostenKuerzung("hinten", this.aktuelleKonfiguration.pfostenKuerzung.hinten??0, !1), this.aktualisierePfostenKuerzung("mitte", this.aktuelleKonfiguration.pfostenKuerzung.mitte??0, !1))
+        this.sliderController?.aktualisiereWerte();
+        this.elemente.drainage&&(this.elemente.drainage.value=this.aktuelleKonfiguration.regenwasserAbfluss);
+        this.aktuelleKonfiguration.pfostenVersaetze&&(this.aktualisierePfostenVersatz("vorne", this.aktuelleKonfiguration.pfostenVersaetze.vorne??0, !1), this.aktualisierePfostenVersatz("hinten", this.aktuelleKonfiguration.pfostenVersaetze.hinten??0, !1));
+        this.aktuelleKonfiguration.pfostenKuerzung&&(this.aktualisierePfostenKuerzung("vorne", this.aktuelleKonfiguration.pfostenKuerzung.vorne??0, !1), this.aktualisierePfostenKuerzung("hinten", this.aktuelleKonfiguration.pfostenKuerzung.hinten??0, !1), this.aktualisierePfostenKuerzung("mitte", this.aktuelleKonfiguration.pfostenKuerzung.mitte??0, !1));
     }
     gibKonfiguration(){
         return{

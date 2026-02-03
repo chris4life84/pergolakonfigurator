@@ -1,367 +1,670 @@
-import{
-    ProfileKonfiguration
-}
-from"../config/ProfileKonfiguration.js";
-import{
-    createSmoothBoxGeometry
-}
-from"../utils/geometry.js";
-import{
-    MaterialManager
-}
-from"../core/MaterialManager.js";
-export class Glaeser{
-    constructor(e, t, r){
-        this.koordinatenSystem=e,
-        this.konfiguration=t,
-        this.laengstraegerInstanz=r,
-        this.profileKonfig=new ProfileKonfiguration,
-        this.MIN_GLAS_BREITE=.7,
-        this.MAX_GLAS_BREITE=.85,
-        this.GAP_BREITE=.02,
-        this.MAX_LAENGE=3,
-        this.GAP_TIEFE=.005,
-        this.DICKE=.008
+/**
+ * Gläser-Komponente für den Pergola-Konfigurator
+ *
+ * Erstellt und verwaltet die Glasflächen auf dem Dach der Pergola
+ * inklusive seitlicher und hinterer Auflager-Profile.
+ *
+ * Refactored: Erweitert Component3D für einheitliche API
+ */
+
+import { Component3D } from "../core/Component3D.js";
+import { ProfileKonfiguration } from "../config/ProfileKonfiguration.js";
+import { createSmoothBoxGeometry } from "../utils/geometry.js";
+import { MaterialManager } from "../core/MaterialManager.js";
+import { COMPONENT_NAMES, ROOF_TYPES } from "../constants/index.js";
+
+/**
+ * Glas-Material-Konfigurationen
+ * @type {Object<string, object>}
+ */
+const GLAS_MATERIALIEN = {
+    klar: {
+        baseColor: 0xe70e76,
+        attenuationColor: 0xf82aff,
+        attenuationDistance: 2.8,
+        transmission: 0.36,
+        roughness: 0.84,
+        thickness: 0.055,
+        ior: 1,
+        specularIntensity: 0.018
+    },
+    matt: {
+        baseColor: 0xdae7e2,
+        attenuationColor: 0xe90df1,
+        attenuationDistance: 2.2,
+        transmission: 0.3,
+        roughness: 0.86,
+        thickness: 0.095,
+        ior: 1,
+        specularIntensity: 0.015
+    },
+    grau: {
+        baseColor: 0xc2bfcf,
+        attenuationColor: 0xbbe1d8,
+        attenuationDistance: 2.1,
+        transmission: 0.32,
+        roughness: 0.84,
+        thickness: 0.07,
+        ior: 1,
+        specularIntensity: 0.018
+    },
+    bronze: {
+        baseColor: 0xd9dea9,
+        attenuationColor: 0xe0fea7,
+        attenuationDistance: 2.3,
+        transmission: 0.31,
+        roughness: 0.85,
+        thickness: 0.078,
+        ior: 1,
+        specularIntensity: 0.018
     }
-    erzeugeGlasMaterial(e){
-        const t={
-            klar:{
-                baseColor:15134710,
-                attenuationColor:16252415,
-                attenuationDistance:2.8,
-                transmission:.36,
-                roughness:.84,
-                thickness:.055,
-                ior:1,
-                specularIntensity:.018
-            },
-            matt:{
-                baseColor:14345698,
-                attenuationColor:15267569,
-                attenuationDistance:2.2,
-                transmission:.3,
-                roughness:.86,
-                thickness:.095,
-                ior:1,
-                specularIntensity:.015
-            },
-            grau:{
-                baseColor:12765391,
-                attenuationColor:12307416,
-                attenuationDistance:2.1,
-                transmission:.32,
-                roughness:.84,
-                thickness:.07,
-                ior:1,
-                specularIntensity:.018
-            },
-            bronze:{
-                baseColor:14273449,
-                attenuationColor:14732967,
-                attenuationDistance:2.3,
-                transmission:.31,
-                roughness:.85,
-                thickness:.078,
-                ior:1,
-                specularIntensity:.018
-            }
-        },
-        n=t[e]||t.klar,
-        s=new THREE.MeshPhysicalMaterial({
-            color:new THREE.Color(n.baseColor), transparent:!0, opacity:.3, roughness:n.roughness, metalness:0, transmission:n.transmission, thickness:n.thickness, attenuationColor:new THREE.Color(n.attenuationColor), attenuationDistance:n.attenuationDistance, ior:n.ior, specularIntensity:n.specularIntensity, specularColor:new THREE.Color(16777215), side:THREE.DoubleSide, dithering:!1, reflectivity:.5
+};
+
+/**
+ * Glas-Dimensionskonstanten
+ */
+const GLAS_CONFIG = {
+    MIN_BREITE: 0.7,
+    MAX_BREITE: 0.85,
+    GAP_BREITE: 0.02,
+    MAX_LAENGE: 3,
+    GAP_TIEFE: 0.005,
+    DICKE: 0.008
+};
+
+/**
+ * Klasse zur Erstellung und Verwaltung von Glasflächen
+ * @extends Component3D
+ */
+export class Glaeser extends Component3D {
+    /**
+     * @param {object} koordinatenSystem - Referenz zum KoordinatenSystem
+     * @param {object} konfiguration - Referenz zur PergolaKonfiguration
+     * @param {object} laengstraegerInstanz - Referenz zur Längsträger-Komponente
+     */
+    constructor(koordinatenSystem, konfiguration, laengstraegerInstanz) {
+        super(COMPONENT_NAMES.GLAESER, koordinatenSystem, konfiguration);
+
+        /** @type {object} Referenz zur Längsträger-Komponente */
+        this.laengstraegerInstanz = laengstraegerInstanz;
+
+        /** @type {ProfileKonfiguration} */
+        this.profileKonfig = new ProfileKonfiguration();
+
+        // Konfigurationswerte aus GLAS_CONFIG
+        this.MIN_GLAS_BREITE = GLAS_CONFIG.MIN_BREITE;
+        this.MAX_GLAS_BREITE = GLAS_CONFIG.MAX_BREITE;
+        this.GAP_BREITE = GLAS_CONFIG.GAP_BREITE;
+        this.MAX_LAENGE = GLAS_CONFIG.MAX_LAENGE;
+        this.GAP_TIEFE = GLAS_CONFIG.GAP_TIEFE;
+        this.DICKE = GLAS_CONFIG.DICKE;
+    }
+
+    // ========================================================================
+    // MATERIAL-ERSTELLUNG
+    // ========================================================================
+
+    /**
+     * Erzeugt das Glas-Material
+     * @param {string} farbe - Glasfarbe (klar, matt, grau, bronze)
+     * @returns {THREE.MeshPhysicalMaterial}
+     */
+    erzeugeGlasMaterial(farbe) {
+        const materialConfig = GLAS_MATERIALIEN[farbe] || GLAS_MATERIALIEN.klar;
+
+        const material = new THREE.MeshPhysicalMaterial({
+            color: new THREE.Color(materialConfig.baseColor),
+            transparent: true,
+            opacity: 0.3,
+            roughness: materialConfig.roughness,
+            metalness: 0,
+            transmission: materialConfig.transmission,
+            thickness: materialConfig.thickness,
+            attenuationColor: new THREE.Color(materialConfig.attenuationColor),
+            attenuationDistance: materialConfig.attenuationDistance,
+            ior: materialConfig.ior,
+            specularIntensity: materialConfig.specularIntensity,
+            specularColor: new THREE.Color(0xffffff),
+            side: THREE.DoubleSide,
+            dithering: false,
+            reflectivity: 0.5
         });
-        return s.clearcoat=.35,
-        s.clearcoatRoughness=.28,
-        s.sheen=0,
-        s.envMapIntensity=.45,
-        s.toneMapped=!0,
-        s
+
+        material.clearcoat = 0.35;
+        material.clearcoatRoughness = 0.28;
+        material.sheen = 0;
+        material.envMapIntensity = 0.45;
+        material.toneMapped = true;
+
+        return material;
     }
-    berechneBreiten(e, t, n){
-        const s=this.MIN_GLAS_BREITE,
-        i=this.MAX_GLAS_BREITE,
-        r=this.GAP_BREITE,
-        a=s-2*n,
-        o=i-2*n,
-        l=s-(t+n+r/2),
-        h=i-(t+n+r/2);
-        for(let g=2;
-        g<=20;
-        g++){
-            const u=e-2*t-(g-1)*(2*n+r)-r;
-            if(u<=0)continue;
-            const c=(s+i)/2;
-            let f=Math.min(Math.max(c-2*n, a), o),
-            E=(u-(g-2)*f)/2,
-            p=E+t+n+r/2;
-            p<s&&(E=l, f=(u-2*E)/(g-2)),
-            p>i&&(E=h, f=(u-2*E)/(g-2));
-            const b=f+2*n;
-            p=E+t+n+r/2;
-            if(!(b>=s-1e-6&&b<=i+1e-6&&p>=s-1e-6&&p<=i+1e-6))continue;
-            const m=[],
-            d=[];
-            for(let e=0;
-            e<g;
-            e++)0===e||e===g-1?m.push(p):m.push(b);
-            d.push(E);
-            for(let e=0;
-            e<Math.max(0, g-3);
-            e++)d.push(f);
-            return{
-                n:g,
-                glasBreiten:m,
-                lichtabstaende:d,
-                innerClear:f,
-                outerClear:E
+
+    // ========================================================================
+    // BERECHNUNGEN
+    // ========================================================================
+
+    /**
+     * Berechnet die Glasbreiten für die gegebene Pergolabreite
+     * @param {number} gesamtBreite - Gesamtbreite
+     * @param {number} aeussererAuflager - Äußerer Auflagerbereich
+     * @param {number} mittlererAuflager - Mittlerer Auflagerbereich
+     * @returns {object}
+     */
+    berechneBreiten(gesamtBreite, aeussererAuflager, mittlererAuflager) {
+        const minBreite = this.MIN_GLAS_BREITE;
+        const maxBreite = this.MAX_GLAS_BREITE;
+        const gapBreite = this.GAP_BREITE;
+
+        const innerMin = minBreite - 2 * mittlererAuflager;
+        const innerMax = maxBreite - 2 * mittlererAuflager;
+        const outerMin = minBreite - (aeussererAuflager + mittlererAuflager + gapBreite / 2);
+        const outerMax = maxBreite - (aeussererAuflager + mittlererAuflager + gapBreite / 2);
+
+        for (let anzahl = 2; anzahl <= 20; anzahl++) {
+            const verfuegbar = gesamtBreite - 2 * aeussererAuflager - (anzahl - 1) * (2 * mittlererAuflager + gapBreite) - gapBreite;
+
+            if (verfuegbar <= 0) continue;
+
+            const zielBreite = (minBreite + maxBreite) / 2;
+            let innerClear = Math.min(Math.max(zielBreite - 2 * mittlererAuflager, innerMin), innerMax);
+            let outerClear = (verfuegbar - (anzahl - 2) * innerClear) / 2;
+            let outerGlas = outerClear + aeussererAuflager + mittlererAuflager + gapBreite / 2;
+
+            if (outerGlas < minBreite) {
+                outerClear = outerMin;
+                innerClear = (verfuegbar - 2 * outerClear) / (anzahl - 2);
             }
-        }
-        return{
-            n:0,
-            glasBreiten:[],
-            lichtabstaende:[]
-        }
-    }
-    berechneLaengen(e, t){
-        const n=t.neigung*Math.PI/180,
-        s=1/Math.cos(n),
-        i=this.MAX_LAENGE/s;
-        let r=Math.max(1, Math.ceil(e/i));
-        Math.abs(e-6)<=.05&&(r=2);
-        const a=(r-1)*this.GAP_TIEFE,
-        o="glasueberstand"===t.regenwasserAbfluss?.1:0,
-        l=(e-a)/r,
-        h=l*s;
-        return console.log("🔍 DEBUG berechneLaengen:", {
-            gesamttiefe:e, reihen:r, gesamtGaps:a, horizontaleLaenge:l, laenge:h, neigung:t.neigung, neigungsFaktor:s.toFixed(4), glasUeberstand:o, regenwasserAbfluss:t.regenwasserAbfluss
-        }),
-        {
-            reihen:r,
-            laenge:h,
-            ueberstand:o
-        }
-    }
-    berechneLaengstraegerOberkanteBeiZ(e, t){
-        const r=e?.referenzpunkte;
-        if(!r?.start||!r?.ende)return null;
-        const n=r.start.z,
-        s=r.ende.z-n,
-        i=0!==s?(t-n)/s:0;
-        var a,
-        o;
-        return(a=r.start.y, o=r.ende.y, a+(o-a)*i)+(e.abmessungen?.hoehe||0)
-    }
-    erstelleGlaeser(){
-        const e=this.konfiguration.gibAktuelleKonfiguration(),
-        t=new THREE.Group;
-        t.name="Glaeser";
-        const nurAuflagerBeiEPDM="epdm"===e.dachTyp&&Math.abs(e.neigung)<=1e-6;
-        if("epdm"===e.dachTyp&&!nurAuflagerBeiEPDM)return t;
-        const n=this.koordinatenSystem.gibReferenzpunkt("laengstraegerReferenz"),
-        s=this.koordinatenSystem.gibReferenzpunkt("quertraegerReferenz");
-        if(!n||!s)return t;
-        const i=n.links?.start?.x??0,
-        r=n.rechts?.start?.x??e.breite,
-        a=this.profileKonfig.gibAktuellesProfil(),
-        o=a?.abmessungen?.tiefe||.08,
-        l=(a?.id||"").startsWith("200x120")?.08:.04,
-        h=i-o/2+o,
-        g=r+o/2-o,
-        u=Math.max(0, g-h),
-        c=this.profileKonfig.gibMitteltraegerProfil(e),
-        f=c?.abmessungen?.tiefe||.08,
-        E=Math.max(.03, (f-this.GAP_BREITE)/2),
-        p=this.koordinatenSystem.glasBerechnung;
-        const hatGlasBerechnung=p&&p.anzahlGlaeser>0;
-        if(!hatGlasBerechnung)console.warn("⚠️ Keine Glasberechnung vorhanden! Gläser können nicht erstellt werden."),
-        console.warn("⚠️ Hinweis: Seitliche Auflager werden dennoch versucht (sofern Flachdach)");
-        const b=hatGlasBerechnung?p.anzahlGlaeser:0,
-        m=hatGlasBerechnung?p.glasBreiten:[],
-        d=n.zwischen?.map(e=>e.start.x)||[],
-        panelSpans=[];
-        hatGlasBerechnung&&console.log("✅ Verwende Glasberechnung aus KoordinatenSystem:", {
-            anzahlGlaeser:b, glasBreiten:m, lichtabstaende:p.lichtabstaende, mitteltraegerPositionen:d
-        });
-        const{
-            reihen:rowsCount,
-            laenge:k,
-            ueberstand:A
-        }
-        =this.berechneLaengen(e.tiefe, e),
-        R=this.profileKonfig.gibAktuellesProfil()?.abmessungen?.breite||0,
-        seitenProfilBreite=.04,
-        istFlachdach=e.neigung===0,
-        istGlasdach="glas"===e.dachTyp,
-        mittelProfilHoehe=this.profileKonfig.gibMitteltraegerProfil(e)?.abmessungen?.breite||R,
-        glasAuflageHoehe=istFlachdach?mittelProfilHoehe:R,
-        M=t=>{
-            const n=this.konfiguration.berechneAbhaengigeWerte();
-            return this.koordinatenSystem.interpoliereHoehe(0, n.vordereHoehe, e.tiefe, n.hintereHoehe, t)
-        },
-        profilId=((a?.id||e.pfostenProfil||"")+""),
-        isProfil200x100Profil=profilId.startsWith("200x100"),
-        mitteltraeger=this.laengstraegerInstanz?.gibAlleLaengstraeger?.().find(t=>"string"==typeof t.name&&t.name.startsWith("mitte")),
-        mtStart=mitteltraeger?.referenzpunkte?.start,
-        mtEnde=mitteltraeger?.referenzpunkte?.ende,
-        glasOberkanteMitteltraeger=t=>{
-            if(!mtStart||!mtEnde)return null;
-            const hoehe=mitteltraeger?.abmessungen?.hoehe||0;
-            const hintenIstStart=mtStart.z>mtEnde.z;
-            let startTop=mtStart.y+hoehe;
-            let endeTop=mtEnde.y+hoehe;
-            if(istFlachdach){
-                hintenIstStart?startTop-=.008:endeTop-=.008
+
+            if (outerGlas > maxBreite) {
+                outerClear = outerMax;
+                innerClear = (verfuegbar - 2 * outerClear) / (anzahl - 2);
             }
-            const deltaZ=mtEnde.z-mtStart.z;
-            if(Math.abs(deltaZ)<1e-6)return startTop;
-            const faktor=(t-mtStart.z)/deltaZ;
-            return startTop+(endeTop-startTop)*faktor
-        },
-        mitteltraegerNeigungswinkel=istFlachdach&&mtStart&&mtEnde?Math.atan2((glasOberkanteMitteltraeger(mtEnde.z)||mtEnde.y)-(glasOberkanteMitteltraeger(mtStart.z)||mtStart.y), mtEnde.z-mtStart.z||1e-6):null,
-        I=null!=mitteltraegerNeigungswinkel?mitteltraegerNeigungswinkel:n.links?.neigungswinkel||0,
-        glasAuflageY=t=>{
-            if(istFlachdach&&mitteltraeger){
-                const n=glasOberkanteMitteltraeger(t);
-                if(Number.isFinite(n))return n
+
+            const innerGlas = innerClear + 2 * mittlererAuflager;
+            outerGlas = outerClear + aeussererAuflager + mittlererAuflager + gapBreite / 2;
+
+            if (!(innerGlas >= minBreite - 1e-6 && innerGlas <= maxBreite + 1e-6 &&
+                  outerGlas >= minBreite - 1e-6 && outerGlas <= maxBreite + 1e-6)) {
+                continue;
             }
-            return M(t)+glasAuflageHoehe
+
+            const glasBreiten = [];
+            const lichtabstaende = [];
+
+            for (let i = 0; i < anzahl; i++) {
+                if (i === 0 || i === anzahl - 1) {
+                    glasBreiten.push(outerGlas);
+                } else {
+                    glasBreiten.push(innerGlas);
+                }
+            }
+
+            lichtabstaende.push(outerClear);
+            for (let i = 0; i < Math.max(0, anzahl - 3); i++) {
+                lichtabstaende.push(innerClear);
+            }
+
+            return {
+                n: anzahl,
+                glasBreiten,
+                lichtabstaende,
+                innerClear,
+                outerClear
+            };
+        }
+
+        return {
+            n: 0,
+            glasBreiten: [],
+            lichtabstaende: []
         };
-        let B=-A;
-        console.log("DEBUG Glas-Berechnung:", {
-            innereLichtBreite:u, spalten:b, glasBreiten:m, outerSupport:l, middleSupport:E, mitteltraegerX:d, innenkanteLinks:h, innenkanteRechts:g, glasLaenge:k, ueberstandVorne:A, reihen:rowsCount, startFront:B
+    }
+
+    /**
+     * Berechnet die Glaslängen für die gegebene Tiefe
+     * @param {number} gesamtTiefe - Gesamttiefe
+     * @param {object} config - Konfiguration
+     * @returns {object}
+     */
+    berechneLaengen(gesamtTiefe, config) {
+        const neigungRad = (config.neigung * Math.PI) / 180;
+        const neigungsFaktor = 1 / Math.cos(neigungRad);
+        const maxHorizontaleLaenge = this.MAX_LAENGE / neigungsFaktor;
+
+        let reihen = Math.max(1, Math.ceil(gesamtTiefe / maxHorizontaleLaenge));
+
+        // Spezialfall: Bei 6m Tiefe immer 2 Reihen
+        if (Math.abs(gesamtTiefe - 6) <= 0.05) {
+            reihen = 2;
+        }
+
+        const gesamtGaps = (reihen - 1) * this.GAP_TIEFE;
+        const ueberstand = config.regenwasserAbfluss === "glasueberstand" ? 0.1 : 0;
+        const horizontaleLaenge = (gesamtTiefe - gesamtGaps) / reihen;
+        const laenge = horizontaleLaenge * neigungsFaktor;
+
+        this.logger.debug("berechneLaengen:", {
+            gesamttiefe: gesamtTiefe,
+            reihen,
+            gesamtGaps,
+            horizontaleLaenge,
+            laenge,
+            neigung: config.neigung,
+            neigungsFaktor: neigungsFaktor.toFixed(4),
+            glasUeberstand: ueberstand,
+            regenwasserAbfluss: config.regenwasserAbfluss
         });
-        const y=this.erzeugeGlasMaterial(e.glasFarbe);
-        y.depthWrite=!1,
-        y.depthTest=!0,
-        y.alphaHash=!1,
-        y.needsUpdate=!0,
-        y.polygonOffset=!0,
-        y.polygonOffsetFactor=-.5,
-        y.polygonOffsetUnits=-.5;
-        const fuegeSeitlicheAuflagerHinzu=()=>{
-            if(Math.abs(e.neigung)>1e-6||!("glas"===e.dachTyp||"epdm"===e.dachTyp))return;
-            const breiteProfil=.04,
-            hoeheProfil=.04,
-            materiale=MaterialManager.gibStrukturMaterial({
-                teil:"seitlicheGlasauflage",
-                config:e
-            }),
-            erstelleAuflager=(t, r)=>{
-                const n=t?.start?.z,
-                s=t?.ende?.z;
-                if(!Number.isFinite(n)||!Number.isFinite(s))return null;
-                const zMin=Math.min(n, s),
-                zMax=Math.max(n, s),
-                effektiveLaenge=Math.max(0.05, zMax - zMin),
-                centerZ=(zMin + zMax)/2,
-                o=createSmoothBoxGeometry(breiteProfil, hoeheProfil, effektiveLaenge),
-                l=new THREE.Mesh(o, materiale),
-                h=r,
-                // bündig auf Mittelträger: kein Versenken mehr
-                versenkSeite=0,
-                g=glasAuflageY(zMin)+versenkSeite,
-                u=glasAuflageY(zMax)+versenkSeite,
-                f=(g+u)/2-hoeheProfil/2,
-                E=-I;
-                return l.position.set(h, f, centerZ),
-                l.rotation.x=E,
-                l.castShadow=!0,
-                l.receiveShadow=!0,
-                l.name="SeitlicheGlasauflage",
-                l
-            },
-            linkeX=h+breiteProfil/2,
-            rechteX=g-breiteProfil/2,
-            linkesAuflager=erstelleAuflager(n.links, linkeX),
-            rechtesAuflager=erstelleAuflager(n.rechts, rechteX);
-            linkesAuflager&&t.add(linkesAuflager),
-            rechtesAuflager&&t.add(rechtesAuflager)
+
+        return { reihen, laenge, ueberstand };
+    }
+
+    /**
+     * Berechnet die Längsträger-Oberkante bei einer Z-Position
+     * @param {object} laengstraeger - Längsträger-Objekt
+     * @param {number} zPos - Z-Position
+     * @returns {number|null}
+     */
+    berechneLaengstraegerOberkanteBeiZ(laengstraeger, zPos) {
+        const ref = laengstraeger?.referenzpunkte;
+        if (!ref?.start || !ref?.ende) return null;
+
+        const startZ = ref.start.z;
+        const deltaZ = ref.ende.z - startZ;
+        const faktor = deltaZ !== 0 ? (zPos - startZ) / deltaZ : 0;
+
+        const interpolierteY = ref.start.y + (ref.ende.y - ref.start.y) * faktor;
+        return interpolierteY + (laengstraeger.abmessungen?.hoehe || 0);
+    }
+
+    // ========================================================================
+    // HAUPTMETHODE
+    // ========================================================================
+
+    /**
+     * Erstellt alle Glasflächen
+     * @returns {THREE.Group}
+     */
+    erstelleGlaeser() {
+        const config = this.konfiguration.gibAktuelleKonfiguration();
+        const glasGruppe = new THREE.Group();
+        glasGruppe.name = "Glaeser";
+
+        // Bei EPDM-Flachdach nur Auflager erstellen
+        const nurAuflagerBeiEPDM = config.dachTyp === ROOF_TYPES.EPDM && Math.abs(config.neigung) <= 1e-6;
+
+        // Bei EPDM mit Neigung keine Gläser
+        if (config.dachTyp === ROOF_TYPES.EPDM && !nurAuflagerBeiEPDM) {
+            return glasGruppe;
+        }
+
+        // Referenzpunkte holen
+        const laengstraegerRef = this.koordinatenSystem.gibReferenzpunkt("laengstraegerReferenz");
+        const quertraegerRef = this.koordinatenSystem.gibReferenzpunkt("quertraegerReferenz");
+
+        if (!laengstraegerRef || !quertraegerRef) {
+            return glasGruppe;
+        }
+
+        // Profil-Dimensionen
+        const profil = this.profileKonfig.gibAktuellesProfil();
+        const profilTiefe = profil?.abmessungen?.tiefe || 0.08;
+        const outerSupport = (profil?.id || "").startsWith("200x120") ? 0.08 : 0.04;
+
+        // Innenkanten berechnen
+        const linksX = laengstraegerRef.links?.start?.x ?? 0;
+        const rechtsX = laengstraegerRef.rechts?.start?.x ?? config.breite;
+        const innenkanteLinks = linksX - profilTiefe / 2 + profilTiefe;
+        const innenkanteRechts = rechtsX + profilTiefe / 2 - profilTiefe;
+        const innereLichtBreite = Math.max(0, innenkanteRechts - innenkanteLinks);
+
+        // Mittelträger-Profil
+        const mitteltraegerProfil = this.profileKonfig.gibMitteltraegerProfil(config);
+        const mitteltraegerTiefe = mitteltraegerProfil?.abmessungen?.tiefe || 0.08;
+        const middleSupport = Math.max(0.03, (mitteltraegerTiefe - this.GAP_BREITE) / 2);
+
+        // Glasberechnung aus KoordinatenSystem
+        const glasBerechnung = this.koordinatenSystem.glasBerechnung;
+        const hatGlasBerechnung = glasBerechnung && glasBerechnung.anzahlGlaeser > 0;
+
+        if (!hatGlasBerechnung) {
+            this.logger.warn("Keine Glasberechnung vorhanden! Gläser können nicht erstellt werden.");
+            this.logger.warn("Hinweis: Seitliche Auflager werden dennoch versucht (sofern Flachdach)");
+        }
+
+        const anzahlGlaeser = hatGlasBerechnung ? glasBerechnung.anzahlGlaeser : 0;
+        const glasBreiten = hatGlasBerechnung ? glasBerechnung.glasBreiten : [];
+        const mitteltraegerX = laengstraegerRef.zwischen?.map(m => m.start.x) || [];
+        const panelSpans = [];
+
+        if (hatGlasBerechnung) {
+            this.logger.debug("Verwende Glasberechnung aus KoordinatenSystem:", {
+                anzahlGlaeser,
+                glasBreiten,
+                lichtabstaende: glasBerechnung.lichtabstaende,
+                mitteltraegerPositionen: mitteltraegerX
+            });
+        }
+
+        // Längenberechnung
+        const { reihen: rowsCount, laenge: glasLaenge, ueberstand } = this.berechneLaengen(config.tiefe, config);
+
+        // Höhenberechnung
+        const rahmenHoehe = this.profileKonfig.gibAktuellesProfil()?.abmessungen?.breite || 0;
+        const seitenProfilBreite = 0.04;
+        const istFlachdach = config.neigung === 0;
+        const istGlasdach = config.dachTyp === ROOF_TYPES.GLAS;
+        const mittelProfilHoehe = this.profileKonfig.gibMitteltraegerProfil(config)?.abmessungen?.breite || rahmenHoehe;
+        const glasAuflageHoehe = istFlachdach ? mittelProfilHoehe : rahmenHoehe;
+
+        // Höhen-Interpolation
+        const berechneHoeheBeiZ = (zPos) => {
+            const abhaengigeWerte = this.konfiguration.berechneAbhaengigeWerte();
+            return this.koordinatenSystem.interpoliereHoehe(
+                0, abhaengigeWerte.vordereHoehe,
+                config.tiefe, abhaengigeWerte.hintereHoehe,
+                zPos
+            );
         };
-        for(let n=0;
-        n<rowsCount&&hatGlasBerechnung&&!nurAuflagerBeiEPDM;
-        n++){
-            const s=0===n?A:0,
-            i=0===n&&"rinne"===e.regenwasserAbfluss?.03:0,
-            r=k+s-i,
-            startZ=B+i;
-            for(let e=0;
-            e<b;
-            e++){
-                let i,
-                o,
-                u,
-                c;
-                1===b?(i=h-l, o=g+l, c=o-i, u=(i+o)/2):0===e?(i=h-l, o=d.length>0?d[0]-this.GAP_BREITE/2:h-l+m[e], c=o-i, u=(i+o)/2):e===b-1?(i=d.length>0?d[d.length-1]+this.GAP_BREITE/2:g+l-m[e], o=g+l, c=o-i, u=(i+o)/2):(i=d[e-1]+this.GAP_BREITE/2, o=d[e]-this.GAP_BREITE/2, c=o-i, u=(i+o)/2);
-                if(istFlachdach){
-                    if(0===e){
-                        i+=seitenProfilBreite;
-                        c=o-i;
-                        u=(i+o)/2
-                    }
-                    else if(e===b-1){
-                        o-=seitenProfilBreite;
-                        c=o-i;
-                        u=(i+o)/2
+
+        // Profil-spezifische Prüfung
+        const profilId = ((profil?.id || config.pfostenProfil || "") + "");
+        const isProfil200x100 = profilId.startsWith("200x100");
+
+        // Mittelträger für Höhenberechnung
+        const mitteltraeger = this.laengstraegerInstanz?.gibAlleLaengstraeger?.().find(
+            t => typeof t.name === "string" && t.name.startsWith("mitte")
+        );
+        const mtStart = mitteltraeger?.referenzpunkte?.start;
+        const mtEnde = mitteltraeger?.referenzpunkte?.ende;
+
+        // Glasoberkante auf Mittelträger berechnen
+        const glasOberkanteMitteltraeger = (zPos) => {
+            if (!mtStart || !mtEnde) return null;
+
+            const hoehe = mitteltraeger?.abmessungen?.hoehe || 0;
+            const hintenIstStart = mtStart.z > mtEnde.z;
+
+            let startTop = mtStart.y + hoehe;
+            let endeTop = mtEnde.y + hoehe;
+
+            if (istFlachdach) {
+                if (hintenIstStart) {
+                    startTop -= 0.008;
+                } else {
+                    endeTop -= 0.008;
+                }
+            }
+
+            const deltaZ = mtEnde.z - mtStart.z;
+            if (Math.abs(deltaZ) < 1e-6) return startTop;
+
+            const faktor = (zPos - mtStart.z) / deltaZ;
+            return startTop + (endeTop - startTop) * faktor;
+        };
+
+        // Neigungswinkel
+        const mitteltraegerNeigungswinkel = istFlachdach && mtStart && mtEnde
+            ? Math.atan2(
+                (glasOberkanteMitteltraeger(mtEnde.z) || mtEnde.y) -
+                (glasOberkanteMitteltraeger(mtStart.z) || mtStart.y),
+                mtEnde.z - mtStart.z || 1e-6
+            )
+            : null;
+
+        const neigungswinkel = mitteltraegerNeigungswinkel !== null
+            ? mitteltraegerNeigungswinkel
+            : laengstraegerRef.links?.neigungswinkel || 0;
+
+        // Glas-Auflage-Y berechnen
+        const glasAuflageY = (zPos) => {
+            if (istFlachdach && mitteltraeger) {
+                const y = glasOberkanteMitteltraeger(zPos);
+                if (Number.isFinite(y)) return y;
+            }
+            return berechneHoeheBeiZ(zPos) + glasAuflageHoehe;
+        };
+
+        // Startposition
+        let currentZ = -ueberstand;
+
+        this.logger.debug("Glas-Berechnung:", {
+            innereLichtBreite,
+            spalten: anzahlGlaeser,
+            glasBreiten,
+            outerSupport,
+            middleSupport,
+            mitteltraegerX,
+            innenkanteLinks,
+            innenkanteRechts,
+            glasLaenge,
+            ueberstandVorne: ueberstand,
+            reihen: rowsCount,
+            startFront: currentZ
+        });
+
+        // Glas-Material
+        const glasMaterial = this.erzeugeGlasMaterial(config.glasFarbe);
+        glasMaterial.depthWrite = false;
+        glasMaterial.depthTest = true;
+        glasMaterial.alphaHash = false;
+        glasMaterial.needsUpdate = true;
+        glasMaterial.polygonOffset = true;
+        glasMaterial.polygonOffsetFactor = -0.5;
+        glasMaterial.polygonOffsetUnits = -0.5;
+
+        // Seitliche Auflager erstellen
+        const fuegeSeitlicheAuflagerHinzu = () => {
+            if (Math.abs(config.neigung) > 1e-6 ||
+                !(config.dachTyp === ROOF_TYPES.GLAS || config.dachTyp === ROOF_TYPES.EPDM)) {
+                return;
+            }
+
+            const breiteProfil = 0.04;
+            const hoeheProfil = 0.04;
+            const auflagerMaterial = MaterialManager.gibStrukturMaterial({
+                teil: "seitlicheGlasauflage",
+                config
+            });
+
+            const erstelleAuflager = (ref, xPos) => {
+                const startZ = ref?.start?.z;
+                const endeZ = ref?.ende?.z;
+
+                if (!Number.isFinite(startZ) || !Number.isFinite(endeZ)) return null;
+
+                const zMin = Math.min(startZ, endeZ);
+                const zMax = Math.max(startZ, endeZ);
+                const effektiveLaenge = Math.max(0.05, zMax - zMin);
+                const centerZ = (zMin + zMax) / 2;
+
+                const geometrie = createSmoothBoxGeometry(breiteProfil, hoeheProfil, effektiveLaenge);
+                const mesh = new THREE.Mesh(geometrie, auflagerMaterial);
+
+                const yVorne = glasAuflageY(zMin);
+                const yHinten = glasAuflageY(zMax);
+                const yPos = (yVorne + yHinten) / 2 - hoeheProfil / 2;
+
+                mesh.position.set(xPos, yPos, centerZ);
+                mesh.rotation.x = -neigungswinkel;
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                mesh.name = "SeitlicheGlasauflage";
+
+                return mesh;
+            };
+
+            const linkeX = innenkanteLinks + breiteProfil / 2;
+            const rechteX = innenkanteRechts - breiteProfil / 2;
+
+            const linkesAuflager = erstelleAuflager(laengstraegerRef.links, linkeX);
+            const rechtesAuflager = erstelleAuflager(laengstraegerRef.rechts, rechteX);
+
+            if (linkesAuflager) glasGruppe.add(linkesAuflager);
+            if (rechtesAuflager) glasGruppe.add(rechtesAuflager);
+        };
+
+        // Gläser erstellen
+        for (let reihe = 0; reihe < rowsCount && hatGlasBerechnung && !nurAuflagerBeiEPDM; reihe++) {
+            const zusatzUeberstand = reihe === 0 ? ueberstand : 0;
+            const rinneOffset = reihe === 0 && config.regenwasserAbfluss === "rinne" ? 0.03 : 0;
+            const aktuelleGlasLaenge = glasLaenge + zusatzUeberstand - rinneOffset;
+            const startZ = currentZ + rinneOffset;
+
+            for (let spalte = 0; spalte < anzahlGlaeser; spalte++) {
+                let linksX, rechtsX, breite, centerX;
+
+                if (anzahlGlaeser === 1) {
+                    linksX = innenkanteLinks - outerSupport;
+                    rechtsX = innenkanteRechts + outerSupport;
+                    breite = rechtsX - linksX;
+                    centerX = (linksX + rechtsX) / 2;
+                } else if (spalte === 0) {
+                    linksX = innenkanteLinks - outerSupport;
+                    rechtsX = mitteltraegerX.length > 0
+                        ? mitteltraegerX[0] - this.GAP_BREITE / 2
+                        : innenkanteLinks - outerSupport + glasBreiten[spalte];
+                    breite = rechtsX - linksX;
+                    centerX = (linksX + rechtsX) / 2;
+                } else if (spalte === anzahlGlaeser - 1) {
+                    linksX = mitteltraegerX.length > 0
+                        ? mitteltraegerX[mitteltraegerX.length - 1] + this.GAP_BREITE / 2
+                        : innenkanteRechts + outerSupport - glasBreiten[spalte];
+                    rechtsX = innenkanteRechts + outerSupport;
+                    breite = rechtsX - linksX;
+                    centerX = (linksX + rechtsX) / 2;
+                } else {
+                    linksX = mitteltraegerX[spalte - 1] + this.GAP_BREITE / 2;
+                    rechtsX = mitteltraegerX[spalte] - this.GAP_BREITE / 2;
+                    breite = rechtsX - linksX;
+                    centerX = (linksX + rechtsX) / 2;
+                }
+
+                // Flachdach-Anpassung für Randgläser
+                if (istFlachdach) {
+                    if (spalte === 0) {
+                        linksX += seitenProfilBreite;
+                        breite = rechtsX - linksX;
+                        centerX = (linksX + rechtsX) / 2;
+                    } else if (spalte === anzahlGlaeser - 1) {
+                        rechtsX -= seitenProfilBreite;
+                        breite = rechtsX - linksX;
+                        centerX = (linksX + rechtsX) / 2;
                     }
                 }
-                if(!panelSpans[e])panelSpans[e]=[i,o];
-                // Bei 200x100: Kürzung auf ca. 3.5cm, damit die fehlenden ~6cm wieder angefügt werden
-                const trimBack=istFlachdach&&istGlasdach&&n===rowsCount-1?(isProfil200x100Profil?0.05:0.04):0;
-                const effectiveLen=Math.max(0.05, r - trimBack);
-                const geom=createSmoothBoxGeometry(c, this.DICKE, effectiveLen),
-                p=new THREE.Mesh(geom, y),
-                zPos=startZ+effectiveLen/2,
-                kontaktOffset=0;
 
-                // glasAuflageY() berechnet bereits die korrekte Y-Position basierend auf den inneren Längsträgern
-                // Bei Flachdach+Glas sind diese bereits um 8mm abgesenkt, daher keine zusätzliche Korrektur nötig
-                const B=glasAuflageY(zPos)+this.DICKE/2+kontaktOffset;
-                p.position.set(u, B, zPos),
-                p.rotation.x=-I,
-                p.castShadow=!1,
-                p.receiveShadow=!1,
-                p.renderOrder=5,
-                p.name=`Glas_r${n+1}_c${e+1}`,
-                t.add(p),
-                console.log(`🔍 DEBUG Glas ${p.name}:`, {
-                    position:{
-                        x:u, y:B, z:zPos
-                    }, dimensionen:{
-                        breite:c, dicke:this.DICKE, laenge:f
-                    }, z0:a, ueberstand:s, glasLaengeBasis:k, tatsaechlicheGlasLaenge:f
-                })
+                // Panel-Spans speichern für hintere Auflager
+                if (!panelSpans[spalte]) {
+                    panelSpans[spalte] = [linksX, rechtsX];
+                }
+
+                // Kürzung für letzte Reihe bei Flachdach
+                const trimBack = istFlachdach && istGlasdach && reihe === rowsCount - 1
+                    ? (isProfil200x100 ? 0.05 : 0.04)
+                    : 0;
+                const effectiveLen = Math.max(0.05, aktuelleGlasLaenge - trimBack);
+
+                // Geometrie und Mesh erstellen
+                const geometrie = createSmoothBoxGeometry(breite, this.DICKE, effectiveLen);
+                const mesh = new THREE.Mesh(geometrie, glasMaterial);
+
+                const zPos = startZ + effectiveLen / 2;
+                const yPos = glasAuflageY(zPos) + this.DICKE / 2;
+
+                mesh.position.set(centerX, yPos, zPos);
+                mesh.rotation.x = -neigungswinkel;
+                mesh.castShadow = false;
+                mesh.receiveShadow = false;
+                mesh.renderOrder = 5;
+                mesh.name = `Glas_r${reihe + 1}_c${spalte + 1}`;
+
+                glasGruppe.add(mesh);
+
+                this.logger.debug(`Glas ${mesh.name}:`, {
+                    position: { x: centerX, y: yPos, z: zPos },
+                    dimensionen: { breite, dicke: this.DICKE, laenge: effectiveLen }
+                });
             }
-            B+=k+this.GAP_TIEFE+s
+
+            currentZ += glasLaenge + this.GAP_TIEFE + zusatzUeberstand;
         }
-        // Hintere Auflager-Profile 40x40 pro Lichtabstand (nur Flachdach)
-        if(istFlachdach&&panelSpans.length){
-            const materiale=MaterialManager.gibStrukturMaterial({
-                teil:"seitlicheGlasauflageHinten",
-                config:e
-            }),
-            profilBreite=.04,
-            profilHoehe=.04,
-            backZ=e.tiefe - 0.04; // hinten 40mm kürzen
-            panelSpans.forEach(span=>{
-                if(!span||span.length<2)return;
-                const xs=span[0], xe=span[1];
-                if(!Number.isFinite(xs)||!Number.isFinite(xe)||xe<=xs)return;
-                const breite=Math.max(0, xe-xs),
-                tiefe=profilBreite,
-                geo=createSmoothBoxGeometry(breite, profilHoehe, tiefe),
-                mesh=new THREE.Mesh(geo, materiale),
-                zPos=backZ-tiefe/2,
-                // Bündig auf die Mittelträger setzen: Oberkante = glasAuflageY(backZ)
-                yPos=glasAuflageY(backZ) - profilHoehe/2;
-                mesh.position.set((xs+xe)/2, yPos, zPos),
-                mesh.rotation.x=-I,
-                mesh.castShadow=!0,
-                mesh.receiveShadow=!0,
-                mesh.name="SeitlicheGlasauflageHinten",
-                t.add(mesh)
-            })
+
+        // Hintere Auflager-Profile (nur Flachdach)
+        if (istFlachdach && panelSpans.length) {
+            const auflagerMaterial = MaterialManager.gibStrukturMaterial({
+                teil: "seitlicheGlasauflageHinten",
+                config
+            });
+
+            const profilBreite = 0.04;
+            const profilHoehe = 0.04;
+            const backZ = config.tiefe - 0.04;
+
+            panelSpans.forEach(span => {
+                if (!span || span.length < 2) return;
+
+                const xs = span[0];
+                const xe = span[1];
+
+                if (!Number.isFinite(xs) || !Number.isFinite(xe) || xe <= xs) return;
+
+                const breite = Math.max(0, xe - xs);
+                const geometrie = createSmoothBoxGeometry(breite, profilHoehe, profilBreite);
+                const mesh = new THREE.Mesh(geometrie, auflagerMaterial);
+
+                const zPos = backZ - profilBreite / 2;
+                const yPos = glasAuflageY(backZ) - profilHoehe / 2;
+
+                mesh.position.set((xs + xe) / 2, yPos, zPos);
+                mesh.rotation.x = -neigungswinkel;
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                mesh.name = "SeitlicheGlasauflageHinten";
+
+                glasGruppe.add(mesh);
+            });
         }
-        return fuegeSeitlicheAuflagerHinzu(),
-        t
+
+        // Seitliche Auflager hinzufügen
+        fuegeSeitlicheAuflagerHinzu();
+
+        return glasGruppe;
+    }
+
+    // ========================================================================
+    // COMPONENT3D INTERFACE
+    // ========================================================================
+
+    /**
+     * Erstellt die Komponente (Component3D Interface)
+     * @returns {THREE.Group}
+     */
+    create() {
+        return this.erstelleGlaeser();
+    }
+
+    /**
+     * Gibt alle Elemente zurück (Component3D Interface)
+     * @returns {THREE.Object3D[]}
+     */
+    getAll() {
+        const glaeser = this.create();
+        return [...glaeser.children];
+    }
+
+    /**
+     * Gibt die 3D-Gruppe zurück (Component3D Interface)
+     * @returns {THREE.Group}
+     */
+    getGroup() {
+        return this.gruppe;
+    }
+
+    /**
+     * Legacy: Gibt die 3D-Gruppe zurück
+     * @deprecated Verwende getGroup() stattdessen
+     * @returns {THREE.Group}
+     */
+    gib3DGruppe() {
+        return this.getGroup();
     }
 }

@@ -1,187 +1,459 @@
-export class Bemassung{
-    constructor(){
-        this.gruppe=new THREE.Group,
-        this.gruppe.name="Bemaßung",
-        this.istSichtbar=!1,
-        this.styles={
-            linienfarbe:16711680,
-            textfarbe:"#000000",
-            linienbreite:2,
-            pfeilgroesse:.08,
-            textgroesse:.15,
-            abstand:.3
-        }
+/**
+ * Bemaßungs-Komponente für den Pergola-Konfigurator
+ *
+ * Erstellt visuelle Bemaßungslinien zur Anzeige der
+ * Pergola-Dimensionen (Breite, Tiefe, Höhe).
+ *
+ * Refactored: Erweitert Component3D für einheitliche API
+ */
+
+import { Component3D } from "../core/Component3D.js";
+import { COMPONENT_NAMES } from "../constants/index.js";
+
+/**
+ * Bemaßungs-Stil-Konfiguration
+ */
+const BEMASSUNG_STYLES = {
+    linienfarbe: 0xff0000,
+    textfarbe: "#000000",
+    linienbreite: 2,
+    pfeilgroesse: 0.08,
+    textgroesse: 0.15,
+    abstand: 0.3
+};
+
+/**
+ * Klasse zur Erstellung und Verwaltung von Bemaßungslinien
+ * @extends Component3D
+ */
+export class Bemassung extends Component3D {
+    /**
+     * Konstruktor
+     */
+    constructor() {
+        // Component3D ohne koordinatenSystem und konfiguration initialisieren
+        super(COMPONENT_NAMES.BEMASSUNG, null, null);
+
+        /** @type {THREE.Group} */
+        this.gruppe = new THREE.Group();
+        this.gruppe.name = "Bemaßung";
+
+        /** @type {boolean} */
+        this.istSichtbar = false;
+
+        /** @type {object} */
+        this.styles = { ...BEMASSUNG_STYLES };
     }
-    erstelleBemassung(e){
+
+    // ========================================================================
+    // HAUPTMETHODEN
+    // ========================================================================
+
+    /**
+     * Erstellt alle Bemaßungslinien
+     * @param {object} config - Konfiguration mit breite, tiefe, hoehe
+     */
+    erstelleBemassung(config) {
         this.entferneAlleBemassung();
-        const t=e.breite,
-        s=e.tiefe,
-        i=e.hoehe;
-        e.typ;
-        this.erstelleBreitenBemassung(t, s, i),
-        this.erstelleTiefenBemassung(t, s, i),
-        this.erstelleHoehenBemassung(t, s, i),
-        this.erstellePfostenHoehenBemassung(e),
-        console.log("✅ Bemaßungen erstellt")
+
+        const breite = config.breite;
+        const tiefe = config.tiefe;
+        const hoehe = config.hoehe;
+
+        this.erstelleBreitenBemassung(breite, tiefe, hoehe);
+        this.erstelleTiefenBemassung(breite, tiefe, hoehe);
+        this.erstelleHoehenBemassung(breite, tiefe, hoehe);
+        this.erstellePfostenHoehenBemassung(config);
+
+        this.logger.debug("Bemaßungen erstellt");
     }
-    erstelleBreitenBemassung(e, t, s){
-        const i=this.styles.abstand,
-        n=-i,
-        l=-i,
-        r=new THREE.Vector3(0, n, l),
-        o=new THREE.Vector3(e, n, l);
-        this.erstelleMasslinie(r, o, `${e.toFixed(2)}m`, "horizontal")
+
+    // ========================================================================
+    // EINZELNE BEMASSUNGEN
+    // ========================================================================
+
+    /**
+     * Erstellt die Breitenbemaßung
+     * @param {number} breite - Breite
+     * @param {number} tiefe - Tiefe
+     * @param {number} hoehe - Höhe
+     */
+    erstelleBreitenBemassung(breite, tiefe, hoehe) {
+        const abstand = this.styles.abstand;
+        const yPos = -abstand;
+        const zPos = -abstand;
+
+        const start = new THREE.Vector3(0, yPos, zPos);
+        const ende = new THREE.Vector3(breite, yPos, zPos);
+
+        this.erstelleMasslinie(start, ende, `${breite.toFixed(2)}m`, "horizontal");
     }
-    erstelleTiefenBemassung(e, t, s){
-        const i=this.styles.abstand,
-        n=-i,
-        l=-i,
-        r=new THREE.Vector3(n, l, 0),
-        o=new THREE.Vector3(n, l, t);
-        this.erstelleMasslinie(r, o, `${t.toFixed(2)}m`, "horizontal")
+
+    /**
+     * Erstellt die Tiefenbemaßung
+     * @param {number} breite - Breite
+     * @param {number} tiefe - Tiefe
+     * @param {number} hoehe - Höhe
+     */
+    erstelleTiefenBemassung(breite, tiefe, hoehe) {
+        const abstand = this.styles.abstand;
+        const xPos = -abstand;
+        const yPos = -abstand;
+
+        const start = new THREE.Vector3(xPos, yPos, 0);
+        const ende = new THREE.Vector3(xPos, yPos, tiefe);
+
+        this.erstelleMasslinie(start, ende, `${tiefe.toFixed(2)}m`, "horizontal");
     }
-    erstelleHoehenBemassung(e, t, s){
-        const i=e+this.styles.abstand,
-        n=new THREE.Vector3(i, 0, 0),
-        l=new THREE.Vector3(i, s, 0);
-        this.erstelleMasslinie(n, l, `${s.toFixed(2)}m`, "vertikal")
+
+    /**
+     * Erstellt die Höhenbemaßung
+     * @param {number} breite - Breite
+     * @param {number} tiefe - Tiefe
+     * @param {number} hoehe - Höhe
+     */
+    erstelleHoehenBemassung(breite, tiefe, hoehe) {
+        const xPos = breite + this.styles.abstand;
+
+        const start = new THREE.Vector3(xPos, 0, 0);
+        const ende = new THREE.Vector3(xPos, hoehe, 0);
+
+        this.erstelleMasslinie(start, ende, `${hoehe.toFixed(2)}m`, "vertikal");
     }
-    erstellePfostenHoehenBemassung(e){
-        const t=e.breite,
-        s=e.tiefe,
-        i=e.hoehe,
-        n=(e.neigung||2)*Math.PI/180,
-        l=i+Math.tan(n)*s;
-        this.erstellePfostenHoeheMasslinie(t, s, l, "Hinten", .2, -.2)
+
+    /**
+     * Erstellt die Pfosten-Höhenbemaßung (hinten)
+     * @param {object} config - Konfiguration
+     */
+    erstellePfostenHoehenBemassung(config) {
+        const breite = config.breite;
+        const tiefe = config.tiefe;
+        const hoehe = config.hoehe;
+        const neigung = (config.neigung || 2) * Math.PI / 180;
+        const hintereHoehe = hoehe + Math.tan(neigung) * tiefe;
+
+        this.erstellePfostenHoeheMasslinie(breite, tiefe, hintereHoehe, "Hinten", 0.2, -0.2);
     }
-    erstellePfostenAbstaende(e){
-        const t=e.breite,
-        s=(e.tiefe, [0]);
-        if(t>4){
-            const e=Math.ceil(t/2),
-            i=t/e;
-            for(let t=1;
-            t<e;
-            t++)s.push(t*i)
+
+    /**
+     * Erstellt Pfostenabstands-Bemaßungen
+     * @param {object} config - Konfiguration
+     */
+    erstellePfostenAbstaende(config) {
+        const breite = config.breite;
+        const positionen = [0];
+
+        // Zusätzliche Pfosten bei Breite > 4m
+        if (breite > 4) {
+            const anzahl = Math.ceil(breite / 2);
+            const abstand = breite / anzahl;
+
+            for (let i = 1; i < anzahl; i++) {
+                positionen.push(i * abstand);
+            }
         }
-        if(e.zentralerMittelpfosten){
-            const e=t/2;
-            s.includes(e)||s.push(e)
+
+        // Zentraler Mittelpfosten
+        if (config.zentralerMittelpfosten) {
+            const mitte = breite / 2;
+            if (!positionen.includes(mitte)) {
+                positionen.push(mitte);
+            }
         }
-        s.push(t),
-        s.sort((e, t)=>e-t);
-        for(let e=0;
-        e<s.length-1;
-        e++){
-            const t=s[e],
-            i=s[e+1],
-            n=i-t,
-            l=new THREE.Vector3(t, .05, .3),
-            r=new THREE.Vector3(i, .05, .3);
-            this.erstelleMasslinie(l, r, `${n.toFixed(2)}m`, "horizontal", .1)
-        }
-    }
-    erstellePfostenHoeheMasslinie(e, t, s, i, n, l){
-        const r=new THREE.Vector3(e+n, 0, t+l),
-        o=new THREE.Vector3(e+n, s, t+l);
-        this.erstelleMasslinie(r, o, `${s.toFixed(2)}m`, "vertikal", .1)
-    }
-    erstelleMasslinie(e, t, s, i, n=null){
-        const l=new THREE.Group,
-        r=new THREE.LineBasicMaterial({
-            color:this.styles.linienfarbe, linewidth:this.styles.linienbreite
-        }),
-        o=(new THREE.BufferGeometry).setFromPoints([e, t]),
-        a=new THREE.Line(o, r);
-        l.add(a);
-        const h=(new THREE.Vector3).subVectors(t, e);
-        h.length();
-        h.normalize(),
-        this.erstelleHilfslinie(e, h, i, l),
-        this.erstelleHilfslinie(t, h, i, l),
-        this.erstellePfeil(e, h.clone().negate(), l),
-        this.erstellePfeil(t, h, l);
-        const c=(new THREE.Vector3).addVectors(e, t).multiplyScalar(.5);
-        this.erstelleText(c, s, i, n, l),
-        this.gruppe.add(l)
-    }
-    erstelleHilfslinie(e, t, s, i){
-        let n;
-        n="vertikal"===s?new THREE.Vector3(0, 0, 1):new THREE.Vector3(0, 1, 0);
-        const l=e.clone().add(n.clone().multiplyScalar(-.075)),
-        r=e.clone().add(n.clone().multiplyScalar(.075)),
-        o=(new THREE.BufferGeometry).setFromPoints([l, r]),
-        a=new THREE.LineBasicMaterial({
-            color:this.styles.linienfarbe, linewidth:1
-        }),
-        h=new THREE.Line(o, a);
-        i.add(h)
-    }
-    erstellePfeil(e, t, s){
-        const i=this.styles.pfeilgroesse,
-        n=.4*this.styles.pfeilgroesse,
-        l=new THREE.ConeGeometry(n, i, 8),
-        r=new THREE.MeshBasicMaterial({
-            color:this.styles.linienfarbe, depthTest:!1, depthWrite:!1
-        }),
-        o=new THREE.Mesh(l, r);
-        o.position.copy(e);
-        const a=new THREE.Quaternion,
-        h=new THREE.Vector3(0, 1, 0);
-        a.setFromUnitVectors(h, t),
-        o.quaternion.copy(a),
-        o.renderOrder=999,
-        s.add(o)
-    }
-    erstelleText(e, t, s, i=null, n){
-        const l=i||this.styles.textgroesse,
-        r=document.createElement("canvas"),
-        o=r.getContext("2d");
-        r.width=512,
-        r.height=128,
-        o.fillStyle="#ffffff",
-        o.fillRect(0, 0, r.width, r.height),
-        o.font="Bold 60px Arial",
-        o.fillStyle=this.styles.textfarbe,
-        o.textAlign="center",
-        o.textBaseline="middle",
-        o.fillText(t, r.width/2, r.height/2);
-        const a=new THREE.CanvasTexture(r);
-        a.needsUpdate=!0;
-        const h=new THREE.SpriteMaterial({
-            map:a, transparent:!0, depthTest:!1, depthWrite:!1
-        }),
-        c=new THREE.Sprite(h);
-        c.position.copy(e),
-        c.position.y+=.1,
-        c.scale.set(4*l, l, 1),
-        n.add(c)
-    }
-    entferneAlleBemassung(){
-        for(;
-        this.gruppe.children.length>0;){
-            const e=this.gruppe.children[0];
-            e.geometry&&e.geometry.dispose(),
-            e.material&&(e.material.map&&e.material.map.dispose(), e.material.dispose()),
-            this.gruppe.remove(e)
+
+        positionen.push(breite);
+        positionen.sort((a, b) => a - b);
+
+        // Abstände zwischen Pfosten bemaßen
+        for (let i = 0; i < positionen.length - 1; i++) {
+            const startX = positionen[i];
+            const endeX = positionen[i + 1];
+            const abstand = endeX - startX;
+
+            const start = new THREE.Vector3(startX, 0.05, 0.3);
+            const ende = new THREE.Vector3(endeX, 0.05, 0.3);
+
+            this.erstelleMasslinie(start, ende, `${abstand.toFixed(2)}m`, "horizontal", 0.1);
         }
     }
-    setzeVisibility(e){
-        this.istSichtbar=e,
-        this.gruppe.visible=e,
-        console.log("📏 Bemaßung "+(e?"eingeblendet":"ausgeblendet"))
+
+    // ========================================================================
+    // MASSLINIE ERSTELLEN
+    // ========================================================================
+
+    /**
+     * Erstellt eine Pfosten-Höhenmasslinie
+     * @param {number} breite - Breite
+     * @param {number} tiefe - Tiefe
+     * @param {number} hoehe - Höhe
+     * @param {string} bezeichnung - Bezeichnung
+     * @param {number} xOffset - X-Offset
+     * @param {number} zOffset - Z-Offset
+     */
+    erstellePfostenHoeheMasslinie(breite, tiefe, hoehe, bezeichnung, xOffset, zOffset) {
+        const start = new THREE.Vector3(breite + xOffset, 0, tiefe + zOffset);
+        const ende = new THREE.Vector3(breite + xOffset, hoehe, tiefe + zOffset);
+
+        this.erstelleMasslinie(start, ende, `${hoehe.toFixed(2)}m`, "vertikal", 0.1);
     }
-    gibGruppe(){
-        return this.gruppe
+
+    /**
+     * Erstellt eine vollständige Maßlinie mit Pfeilen und Text
+     * @param {THREE.Vector3} start - Startpunkt
+     * @param {THREE.Vector3} ende - Endpunkt
+     * @param {string} text - Beschriftungstext
+     * @param {string} orientierung - "horizontal" oder "vertikal"
+     * @param {number} textGroesse - Optional: Textgröße
+     */
+    erstelleMasslinie(start, ende, text, orientierung, textGroesse = null) {
+        const massGruppe = new THREE.Group();
+
+        // Hauptlinie
+        const linienMaterial = new THREE.LineBasicMaterial({
+            color: this.styles.linienfarbe,
+            linewidth: this.styles.linienbreite
+        });
+
+        const linienGeometrie = new THREE.BufferGeometry().setFromPoints([start, ende]);
+        const linie = new THREE.Line(linienGeometrie, linienMaterial);
+        massGruppe.add(linie);
+
+        // Richtungsvektor
+        const richtung = new THREE.Vector3().subVectors(ende, start);
+        richtung.normalize();
+
+        // Hilfslinien an den Enden
+        this.erstelleHilfslinie(start, richtung, orientierung, massGruppe);
+        this.erstelleHilfslinie(ende, richtung, orientierung, massGruppe);
+
+        // Pfeile an den Enden
+        this.erstellePfeil(start, richtung.clone().negate(), massGruppe);
+        this.erstellePfeil(ende, richtung, massGruppe);
+
+        // Text in der Mitte
+        const mittelpunkt = new THREE.Vector3().addVectors(start, ende).multiplyScalar(0.5);
+        this.erstelleText(mittelpunkt, text, orientierung, textGroesse, massGruppe);
+
+        this.gruppe.add(massGruppe);
     }
-    istBemassungSichtbar(){
-        return this.istSichtbar
+
+    /**
+     * Erstellt eine Hilfslinie senkrecht zur Maßlinie
+     * @param {THREE.Vector3} punkt - Punkt
+     * @param {THREE.Vector3} richtung - Richtungsvektor
+     * @param {string} orientierung - "horizontal" oder "vertikal"
+     * @param {THREE.Group} gruppe - Zielgruppe
+     */
+    erstelleHilfslinie(punkt, richtung, orientierung, gruppe) {
+        let senkrecht;
+
+        if (orientierung === "vertikal") {
+            senkrecht = new THREE.Vector3(0, 0, 1);
+        } else {
+            senkrecht = new THREE.Vector3(0, 1, 0);
+        }
+
+        const start = punkt.clone().add(senkrecht.clone().multiplyScalar(-0.075));
+        const ende = punkt.clone().add(senkrecht.clone().multiplyScalar(0.075));
+
+        const geometrie = new THREE.BufferGeometry().setFromPoints([start, ende]);
+        const material = new THREE.LineBasicMaterial({
+            color: this.styles.linienfarbe,
+            linewidth: 1
+        });
+
+        const linie = new THREE.Line(geometrie, material);
+        gruppe.add(linie);
     }
-    aktualisieren(e){
-        this.istSichtbar&&this.erstelleBemassung(e)
+
+    /**
+     * Erstellt einen Pfeil
+     * @param {THREE.Vector3} position - Position
+     * @param {THREE.Vector3} richtung - Richtungsvektor
+     * @param {THREE.Group} gruppe - Zielgruppe
+     */
+    erstellePfeil(position, richtung, gruppe) {
+        const hoehe = this.styles.pfeilgroesse;
+        const radius = 0.4 * this.styles.pfeilgroesse;
+
+        const geometrie = new THREE.ConeGeometry(radius, hoehe, 8);
+        const material = new THREE.MeshBasicMaterial({
+            color: this.styles.linienfarbe,
+            depthTest: false,
+            depthWrite: false
+        });
+
+        const mesh = new THREE.Mesh(geometrie, material);
+        mesh.position.copy(position);
+
+        // Rotation zur Richtung
+        const quaternion = new THREE.Quaternion();
+        const oben = new THREE.Vector3(0, 1, 0);
+        quaternion.setFromUnitVectors(oben, richtung);
+        mesh.quaternion.copy(quaternion);
+
+        mesh.renderOrder = 999;
+        gruppe.add(mesh);
     }
-    dispose(){
-        this.entferneAlleBemassung(),
-        console.log("🧹 Bemaßung aufgeräumt")
+
+    /**
+     * Erstellt ein Text-Sprite
+     * @param {THREE.Vector3} position - Position
+     * @param {string} text - Text
+     * @param {string} orientierung - "horizontal" oder "vertikal"
+     * @param {number} groesse - Optional: Textgröße
+     * @param {THREE.Group} gruppe - Zielgruppe
+     */
+    erstelleText(position, text, orientierung, groesse = null, gruppe) {
+        const textGroesse = groesse || this.styles.textgroesse;
+
+        // Canvas erstellen
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        canvas.width = 512;
+        canvas.height = 128;
+
+        // Hintergrund
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Text
+        context.font = "Bold 60px Arial";
+        context.fillStyle = this.styles.textfarbe;
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+        // Textur erstellen
+        const textur = new THREE.CanvasTexture(canvas);
+        textur.needsUpdate = true;
+
+        // Sprite erstellen
+        const spriteMaterial = new THREE.SpriteMaterial({
+            map: textur,
+            transparent: true,
+            depthTest: false,
+            depthWrite: false
+        });
+
+        const sprite = new THREE.Sprite(spriteMaterial);
+        sprite.position.copy(position);
+        sprite.position.y += 0.1;
+        sprite.scale.set(4 * textGroesse, textGroesse, 1);
+
+        gruppe.add(sprite);
+    }
+
+    // ========================================================================
+    // CLEANUP UND VISIBILITY
+    // ========================================================================
+
+    /**
+     * Entfernt alle Bemaßungselemente
+     */
+    entferneAlleBemassung() {
+        while (this.gruppe.children.length > 0) {
+            const child = this.gruppe.children[0];
+
+            if (child.geometry) {
+                child.geometry.dispose();
+            }
+
+            if (child.material) {
+                if (child.material.map) {
+                    child.material.map.dispose();
+                }
+                child.material.dispose();
+            }
+
+            this.gruppe.remove(child);
+        }
+    }
+
+    /**
+     * Setzt die Sichtbarkeit der Bemaßung
+     * @param {boolean} sichtbar - Sichtbar oder nicht
+     */
+    setzeVisibility(sichtbar) {
+        this.istSichtbar = sichtbar;
+        this.gruppe.visible = sichtbar;
+        this.logger.debug("Bemaßung " + (sichtbar ? "eingeblendet" : "ausgeblendet"));
+    }
+
+    /**
+     * Gibt die Gruppe zurück
+     * @returns {THREE.Group}
+     */
+    gibGruppe() {
+        return this.gruppe;
+    }
+
+    /**
+     * Prüft ob die Bemaßung sichtbar ist
+     * @returns {boolean}
+     */
+    istBemassungSichtbar() {
+        return this.istSichtbar;
+    }
+
+    /**
+     * Aktualisiert die Bemaßung
+     * @param {object} config - Konfiguration
+     */
+    aktualisieren(config) {
+        if (this.istSichtbar) {
+            this.erstelleBemassung(config);
+        }
+    }
+
+    // ========================================================================
+    // COMPONENT3D INTERFACE
+    // ========================================================================
+
+    /**
+     * Erstellt die Komponente (Component3D Interface)
+     * @param {object} config - Konfiguration
+     * @returns {THREE.Group}
+     */
+    create(config) {
+        if (config) {
+            this.erstelleBemassung(config);
+        }
+        return this.gruppe;
+    }
+
+    /**
+     * Gibt alle Elemente zurück (Component3D Interface)
+     * @returns {THREE.Object3D[]}
+     */
+    getAll() {
+        return [...this.gruppe.children];
+    }
+
+    /**
+     * Gibt die 3D-Gruppe zurück (Component3D Interface)
+     * @returns {THREE.Group}
+     */
+    getGroup() {
+        return this.gruppe;
+    }
+
+    /**
+     * Legacy: Gibt die 3D-Gruppe zurück
+     * @deprecated Verwende getGroup() stattdessen
+     * @returns {THREE.Group}
+     */
+    gib3DGruppe() {
+        return this.gruppe;
+    }
+
+    /**
+     * Cleanup (Component3D Interface)
+     */
+    dispose() {
+        this.entferneAlleBemassung();
+        this.logger.debug("Bemaßung aufgeräumt");
+        super.dispose();
     }
 }

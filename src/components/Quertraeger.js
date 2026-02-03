@@ -1,451 +1,552 @@
-import{
-    ProfileKonfiguration
-}
-from"../config/ProfileKonfiguration.js";
-import{
-    MaterialManager
-}
-from"../core/MaterialManager.js";
-import{
-    disposeEdgeHighlights
-}
-from"../utils/edgeHighlight.js";
-import{
-    createSmoothBoxGeometry
-}
-from"../utils/geometry.js";
-export class Quertraeger{
-    constructor(e, t, r, n){
-        this.koordinatenSystem=e,
-        this.konfiguration=t,
-        this.pfostenInstanz=r,
-        this.laengstraegerInstanz=n,
-        this.profileKonfig=new ProfileKonfiguration,
-        this.quertraegerListe=[],
-        this.quertraegerGruppe=new THREE.Group,
-        this.quertraegerGruppe.name="QuertraegerGruppe"
+/**
+ * Querträger-Komponente für den Pergola-Konfigurator
+ *
+ * Refactored: Erbt von Component3D, nutzt Logger und Constants
+ */
+
+import { ProfileKonfiguration } from "../config/ProfileKonfiguration.js";
+import { MaterialManager } from "../core/MaterialManager.js";
+import { disposeEdgeHighlights } from "../utils/edgeHighlight.js";
+import { createSmoothBoxGeometry } from "../utils/geometry.js";
+
+// Neue Module
+import { Component3D } from "../core/Component3D.js";
+import { COMPONENT_NAMES, ROOF_TYPES } from "../constants/index.js";
+
+/**
+ * Querträger-Komponente
+ * Verwaltet alle Querträger der Pergola (vorne, hinten, zwischen)
+ */
+export class Quertraeger extends Component3D {
+    /**
+     * @param {object} koordinatenSystem - Referenz zum KoordinatenSystem
+     * @param {object} konfiguration - Referenz zur PergolaKonfiguration
+     * @param {object} pfostenInstanz - Referenz zur Pfosten-Komponente
+     * @param {object} laengstraegerInstanz - Referenz zur Längsträger-Komponente
+     */
+    constructor(koordinatenSystem, konfiguration, pfostenInstanz, laengstraegerInstanz) {
+        super(COMPONENT_NAMES.QUERTRAEGER, koordinatenSystem, konfiguration);
+
+        // Querträger-spezifische Eigenschaften
+        this.pfostenInstanz = pfostenInstanz;
+        this.laengstraegerInstanz = laengstraegerInstanz;
+        this.profileKonfig = new ProfileKonfiguration();
+        this.quertraegerListe = [];
+        this.quertraegerGruppe = this.gruppe; // Alias für Legacy-Kompatibilität
+        this.quertraegerGruppe.name = "QuertraegerGruppe";
     }
-    erstelleQuertraeger(){
+
+    // ========================================================================
+    // COMPONENT3D INTERFACE
+    // ========================================================================
+
+    /**
+     * Erstellt alle Querträger
+     * @returns {THREE.Group}
+     */
+    create() {
+        return this.erstelleQuertraeger();
+    }
+
+    // ========================================================================
+    // QUERTRÄGER-ERSTELLUNG
+    // ========================================================================
+
+    /**
+     * Erstellt alle Querträger basierend auf der Konfiguration
+     * @returns {THREE.Group}
+     */
+    erstelleQuertraeger() {
         this.entferneQuertraeger();
-        const e=this.konfiguration.gibAktuelleKonfiguration(),
-        t=this.koordinatenSystem.gibReferenzpunkt("quertraegerReferenz");
-        return t&&0!==t.length?(t.forEach((t, r)=>{
-            const n=this.erstelleEinzelnenQuertraeger(t, e, r);
-            n&&(this.quertraegerListe.push(n), this.quertraegerGruppe.add(n.mesh))
-        }), this.quertraegerGruppe):(console.warn("Keine Querträger-Referenzpunkte gefunden"), this.quertraegerGruppe)
+
+        const config = this.konfiguration.gibAktuelleKonfiguration();
+        const referenzpunkte = this.koordinatenSystem.gibReferenzpunkt("quertraegerReferenz");
+
+        if (!referenzpunkte || referenzpunkte.length === 0) {
+            this.logger.warn("Keine Querträger-Referenzpunkte gefunden");
+            return this.quertraegerGruppe;
+        }
+
+        referenzpunkte.forEach((ref, index) => {
+            const quertraeger = this.erstelleEinzelnenQuertraeger(ref, config, index);
+            if (quertraeger) {
+                this.quertraegerListe.push(quertraeger);
+                this.quertraegerGruppe.add(quertraeger.mesh);
+            }
+        });
+
+        return this.quertraegerGruppe;
     }
-    erstelleEinzelnenQuertraeger(e, t, r){
-        const n=this.berechneAuflagepunkteAufLaengstraegern(e, t);
-        if(!n)return console.warn(`Keine gültigen Auflagepunkte für Querträger ${e.position}`),
-        null;
-        const s="string"==typeof e.position&&!["vorne",
-        "hinten"].includes(e.position.toLowerCase()),
-        i="epdm"===t.dachTyp&&s?.02:0,
-        a=this.profileKonfig.gibMitteltraegerProfil(t),
-        o=s&&a?a:this.profileKonfig.gibAktuellesProfil(),
-        u=o?.abmessungen||{},
-        g=u.tiefe||0,
-        l=u.breite||0,
-        h=this.pfostenInstanz?.profileKonfig?.gibAktuellesProfil?.()||null,
-        c=h?.abmessungen?.breite||0,
-        f=this.laengstraegerInstanz?.profileKonfig?.gibAktuellesProfil?.()||null,
-        p=f?.abmessungen?.tiefe||0,
-        m=!1!==t.individuellerPfostenStand?.hinten_links&&!1!==t.individuellerPfostenStand?.hinten_rechts,
-        d="hinten"===e.position,
-        b=new THREE.Vector3(n.rechts.x-n.links.x, n.rechts.y-n.links.y, n.rechts.z-n.links.z),
-        k=b.length();
-        let E=k,
-        z=0;
-        if(s){
-            const e=p;
-            E=Math.max(.05, k-e),
-            z=e
+
+    /**
+     * Erstellt einen einzelnen Querträger
+     */
+    erstelleEinzelnenQuertraeger(referenz, config, index) {
+        const auflagepunkte = this.berechneAuflagepunkteAufLaengstraegern(referenz, config);
+
+        if (!auflagepunkte) {
+            this.logger.warn(`Keine gültigen Auflagepunkte für Querträger ${referenz.position}`);
+            return null;
         }
-        else if(d&&!m){
-            const e=2*p;
-            E=Math.max(.05, k-e),
-            z=e,
-            console.log(`🔧 WANDMONTAGE: Hinterer Querträger gekürzt von ${k.toFixed(3)}m auf ${E.toFixed(3)}m (Kürzung: ${e.toFixed(3)}m)`)
+
+        // Prüfe ob es ein mittlerer Querträger ist
+        const istMittlererQuertraeger = typeof referenz.position === "string" &&
+            !["vorne", "hinten"].includes(referenz.position.toLowerCase());
+
+        // EPDM-Offset für mittlere Querträger
+        const epdmOffset = (config.dachTyp === ROOF_TYPES.EPDM && istMittlererQuertraeger) ? 0.02 : 0;
+
+        // Profil-Auswahl
+        const mittelProfil = this.profileKonfig.gibMitteltraegerProfil(config);
+        const profil = (istMittlererQuertraeger && mittelProfil) ? mittelProfil : this.profileKonfig.gibAktuellesProfil();
+        const abmessungen = profil?.abmessungen || {};
+        const profilTiefe = abmessungen.tiefe || 0;
+        const profilBreite = abmessungen.breite || 0;
+
+        // Pfosten- und Längsträger-Profile
+        const pfostenProfil = this.pfostenInstanz?.profileKonfig?.gibAktuellesProfil?.() || null;
+        const pfostenBreite = pfostenProfil?.abmessungen?.breite || 0;
+        const laengstraegerProfil = this.laengstraegerInstanz?.profileKonfig?.gibAktuellesProfil?.() || null;
+        const laengstraegerTiefe = laengstraegerProfil?.abmessungen?.tiefe || 0;
+
+        // Prüfe ob hintere Pfosten aktiv sind (für Wandmontage)
+        const hinterePfostenAktiv = config.individuellerPfostenStand?.hinten_links !== false &&
+            config.individuellerPfostenStand?.hinten_rechts !== false;
+        const istHintererQuertraeger = referenz.position === "hinten";
+
+        // Berechne Richtung und Länge
+        const richtung = new THREE.Vector3(
+            auflagepunkte.rechts.x - auflagepunkte.links.x,
+            auflagepunkte.rechts.y - auflagepunkte.links.y,
+            auflagepunkte.rechts.z - auflagepunkte.links.z
+        );
+        const basisLaenge = richtung.length();
+
+        // Effektive Länge berechnen
+        let effektiveLaenge = basisLaenge;
+        let kuerzung = 0;
+
+        if (istMittlererQuertraeger) {
+            const offset = laengstraegerTiefe;
+            effektiveLaenge = Math.max(0.05, basisLaenge - offset);
+            kuerzung = offset;
+        } else if (istHintererQuertraeger && !hinterePfostenAktiv) {
+            const offset = 2 * laengstraegerTiefe;
+            effektiveLaenge = Math.max(0.05, basisLaenge - offset);
+            kuerzung = offset;
+            this.logger.debug(`WANDMONTAGE: Hinterer Querträger gekürzt von ${basisLaenge.toFixed(3)}m auf ${effektiveLaenge.toFixed(3)}m`);
+        } else if (pfostenBreite > 0 && referenz.links?.x !== undefined && referenz.rechts?.x !== undefined) {
+            const linksX = referenz.links.x - pfostenBreite / 2;
+            const rechtsX = referenz.rechts.x + pfostenBreite / 2;
+            effektiveLaenge = Math.max(basisLaenge, rechtsX - linksX);
+        } else {
+            effektiveLaenge += laengstraegerTiefe;
         }
-        else if(c>0&&void 0!==e.links?.x&&void 0!==e.rechts?.x){
-            const t=e.links.x-c/2,
-            r=e.rechts.x+c/2;
-            E=Math.max(k, r-t)
-        }
-        else E+=p;
-        const y=this.erstelleQuertraegerMaterial(t);
-        let x,
-        M;
-        if("rinne"===t.regenwasserAbfluss&&"vorne"===e.position){
-            const quertraegerZ = e.z;
-            const quertraegerX = (n.links.x+n.rechts.x)/2;  // X-Position der Rinne
-            const wandstaerke = o?.abmessungen?.wandstaerke||.1*l,
-            r=this.erzeugeRinnenQuertraeger(E, l, g, wandstaerke, y, t, quertraegerZ, quertraegerX);
-            x=r.mesh,
-            M=r.geometrien
-        }
-        else{
-            const r=createSmoothBoxGeometry(E, l, g);
-            if("glasueberstand"===t.regenwasserAbfluss&&"vorne"===e.position&&this.passeOberkanteFuerGlasUeberstandAn(r, l, g, e.neigungswinkel||0), "hinten"===e.position&&this.passeOberkanteFuerHinterenQuertraegerAn(r, l, g, e.neigungswinkel||0), x=new THREE.Mesh(r, y), M=[r], "hinten"===e.position){
-                const blendblech=this.erzeugeBlendblech(E, l, g, e.neigungswinkel||0, y, n, e.z);
-                blendblech&&(x.add(blendblech.mesh), M.push(blendblech.geometrie));
-                
-                // L-Schienen für hinteren Querträger (nur bei Pultdach mit Glas)
-                const lSchienen = this.erzeugeLFoermigeSchieneFuerHinterenQuertraeger(t, n, g);
-                lSchienen.forEach(schiene => {
-                    x.add(schiene);
-                });
+
+        // Material erstellen
+        const material = this.erstelleQuertraegerMaterial(config);
+
+        let mesh, geometrien;
+
+        // Rinnen-Querträger oder Standard-Querträger
+        if (config.regenwasserAbfluss === "rinne" && referenz.position === "vorne") {
+            const quertraegerZ = referenz.z;
+            const quertraegerX = (auflagepunkte.links.x + auflagepunkte.rechts.x) / 2;
+            const wandstaerke = profil?.abmessungen?.wandstaerke || 0.1 * profilBreite;
+
+            const rinne = this.erzeugeRinnenQuertraeger(
+                effektiveLaenge, profilBreite, profilTiefe, wandstaerke,
+                material, config, quertraegerZ, quertraegerX
+            );
+            mesh = rinne.mesh;
+            geometrien = rinne.geometrien;
+        } else {
+            const geometrie = createSmoothBoxGeometry(effektiveLaenge, profilBreite, profilTiefe);
+
+            // Geometrie-Anpassungen
+            if (config.regenwasserAbfluss === "glasueberstand" && referenz.position === "vorne") {
+                this.passeOberkanteFuerGlasUeberstandAn(geometrie, profilBreite, profilTiefe, referenz.neigungswinkel || 0);
+            }
+
+            if (referenz.position === "hinten") {
+                this.passeOberkanteFuerHinterenQuertraegerAn(geometrie, profilBreite, profilTiefe, referenz.neigungswinkel || 0);
+            }
+
+            mesh = new THREE.Mesh(geometrie, material);
+            geometrien = [geometrie];
+
+            // Blendblech und L-Schienen für hinteren Querträger
+            if (referenz.position === "hinten") {
+                const blendblech = this.erzeugeBlendblech(
+                    effektiveLaenge, profilBreite, profilTiefe,
+                    referenz.neigungswinkel || 0, material, auflagepunkte, referenz.z
+                );
+                if (blendblech) {
+                    mesh.add(blendblech.mesh);
+                    geometrien.push(blendblech.geometrie);
+                }
+
+                // L-Schienen für Pultdach mit Glas
+                const lSchienen = this.erzeugeLFoermigeSchieneFuerHinterenQuertraeger(config, auflagepunkte, profilTiefe);
+                lSchienen.forEach(schiene => mesh.add(schiene));
             }
         }
-        const w=new THREE.Vector3((n.links.x+n.rechts.x)/2, (n.links.y+n.rechts.y)/2, e.z);
-        if(d&&!m&&Number.isFinite(g)){
-            const e=.001;
-            w.z-=g/2+e
-        }
-        let Q=null;
-        if(s){
-            const t=this.berechneAuflageHoeheFuerMittlerenQuertraeger(e.z, n);
-            Number.isFinite(t)&&(Q=t)
-        }
-        else{
-            const t=this.laengstraegerInstanz?.gibLaengstraeger?.("links"),
-            r=this.laengstraegerInstanz?.gibLaengstraeger?.("rechts"),
-            s=[t?this.berechneLaengstraegerOberkanteBeiZ(t, n.links?.z??e.z):null,
-            r?this.berechneLaengstraegerOberkanteBeiZ(r, n.rechts?.z??e.z):null].filter(e=>Number.isFinite(e));
-            s.length&&(Q=s.reduce((e, t)=>e+t, 0)/s.length)
-        }
-        const A={
-            x:b.x,
-            y:b.y,
-            z:b.z
-        };
-        let H=0;
-        (Math.abs(A.y)>.001||Math.abs(A.z)>.001)&&(H=Math.atan2(A.y, A.x));
-        let R=e.neigungswinkel||0;
 
-        // Bei Flachdach+Glas: Neigung direkt von den inneren Längsträgern ableiten (inkl. 8mm-Absenkung hinten)
-        if(s && "glas"===t.dachTyp && Math.abs(t.neigung||0)<=1e-6){
-            const mitteltraeger = this.laengstraegerInstanz?.gibAlleLaengstraeger?.().find(o=>"string"==typeof o.name&&o.name.startsWith("mitte"));
+        // Position berechnen
+        const mittelpunkt = new THREE.Vector3(
+            (auflagepunkte.links.x + auflagepunkte.rechts.x) / 2,
+            (auflagepunkte.links.y + auflagepunkte.rechts.y) / 2,
+            referenz.z
+        );
+
+        // Z-Anpassung für Wandmontage
+        if (istHintererQuertraeger && !hinterePfostenAktiv && Number.isFinite(profilTiefe)) {
+            const epsilon = 0.001;
+            mittelpunkt.z -= profilTiefe / 2 + epsilon;
+        }
+
+        // Auflagehöhe berechnen
+        let auflageHoehe = null;
+
+        if (istMittlererQuertraeger) {
+            const hoehe = this.berechneAuflageHoeheFuerMittlerenQuertraeger(referenz.z, auflagepunkte);
+            if (Number.isFinite(hoehe)) {
+                auflageHoehe = hoehe;
+            }
+        } else {
+            const linksLaengstraeger = this.laengstraegerInstanz?.gibLaengstraeger?.("links");
+            const rechtsLaengstraeger = this.laengstraegerInstanz?.gibLaengstraeger?.("rechts");
+
+            const hoehen = [
+                linksLaengstraeger ? this.berechneLaengstraegerOberkanteBeiZ(linksLaengstraeger, auflagepunkte.links?.z ?? referenz.z) : null,
+                rechtsLaengstraeger ? this.berechneLaengstraegerOberkanteBeiZ(rechtsLaengstraeger, auflagepunkte.rechts?.z ?? referenz.z) : null
+            ].filter(h => Number.isFinite(h));
+
+            if (hoehen.length) {
+                auflageHoehe = hoehen.reduce((sum, h) => sum + h, 0) / hoehen.length;
+            }
+        }
+
+        // Rotation berechnen
+        const richtungNorm = { x: richtung.x, y: richtung.y, z: richtung.z };
+        let rotationZ = 0;
+        if (Math.abs(richtungNorm.y) > 0.001 || Math.abs(richtungNorm.z) > 0.001) {
+            rotationZ = Math.atan2(richtungNorm.y, richtungNorm.x);
+        }
+
+        let neigungswinkel = referenz.neigungswinkel || 0;
+
+        // Flachdach + Glas: Neigung aus Mittelträgern ableiten
+        if (istMittlererQuertraeger && config.dachTyp === ROOF_TYPES.GLAS && Math.abs(config.neigung || 0) <= 1e-6) {
+            const mitteltraeger = this.laengstraegerInstanz?.gibAlleLaengstraeger?.()
+                .find(lt => typeof lt.name === "string" && lt.name.startsWith("mitte"));
+
             const start = mitteltraeger?.referenzpunkte?.start;
             const ende = mitteltraeger?.referenzpunkte?.ende;
-            const hoehe = mitteltraeger?.abmessungen?.hoehe||0;
-            if(start&&ende){
+            const hoehe = mitteltraeger?.abmessungen?.hoehe || 0;
+
+            if (start && ende) {
                 let startTop = start.y + hoehe;
                 let endeTop = ende.y + hoehe;
-                const hintenIstStart = start.z>ende.z;
+                const hintenIstStart = start.z > ende.z;
+
                 // Geometrie: hintere Kante 8mm abgesenkt
-                hintenIstStart?startTop-=.008:endeTop-=.008;
-                const deltaZ = ende.z-start.z;
-                const effektiveTiefe = Math.abs(deltaZ)>1e-6?deltaZ:t.tiefe||1;
-                R=Math.atan2(endeTop-startTop, effektiveTiefe);
-                console.log(`🔧 Querträger ${e.position} Neigung aus Mittelträger:`, {
-                    startTop,
-                    endeTop,
+                if (hintenIstStart) {
+                    startTop -= 0.008;
+                } else {
+                    endeTop -= 0.008;
+                }
+
+                const deltaZ = ende.z - start.z;
+                const effektiveTiefe = Math.abs(deltaZ) > 1e-6 ? deltaZ : (config.tiefe || 1);
+                neigungswinkel = Math.atan2(endeTop - startTop, effektiveTiefe);
+
+                this.logger.debug(`Querträger ${referenz.position} Neigung aus Mittelträger:`, {
+                    startTop, endeTop,
                     deltaZ: effektiveTiefe,
-                    winkelGrad:(R*180/Math.PI).toFixed(3)
+                    winkelGrad: (neigungswinkel * 180 / Math.PI).toFixed(3)
                 });
-            }else{
-                const absenkungHinten=.008;
-                R=Math.atan2(absenkungHinten, t.tiefe||1);
-                console.log(`⚠️ Querträger ${e.position}: Nutze Fallback-Neigung`, {
-                    absenkung:absenkungHinten,
-                    tiefe:t.tiefe||1,
-                    winkelGrad:(R*180/Math.PI).toFixed(3)
+            } else {
+                const absenkungHinten = 0.008;
+                neigungswinkel = Math.atan2(absenkungHinten, config.tiefe || 1);
+
+                this.logger.debug(`Querträger ${referenz.position}: Nutze Fallback-Neigung`, {
+                    absenkung: absenkungHinten,
+                    tiefe: config.tiefe || 1,
+                    winkelGrad: (neigungswinkel * 180 / Math.PI).toFixed(3)
                 });
             }
         }
 
-        const T="string"==typeof e.position&&e.position.startsWith("mitte")?new THREE.Euler(-R, 0, H, "XYZ"):new THREE.Euler(0, 0, H, "XYZ");
-        x.rotation.copy(T);
-        const S=new THREE.Vector3(0, l/2, 0).applyEuler(T),
-        q=S.clone().negate();
-        if(Number.isFinite(Q)){
-            // Bei Flachdach+Glas: Innere Querträger leicht absenken für Bündigkeit mit Längsträgern
-            if(s && "glas"===t.dachTyp && Math.abs(t.neigung||0)<=1e-6){
-                // Kleine Absenkung von 4mm (halbe der 8mm-Absenkung der Längsträger)
-                Q -= 0.004;
+        // Euler-Rotation erstellen
+        const istMittePosition = typeof referenz.position === "string" && referenz.position.startsWith("mitte");
+        const rotation = istMittePosition
+            ? new THREE.Euler(-neigungswinkel, 0, rotationZ, "XYZ")
+            : new THREE.Euler(0, 0, rotationZ, "XYZ");
+
+        mesh.rotation.copy(rotation);
+
+        // Position mit Offset berechnen
+        const oberkanteOffset = new THREE.Vector3(0, profilBreite / 2, 0).applyEuler(rotation);
+        const unterkanteOffset = oberkanteOffset.clone().negate();
+
+        if (Number.isFinite(auflageHoehe)) {
+            // Flachdach + Glas: Innere Querträger leicht absenken
+            if (istMittlererQuertraeger && config.dachTyp === ROOF_TYPES.GLAS && Math.abs(config.neigung || 0) <= 1e-6) {
+                auflageHoehe -= 0.004;
             }
-            s||(Q-=1e-5);
-            const e=new THREE.Vector3(w.x, Q, w.z).clone().add(q);
-            w.copy(e).sub(S),
-            w.y=Math.min(w.y, Q-1e-6)
+
+            if (!istMittlererQuertraeger) {
+                auflageHoehe -= 1e-5;
+            }
+
+            const neuePosition = new THREE.Vector3(mittelpunkt.x, auflageHoehe, mittelpunkt.z)
+                .clone().add(unterkanteOffset);
+            mittelpunkt.copy(neuePosition).sub(oberkanteOffset);
+            mittelpunkt.y = Math.min(mittelpunkt.y, auflageHoehe - 1e-6);
         }
-        const F=new THREE.Vector3(1, 0, 0).applyEuler(T).multiplyScalar(1e-4),
-        L=w.clone().add(S).add(F);
-        if(L.y-=i, x.position.copy(L), d&&!m&&Number.isFinite(g)){
-            const e=.001;
-            x.position.z=t.tiefe-g/2-e
+
+        // Finale Position
+        const epsilon = new THREE.Vector3(1, 0, 0).applyEuler(rotation).multiplyScalar(1e-4);
+        const finalePosition = mittelpunkt.clone().add(oberkanteOffset).add(epsilon);
+
+        finalePosition.y -= epdmOffset;
+        mesh.position.copy(finalePosition);
+
+        // Wandmontage: Z-Position anpassen
+        if (istHintererQuertraeger && !hinterePfostenAktiv && Number.isFinite(profilTiefe)) {
+            const epsilonZ = 0.001;
+            mesh.position.z = config.tiefe - profilTiefe / 2 - epsilonZ;
         }
-        x.traverse?.(e=>{
-            e.isMesh&&(e.castShadow=!0, e.receiveShadow=!0)
-        }),
-        x.traverse||(x.castShadow=!0, x.receiveShadow=!0),
-        x.name=`Quertraeger_${e.position}_${r}`;
-        return{
-            name:`${e.position}_${r}`,
-            position:e.position,
-            mesh:x,
-            geometrie:M,
-            material:y,
-            auflagepunkte:{
-                links:{
-                    ...n.links
-                },
-                rechts:{
-                    ...n.rechts
-                },
-                mittelpunkt:{
-                    x:L.x,
-                    y:L.y,
-                    z:L.z
+
+        // Schatten aktivieren
+        mesh.traverse?.(child => {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+        });
+
+        if (!mesh.traverse) {
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+        }
+
+        mesh.name = `Quertraeger_${referenz.position}_${index}`;
+
+        return {
+            name: `${referenz.position}_${index}`,
+            position: referenz.position,
+            mesh: mesh,
+            geometrie: geometrien,
+            material: material,
+            auflagepunkte: {
+                links: { ...auflagepunkte.links },
+                rechts: { ...auflagepunkte.rechts },
+                mittelpunkt: {
+                    x: finalePosition.x,
+                    y: finalePosition.y,
+                    z: finalePosition.z
                 }
             },
-            abmessungen:{
-                laenge:E,
-                breite:g,
-                hoehe:l
+            abmessungen: {
+                laenge: effektiveLaenge,
+                breite: profilTiefe,
+                hoehe: profilBreite
             },
-            eigenschaften:{
-                zPosition:e.z,
-                index:r,
-                typ:this.bestimmeQuertraegerTyp(e.position)
+            eigenschaften: {
+                zPosition: referenz.z,
+                index: index,
+                typ: this.bestimmeQuertraegerTyp(referenz.position)
             }
-        }
+        };
     }
-    erzeugeRinnenQuertraeger(e, t, r, n, s, config, quertraegerZ, quertraegerX){
-        const i=new THREE.Group,
-        a=createSmoothBoxGeometry(e, n, r),
-        o=new THREE.Mesh(a, s);
-        o.position.y=-t/2+n/2;
 
-        // Bei Flachdach mit EPDM-Folie: Innenseite verlängern, um bündig zu sein
+    // ========================================================================
+    // RINNEN-QUERTRÄGER
+    // ========================================================================
+
+    /**
+     * Erzeugt einen Rinnen-Querträger (U-Profil)
+     */
+    erzeugeRinnenQuertraeger(laenge, hoehe, tiefe, wandstaerke, material, config, quertraegerZ, quertraegerX) {
+        const gruppe = new THREE.Group();
+
+        // Boden
+        const bodenGeom = createSmoothBoxGeometry(laenge, wandstaerke, tiefe);
+        const bodenMesh = new THREE.Mesh(bodenGeom, material);
+        bodenMesh.position.y = -hoehe / 2 + wandstaerke / 2;
+
+        // Bestimme ob Flachdach mit EPDM
         const istFlachdach = config?.neigung === 0;
-        const istEPDM = config?.dachTyp === "epdm";
+        const istEPDM = config?.dachTyp === ROOF_TYPES.EPDM;
 
-        const u=createSmoothBoxGeometry(e, t, n),
-        g=u.clone(),
-        l=createSmoothBoxGeometry(n, t, r),
-        h=l.clone(),
-        c=new THREE.Mesh(u, s);
-        c.position.z=-r/2+n/2;
+        // Außenseite (vordere Seite)
+        const aussenseiteGeom = createSmoothBoxGeometry(laenge, hoehe, wandstaerke);
+        const aussenseiteMesh = new THREE.Mesh(aussenseiteGeom, material);
+        aussenseiteMesh.position.z = -tiefe / 2 + wandstaerke / 2;
 
-        // Innenseite (hintere Seite des U-Profils)
-        let innenseiteHoehe = t;
+        // Innenseite (hintere Seite)
+        let innenseiteHoehe = hoehe;
         let innenseiteYOffset = 0;
 
-        if(istFlachdach && istEPDM) {
-            // Bei EPDM: Verlängere die Innenseite um 0.02m, um bündig mit der EPDM-Folie zu sein
-            const epdmOffset = -0.05; // EPDM-Folie ist 2cm höher (siehe Zeile 43)
-
-            // Verlängere die Innenseite um den EPDM-Offset
-            innenseiteHoehe = t + epdmOffset;
-            // Halte die Unterkante an derselben Position, Top wird angehoben
+        if (istFlachdach && istEPDM) {
+            const epdmOffset = -0.05;
+            innenseiteHoehe = hoehe + epdmOffset;
             innenseiteYOffset = epdmOffset / 2;
 
-            console.log("🏗️ Flachdach mit EPDM - Rinnen-Innenseite verlängert:", {
-                epdmOffset,
-                originalHoehe: t,
-                neueHoehe: innenseiteHoehe,
-                yOffset: innenseiteYOffset
+            this.logger.debug("Flachdach mit EPDM - Rinnen-Innenseite verlängert:", {
+                epdmOffset, originalHoehe: hoehe, neueHoehe: innenseiteHoehe
             });
-        } else if(istFlachdach) {
-            // Bei Flachdach ohne EPDM: Innenseite kürzen (ursprünglicher Code)
-            const rahmenProfilHoehe = this.profileKonfig?.gibAktuellesProfil?.()?.abmessungen?.breite ?? t;
+        } else if (istFlachdach) {
+            const rahmenProfilHoehe = this.profileKonfig?.gibAktuellesProfil?.()?.abmessungen?.breite ?? hoehe;
             const mittelProfilHoehe = this.profileKonfig?.gibMitteltraegerProfil?.(config)?.abmessungen?.breite ?? rahmenProfilHoehe;
             const profilDifferenz = Math.max(rahmenProfilHoehe - mittelProfilHoehe, 0);
 
-            if(profilDifferenz > 0) {
-                // Kürze die Innenseite um die Differenz der Profilhöhen
-                innenseiteHoehe = Math.max(t - profilDifferenz, n);
-                // Halte die Unterkante an derselben Position, Top wird abgesenkt
+            if (profilDifferenz > 0) {
+                innenseiteHoehe = Math.max(hoehe - profilDifferenz, wandstaerke);
                 innenseiteYOffset = -profilDifferenz / 2;
 
-                console.log("🏗️ Flachdach Rinnen-Innenseite (Profil-Differenz):", {
-                    rahmenProfilHoehe,
-                    mittelProfilHoehe,
-                    profilDifferenz,
-                    originalHoehe: t,
-                    neueHoehe: innenseiteHoehe,
-                    yOffset: innenseiteYOffset
+                this.logger.debug("Flachdach Rinnen-Innenseite (Profil-Differenz):", {
+                    rahmenProfilHoehe, mittelProfilHoehe, profilDifferenz
                 });
             }
         }
 
-        // Erstelle angepasste Innenseite
-        const innenseiteGeometrie = innenseiteHoehe !== t ?
-            createSmoothBoxGeometry(e, innenseiteHoehe, n) : g;
-        const f=new THREE.Mesh(innenseiteGeometrie, s);
-        f.position.z=r/2-n/2;
+        const innenseiteGeom = innenseiteHoehe !== hoehe
+            ? createSmoothBoxGeometry(laenge, innenseiteHoehe, wandstaerke)
+            : createSmoothBoxGeometry(laenge, hoehe, wandstaerke);
 
-        // Position anpassen wenn Höhe geändert wurde
-        if(innenseiteHoehe !== t) {
-            f.position.y = innenseiteYOffset;
+        const innenseiteMesh = new THREE.Mesh(innenseiteGeom, material);
+        innenseiteMesh.position.z = tiefe / 2 - wandstaerke / 2;
+        if (innenseiteHoehe !== hoehe) {
+            innenseiteMesh.position.y = innenseiteYOffset;
         }
 
-        const p=new THREE.Mesh(l, s);
-        p.position.x=-e/2+n/2;
-        const m=new THREE.Mesh(h, s);
-        m.position.x=e/2-n/2;
-        
-        // Erstelle Blockelemente an den Positionen der inneren Längsträger
-        const innenseiteTop = (innenseiteYOffset ?? 0) + (innenseiteHoehe/2);
-        const blockelemente = this.erzeugeRinnenBlockelemente(e, t, r, n, s, config, quertraegerZ, quertraegerX, innenseiteHoehe, innenseiteTop);
-        
-        const alleMeshes = [o, c, f, p, m, ...blockelemente];
-        const alleGeometrien = [a, u, innenseiteGeometrie, l, h, ...blockelemente.map(b => b.geometry)];
-        
-        alleMeshes.forEach(mesh=>{
-            mesh.castShadow=!0;
-            mesh.receiveShadow=!0;
-            i.add(mesh);
-        });
-        
-        return {
-            mesh:i,
-            geometrien:alleGeometrien
-        };
-    }
-    erzeugeRinnenBlockelemente(rinnenBreite, rinnenHoehe, rinnenTiefe, wandstaerke, material, config, quertraegerZ, quertraegerX, innenseiteHoehe = rinnenHoehe, innenseiteTop = rinnenHoehe/2){
-        const blockelemente = [];
-        
-        // Hole die Positionen der inneren Längsträger
-        if(!this.laengstraegerInstanz) return blockelemente;
-        
-        const alleLaengstraeger = this.laengstraegerInstanz.gibAlleLaengstraeger?.();
-        if(!alleLaengstraeger) return blockelemente;
-        
-        // Filtere nur die inneren Längsträger (Mittelträger)
-        const mitteltraeger = alleLaengstraeger.filter(lt => 
-            lt.name && typeof lt.name === 'string' && lt.name.startsWith('mitte')
+        // Seitenteile
+        const seiteGeom = createSmoothBoxGeometry(wandstaerke, hoehe, tiefe);
+        const linksMesh = new THREE.Mesh(seiteGeom, material);
+        linksMesh.position.x = -laenge / 2 + wandstaerke / 2;
+
+        const rechtsMesh = new THREE.Mesh(seiteGeom.clone(), material);
+        rechtsMesh.position.x = laenge / 2 - wandstaerke / 2;
+
+        // Blockelemente
+        const innenseiteTop = (innenseiteYOffset ?? 0) + (innenseiteHoehe / 2);
+        const blockelemente = this.erzeugeRinnenBlockelemente(
+            laenge, hoehe, tiefe, wandstaerke, material, config,
+            quertraegerZ, quertraegerX, innenseiteHoehe, innenseiteTop
         );
-        
-        if(mitteltraeger.length === 0) return blockelemente;
-        
-        // Bestimme Mittelträger-Profil
+
+        const alleMeshes = [bodenMesh, aussenseiteMesh, innenseiteMesh, linksMesh, rechtsMesh, ...blockelemente];
+        const alleGeometrien = [bodenGeom, aussenseiteGeom, innenseiteGeom, seiteGeom, seiteGeom.clone(),
+            ...blockelemente.map(b => b.geometry)];
+
+        alleMeshes.forEach(mesh => {
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            gruppe.add(mesh);
+        });
+
+        return { mesh: gruppe, geometrien: alleGeometrien };
+    }
+
+    /**
+     * Erzeugt Blockelemente für die Rinne
+     */
+    erzeugeRinnenBlockelemente(rinnenBreite, rinnenHoehe, rinnenTiefe, wandstaerke, material, config,
+                               quertraegerZ, quertraegerX, innenseiteHoehe = rinnenHoehe, innenseiteTop = rinnenHoehe / 2) {
+        const blockelemente = [];
+
+        if (!this.laengstraegerInstanz) return blockelemente;
+
+        const alleLaengstraeger = this.laengstraegerInstanz.gibAlleLaengstraeger?.();
+        if (!alleLaengstraeger) return blockelemente;
+
+        // Filtere nur Mittelträger
+        const mitteltraeger = alleLaengstraeger.filter(lt =>
+            lt.name && typeof lt.name === "string" && lt.name.startsWith("mitte")
+        );
+
+        if (mitteltraeger.length === 0) return blockelemente;
+
         const mittelProfil = this.profileKonfig?.gibMitteltraegerProfil?.(config);
-        if(!mittelProfil) return blockelemente;
-        
-        const mittelProfilBreite = mittelProfil.abmessungen?.breite || 0.1;  // z.B. 100mm, 120mm, 160mm
-        const mittelProfilTiefe = mittelProfil.abmessungen?.tiefe || 0.08;   // immer 80mm
+        if (!mittelProfil) return blockelemente;
+
+        const mittelProfilBreite = mittelProfil.abmessungen?.breite || 0.1;
+        const mittelProfilTiefe = mittelProfil.abmessungen?.tiefe || 0.08;
         const effektiveWandstaerke = Number.isFinite(wandstaerke) ? wandstaerke : 0;
-        
-        // Blockelement-Dimensionen:
-        // Breite (X) = halbe Profiltiefe (80mm -> 40mm)
-        // Höhe (Y) = Mittelträger-Höhe - 20mm
-        // Tiefe (Z) = Innenbreite der Rinne (z.B. 80mm - 2*4mm = 72mm)
-        const blockBreite = mittelProfilTiefe / 2;  // 40mm (X-Richtung, quer zur Rinne)
+
+        // Blockelement-Dimensionen
+        const blockBreite = mittelProfilTiefe / 2;
         const maxInnenHoehe = Math.max(Math.min(innenseiteHoehe, rinnenHoehe - 2 * effektiveWandstaerke), 0.001);
-        const blockHoehe = Math.min(Math.max(mittelProfilBreite - 0.020, 0.060), maxInnenHoehe);  // -20mm, min 60mm, innen gecappt (Y-Richtung)
-        const blockTiefe = Math.max(rinnenTiefe - 2 * effektiveWandstaerke, 0.001);  // Innenbreite (Z-Richtung)
-        
-        console.log('🔧 Rinnen-Blockelemente:', {
-            mittelProfilBreite: (mittelProfilBreite * 1000).toFixed(0) + 'mm',
-            mittelProfilTiefe: (mittelProfilTiefe * 1000).toFixed(0) + 'mm',
-            blockBreite: (blockBreite * 1000).toFixed(0) + 'mm (X)',
-            blockHoehe: (blockHoehe * 1000).toFixed(0) + 'mm (Y)',
-            blockTiefe: (blockTiefe * 1000).toFixed(0) + 'mm (Z) (Innenbreite Rinne)',
-            rinnenBreite: (rinnenBreite * 1000).toFixed(0) + 'mm',
-            rinnenTiefe: (rinnenTiefe * 1000).toFixed(0) + 'mm',
-            innenseiteHoehe: (innenseiteHoehe * 1000).toFixed(0) + 'mm',
-            innenseiteTop: (innenseiteTop * 1000).toFixed(1) + 'mm',
+        const blockHoehe = Math.min(Math.max(mittelProfilBreite - 0.020, 0.060), maxInnenHoehe);
+        const blockTiefe = Math.max(rinnenTiefe - 2 * effektiveWandstaerke, 0.001);
+
+        this.logger.debug("Rinnen-Blockelemente:", {
+            mittelProfilBreite: (mittelProfilBreite * 1000).toFixed(0) + "mm",
+            blockBreite: (blockBreite * 1000).toFixed(0) + "mm",
+            blockHoehe: (blockHoehe * 1000).toFixed(0) + "mm",
             anzahlMitteltraeger: mitteltraeger.length
         });
-        
+
         mitteltraeger.forEach((mt, index) => {
-            // X-Position des Mittelträgers
             const xPos = mt.referenzpunkte?.start?.x || mt.abmessungen?.xPosition || 0;
-            
-            // Z-Position des Mittelträgers (Startpunkt)
             const zPos = mt.referenzpunkte?.start?.z || 0;
-            
-            // Breite des Mittelträgers (z.B. 100mm, 120mm, 160mm)
-            const mitteltraegerBreite = mt.abmessungen?.breite || mittelProfilBreite;
-            
-            // Erstelle Blockelement
+
             const blockGeom = new THREE.BoxGeometry(blockBreite, blockHoehe, blockTiefe);
             const blockMesh = new THREE.Mesh(blockGeom, material.clone());
-            
-            // Position RELATIV zur Rinnengruppe:
-            // X: exakt mittig unter dem inneren Längsträger (Center-Alignment)
-            // Y: Auf dem Boden der Rinne sitzend
-            // Z: innerhalb der Rinne, auf Position des inneren Längsträgers gecappt
-            const blockX = (xPos - quertraegerX);  // Center auf Mittelträger
-            const blockY = innenseiteTop - blockHoehe/2 - 1e-5;  // bündig an Innenoberkante der inneren Rinnenseite
 
-            // Kappe Z so, dass das Blockelement vollständig in der Rinne bleibt
-            const innenHalbeTiefe = Math.max((rinnenTiefe/2) - effektiveWandstaerke, 0);
-            const maxZOffset = Math.max(innenHalbeTiefe - blockTiefe/2, 0);
-            const rawBlockZ = zPos - quertraegerZ;  // Z relativ zur Rinne (Mittelträger-Z minus Querträger-Z)
+            const blockX = xPos - quertraegerX;
+            const blockY = innenseiteTop - blockHoehe / 2 - 1e-5;
+
+            const innenHalbeTiefe = Math.max((rinnenTiefe / 2) - effektiveWandstaerke, 0);
+            const maxZOffset = Math.max(innenHalbeTiefe - blockTiefe / 2, 0);
+            const rawBlockZ = zPos - quertraegerZ;
             const blockZ = Math.max(Math.min(rawBlockZ, maxZOffset), -maxZOffset);
-            
+
             blockMesh.position.set(blockX, blockY, blockZ);
             blockMesh.name = `RinnenBlock_${index}`;
-            
-            console.log(`  Block ${index}: x=${blockX.toFixed(3)}, y=${blockY.toFixed(3)}, z=${blockZ.toFixed(3)}, mtX=${xPos.toFixed(3)}, mtBreite=${(mitteltraegerBreite*1000).toFixed(0)}mm, mtZ=${zPos.toFixed(3)}, quertraegerZ=${quertraegerZ.toFixed(3)}`);
-            
+
+            this.logger.debug(`Block ${index}: x=${blockX.toFixed(3)}, y=${blockY.toFixed(3)}, z=${blockZ.toFixed(3)}`);
+
             blockelemente.push(blockMesh);
         });
-        
+
         return blockelemente;
     }
-    berechneAuflageHoeheFuerMittlerenQuertraeger(e, t){
-        if(!this.laengstraegerInstanz)return null;
-        const r=this.laengstraegerInstanz.gibAlleLaengstraeger?.().find(e=>"string"==typeof e.name&&e.name.startsWith("mitte")),
-        n=r?this.berechneLaengstraegerOberkanteBeiZ(r, e):null;
-        if(Number.isFinite(n))return n;
-        const s=[],
-        i=this.laengstraegerInstanz.gibLaengstraeger?.("links");
-        if(i&&void 0!==t?.links?.y){
-            const e=t.links.y+(i.abmessungen?.hoehe||0);
-            Number.isFinite(e)&&s.push(e)
-        }
-        const a=this.laengstraegerInstanz.gibLaengstraeger?.("rechts");
-        if(a&&void 0!==t?.rechts?.y){
-            const e=t.rechts.y+(a.abmessungen?.hoehe||0);
-            Number.isFinite(e)&&s.push(e)
-        }
-        return s.length?Math.max(...s):null
-    }
-    erzeugeLFoermigeSchieneFuerHinterenQuertraeger(config, auflagepunkte, quertraegerTiefe){
-        // Nur für hinteren Querträger bei Pultdach mit Glas
-        if(config.neigung === 0 || config.dachTyp === "epdm"){
+
+    // ========================================================================
+    // L-SCHIENEN UND BLENDBLECH
+    // ========================================================================
+
+    /**
+     * Erzeugt L-förmige Schienen für hinteren Querträger (Pultdach mit Glas)
+     */
+    erzeugeLFoermigeSchieneFuerHinterenQuertraeger(config, auflagepunkte, quertraegerTiefe) {
+        // Nur für Pultdach mit Glas
+        if (config.neigung === 0 || config.dachTyp === ROOF_TYPES.EPDM) {
             return [];
         }
 
         const schienen = [];
-        
-        // Dimensionen der L-Schiene (identisch zu Längsträger-L-Schienen)
-        const schienenBreite = 0.070;  // 70mm breit (horizontaler Teil auf Glas)
-        const schienenHoehe = 0.010;   // 10mm dick
-        const vertikalerSchenkel = 0.008;  // 20mm hoch - länger als bei Längsträgern für bessere Sichtbarkeit
+
+        const schienenBreite = 0.070;
+        const schienenHoehe = 0.010;
+        const vertikalerSchenkel = 0.008;
         const glasDicke = 0.008;
-        
-        // Berechne Länge des Querträgers zwischen den Auflagepunkten
+
+        // Querträger-Länge berechnen
         const quertraegerLaenge = Math.sqrt(
             Math.pow(auflagepunkte.rechts.x - auflagepunkte.links.x, 2) +
             Math.pow(auflagepunkte.rechts.y - auflagepunkte.links.y, 2) +
             Math.pow(auflagepunkte.rechts.z - auflagepunkte.links.z, 2)
         );
-        
-        // Verlängere die Schiene an beiden Seiten, um bündig mit Längsträger-Schienen zu sein
-        // Die Längsträger-Schienen haben schienenBreite (70mm), wir müssen auf jeder Seite 35mm hinzufügen
-        const seitlicheVerlaengerung = schienenBreite;  // Auf jeder Seite 70mm (halbe Breite links + halbe Breite rechts)
+
+        const seitlicheVerlaengerung = schienenBreite;
         const schienenLaenge = quertraegerLaenge + seitlicheVerlaengerung;
 
-        const direction = new THREE.Vector3(
-            auflagepunkte.rechts.x - auflagepunkte.links.x,
-            auflagepunkte.rechts.y - auflagepunkte.links.y,
-            auflagepunkte.rechts.z - auflagepunkte.links.z
-        ).normalize();
-        
-        const centerX = (auflagepunkte.links.x + auflagepunkte.rechts.x) / 2;
-        const centerY = (auflagepunkte.links.y + auflagepunkte.rechts.y) / 2;
-        const centerZ = (auflagepunkte.links.z + auflagepunkte.rechts.z) / 2;
-        
-        const quaternion = new THREE.Quaternion();
-        quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), direction);
-
-        // Material (identisch zu Längsträger-L-Schienen)
+        // Material
         const material = new THREE.MeshStandardMaterial({
             color: 0xc8c8c8,
             metalness: 0.9,
@@ -456,249 +557,418 @@ export class Quertraeger{
             polygonOffsetUnits: -1
         });
 
-        // Horizontaler Schenkel (auf dem Glas, läuft quer über die gesamte Breite)
-        const horizontalGeom = new THREE.BoxGeometry(schienenLaenge, schienenHoehe, schienenBreite);
-        const horizontalMesh = new THREE.Mesh(horizontalGeom, material.clone());
-        
-        // WICHTIG: Die Schiene wird als Child des Querträgers hinzugefügt
-        // Daher sind die Positionen RELATIV zum Querträger-Mesh
-        // Der Querträger hat seine Position bereits gesetzt
-        // Wir brauchen nur die Höhe relativ zur Querträger-Oberkante
         const quertraegerProfil = this.profileKonfig.gibAktuellesProfil();
         const quertraegerHoehe = quertraegerProfil?.abmessungen?.breite || 0.1;
-        
-        // Relative Position: von Mitte des Querträgers zur Oberkante + Glas + Offset (tiefer)
+
+        // Horizontaler Schenkel
+        const horizontalGeom = new THREE.BoxGeometry(schienenLaenge, schienenHoehe, schienenBreite);
+        const horizontalMesh = new THREE.Mesh(horizontalGeom, material.clone());
+
         const relativY = (quertraegerHoehe / 2) + glasDicke + 0.002 + (schienenHoehe / 2);
-        
-        // Position: weiter nach VORNE versetzt (zur Terrassenseite)
-        const tiefenOffset = schienenBreite / 2 + -0.04;  // 15mm weiter nach vorne
-        
+        const tiefenOffset = schienenBreite / 2 - 0.04;
+
         horizontalMesh.position.set(0, relativY, tiefenOffset);
-        
-        // WICHTIG: Rotation für die Neigung des Pultdachs
-        // Die Schiene muss sich mit der Dachneigung mitneigen (X-Achsen-Rotation)
-        const neigungsWinkel = -(config.neigung * Math.PI / 180);  // Negativ, weil Dach nach hinten abfällt
+
+        const neigungsWinkel = -(config.neigung * Math.PI / 180);
         horizontalMesh.rotation.x = neigungsWinkel;
-        
+
         horizontalMesh.castShadow = true;
         horizontalMesh.receiveShadow = true;
         horizontalMesh.renderOrder = 10;
         horizontalMesh.name = "L-Schiene-Horizontal_HintererQuertraeger";
-        
-        // Vertikaler Schenkel (an der Vorderseite, nach unten zeigend - 180° gedreht)
+
+        // Vertikaler Schenkel
         const vertikalGeom = new THREE.BoxGeometry(schienenLaenge, vertikalerSchenkel, schienenHoehe);
         const vertikalMesh = new THREE.Mesh(vertikalGeom, material.clone());
-        
-        // Vertikaler Teil: Oberkante direkt an Unterkante des horizontalen Teils
-        // Verschiebe höher, um die Lücke zu schließen
-        const vertikalY = relativY + (schienenHoehe / 2) - 0.0125;  // Starte von Oberkante horizontal, gehe nach unten (kleinerer Versatz => höher)
+
+        const vertikalY = relativY + (schienenHoehe / 2) - 0.0125;
         const vertikalZ = tiefenOffset + schienenBreite / 2 - schienenHoehe / 2;
-        
+
         vertikalMesh.position.set(0, vertikalY, vertikalZ);
-        vertikalMesh.rotation.x = neigungsWinkel;  // Gleiche Neigung wie horizontaler Teil
+        vertikalMesh.rotation.x = neigungsWinkel;
         vertikalMesh.castShadow = true;
         vertikalMesh.receiveShadow = true;
         vertikalMesh.renderOrder = 10;
         vertikalMesh.name = "L-Schiene-Vertikal_HintererQuertraeger";
-        
+
         schienen.push(horizontalMesh, vertikalMesh);
-        
-        console.log("🔧 L-Schiene für hinteren Querträger erstellt:", {
+
+        this.logger.debug("L-Schiene für hinteren Querträger erstellt:", {
             länge: schienenLaenge.toFixed(3),
-            relativY: relativY.toFixed(3),
-            vertikalY: vertikalY.toFixed(3),
-            quertraegerHoehe: quertraegerHoehe.toFixed(3)
+            relativY: relativY.toFixed(3)
         });
-        
+
         return schienen;
     }
-    passeOberkanteFuerHinterenQuertraegerAn(e, t, r, n){
-        if(!e||!e.attributes?.position)return;
-        const s=e.attributes.position,
-        i=t/2,
-        a=Math.tan(n)*r;
-        for(let e=0;
-        e<s.count;
-        e++){
-            if(s.getY(e)<=0)continue;
-            const t=s.getZ(e)<0,
-            r=t?i-(t?a:0):i;
-            s.setY(e, Math.max(r, -i))
+
+    /**
+     * Erzeugt Blendblech für hinteren Querträger
+     */
+    erzeugeBlendblech(laenge, hoehe, tiefe, neigungswinkel, material, auflagepunkte, zPosition) {
+        if (!Number.isFinite(neigungswinkel) || Math.abs(neigungswinkel) < 1e-6) {
+            return null;
         }
-        s.needsUpdate=!0,
-        e.computeVertexNormals(),
-        e.computeBoundingBox(),
-        e.computeBoundingSphere()
-    }
-    berechneQuertraegerOberkanteFuerZ(e, t, r, n){
-        const s=e/2,
-        i=Math.tan(r),
-        a=n<0;
-        return a?s-(a?i*t:0):s
-    }
-    berechneLaengstraegerOberkanteBeiZ(e, t){
-        const r=e?.referenzpunkte;
-        if(!r?.start||!r?.ende)return null;
-        const n=r.start.z,
-        s=r.ende.z-n,
-        i=0!==s?(t-n)/s:0;
-        var a,
-        o;
-        return(a=r.start.y, o=r.ende.y, a+(o-a)*i)+(e.abmessungen?.hoehe||0)
-    }
-    passeOberkanteFuerGlasUeberstandAn(e, t, r, n){
-        if(!e||!e.attributes?.position)return;
-        const s=e.attributes.position,
-        i=t/2,
-        a=r/2,
-        o=Math.tan(n);
-        for(let e=0;
-        e<s.count;
-        e++){
-            if(s.getY(e)<=0)continue;
-            const t=s.getZ(e),
-            n=Math.max(0, a-t),
-            u=i-o*Math.min(r, n);
-            s.setY(e, Math.max(u, -i))
-        }
-        s.needsUpdate=!0,
-        e.computeVertexNormals(),
-        e.computeBoundingBox(),
-        e.computeBoundingSphere()
-    }
-    erzeugeBlendblech(e, t, r, n, s, i, a){
-        if(!Number.isFinite(n)||Math.abs(n)<1e-6)return null;
-        const o=Math.tan(n),
-        u=r,
-        g=Math.abs(o*u);
-        if(g<=.001)return null;
-        const l=-r/2,
-        h=r/2,
-        c=t/2,
-        f=c+g,
-        p=-t/2,
-        m=new Float32Array([-e/2, p, l, e/2, p, l, -e/2, p, h, e/2, p, h, -e/2, c, l, e/2, c, l, -e/2, f, h, e/2, f, h]),
-        d=new THREE.BufferGeometry;
-        d.setIndex([4, 5, 6, 5, 7, 6, 0, 2, 1, 1, 2, 3, 0, 1, 4, 1, 5, 4, 2, 6, 3, 3, 6, 7, 0, 4, 2, 2, 4, 6, 1, 3, 5, 3, 7, 5]),
-        d.setAttribute("position", new THREE.Float32BufferAttribute(m, 3)),
-        d.computeVertexNormals();
-        const b=s?.userData?.managedMaterial?s:MaterialManager.gibStrukturMaterial({
-            teil:"quertraeger", config:this.konfiguration.gibAktuelleKonfiguration()
-        }),
-        k=new THREE.Mesh(d, b);
-        return k.castShadow=!0,
-        k.receiveShadow=!0,
-        k.name="Keilstueck_hintererQuertraeger",
-        {
-            mesh:k,
-            geometrie:d
-        }
-    }
-    fuegeDebugLabelsHinzu(e, t){
-        const r=(e, t, r="#ffffff")=>{
-            const n=document.createElement("canvas"),
-            s=n.getContext("2d");
-            n.width=512,
-            n.height=128,
-            s.fillStyle=r,
-            s.font="Bold 48px Arial",
-            s.textAlign="center",
-            s.fillText(e, 256, 80);
-            const i=new THREE.CanvasTexture(n),
-            a=new THREE.SpriteMaterial({
-                map:i
-            }),
-            o=new THREE.Sprite(a);
-            return o.position.copy(t),
-            o.scale.set(.3, .075, 1),
-            o
-        };
-        if(t.quertraegerOben){
-            const n=r("Querträgeroberkante", t.quertraegerOben, "#ff0000");
-            e.add(n)
-        }
-        if(t.laengstraegerOben){
-            const n=r("Längsträgeroberkante", t.laengstraegerOben, "#00ff00");
-            e.add(n)
-        }
-        if(t.keilHoehe){
-            const n=r(`Keilhöhe: ${(1e3*t.keilHoehe).toFixed(1)}mm`, new THREE.Vector3(0, t.quertraegerOben.y+t.keilHoehe/2, 0), "#ffff00");
-            e.add(n)
-        }
-    }
-    berechneAuflagepunkteAufLaengstraegern(e, t){
-        if(this.laengstraegerInstanz&&this.laengstraegerInstanz.berechneQuertraegerAuflagepunkte){
-            const t=this.laengstraegerInstanz.berechneQuertraegerAuflagepunkte().find(t=>Math.abs(t.z-e.z)<.01);
-            if(t)return{
-                links:t.links,
-                rechts:t.rechts
-            }
-        }
-        return{
-            links:e.links,
-            rechts:e.rechts
-        }
-    }
-    bestimmeQuertraegerTyp(e){
-        return"vorne"===e?"vordererQuertraeger":"hinten"===e?"hintererQuertraeger":e.startsWith("zwischen")?"zwischenQuertraeger":"standardQuertraeger"
-    }
-    erstelleQuertraegerMaterial(e){
-        return MaterialManager.gibStrukturMaterial({
-            teil:"quertraeger", config:e
-        })
-    }
-    berechneBefestigungspunkte(){
-        const e=[];
-        return this.quertraegerListe.forEach(t=>{
-            const r=Math.ceil(t.abmessungen.laenge/1);
-            for(let n=0;
-            n<=r;
-            n++){
-                const s=r>0?n/r:0, i={
-                    x:t.auflagepunkte.links.x+(t.auflagepunkte.rechts.x-t.auflagepunkte.links.x)*s, y:t.auflagepunkte.links.y+(t.auflagepunkte.rechts.y-t.auflagepunkte.links.y)*s+t.abmessungen.hoehe/2, z:t.auflagepunkte.links.z+(t.auflagepunkte.rechts.z-t.auflagepunkte.links.z)*s
-                };
-                e.push({
-                    quertraeger:t.name, position:i, index:n, typ:"oberkante"
-                })
-            }
-        }),
-        e
-    }
-    entferneQuertraeger(){
-        for(this.quertraegerListe.forEach(e=>{
-            disposeEdgeHighlights(e.mesh);
-            (Array.isArray(e.geometrie)?e.geometrie:[e.geometrie].filter(Boolean)).forEach(e=>{
-                e?.dispose&&e.dispose()
+
+        const steigung = Math.tan(neigungswinkel);
+        const breite = tiefe;
+        const keilHoehe = Math.abs(steigung * breite);
+
+        if (keilHoehe <= 0.001) return null;
+
+        const zVorne = -tiefe / 2;
+        const zHinten = tiefe / 2;
+        const yOben = hoehe / 2;
+        const yObenHinten = yOben + keilHoehe;
+        const yUnten = -hoehe / 2;
+
+        // Vertices für Keil-Geometrie
+        const vertices = new Float32Array([
+            -laenge / 2, yUnten, zVorne,
+            laenge / 2, yUnten, zVorne,
+            -laenge / 2, yUnten, zHinten,
+            laenge / 2, yUnten, zHinten,
+            -laenge / 2, yOben, zVorne,
+            laenge / 2, yOben, zVorne,
+            -laenge / 2, yObenHinten, zHinten,
+            laenge / 2, yObenHinten, zHinten
+        ]);
+
+        const geometrie = new THREE.BufferGeometry();
+        geometrie.setIndex([
+            4, 5, 6, 5, 7, 6,  // Oben
+            0, 2, 1, 1, 2, 3,  // Unten
+            0, 1, 4, 1, 5, 4,  // Vorne
+            2, 6, 3, 3, 6, 7,  // Hinten
+            0, 4, 2, 2, 4, 6,  // Links
+            1, 3, 5, 3, 7, 5   // Rechts
+        ]);
+        geometrie.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+        geometrie.computeVertexNormals();
+
+        const keilMaterial = material?.userData?.managedMaterial
+            ? material
+            : MaterialManager.gibStrukturMaterial({
+                teil: "quertraeger",
+                config: this.konfiguration.gibAktuelleKonfiguration()
             });
-            const t=e.material, r=t?.userData?.managedMaterial;
-            t?.dispose&&!r&&t.dispose()
+
+        const mesh = new THREE.Mesh(geometrie, keilMaterial);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.name = "Keilstueck_hintererQuertraeger";
+
+        return { mesh, geometrie };
+    }
+
+    // ========================================================================
+    // GEOMETRIE-ANPASSUNGEN
+    // ========================================================================
+
+    /**
+     * Passt Oberkante für hinteren Querträger an
+     */
+    passeOberkanteFuerHinterenQuertraegerAn(geometrie, hoehe, tiefe, neigungswinkel) {
+        if (!geometrie || !geometrie.attributes?.position) return;
+
+        const position = geometrie.attributes.position;
+        const halbeHoehe = hoehe / 2;
+        const absenkung = Math.tan(neigungswinkel) * tiefe;
+
+        for (let i = 0; i < position.count; i++) {
+            if (position.getY(i) <= 0) continue;
+
+            const istHinten = position.getZ(i) < 0;
+            const neueHoehe = istHinten ? halbeHoehe - (istHinten ? absenkung : 0) : halbeHoehe;
+            position.setY(i, Math.max(neueHoehe, -halbeHoehe));
+        }
+
+        position.needsUpdate = true;
+        geometrie.computeVertexNormals();
+        geometrie.computeBoundingBox();
+        geometrie.computeBoundingSphere();
+    }
+
+    /**
+     * Passt Oberkante für Glas-Überstand an
+     */
+    passeOberkanteFuerGlasUeberstandAn(geometrie, hoehe, tiefe, neigungswinkel) {
+        if (!geometrie || !geometrie.attributes?.position) return;
+
+        const position = geometrie.attributes.position;
+        const halbeHoehe = hoehe / 2;
+        const halbeTiefe = tiefe / 2;
+        const steigung = Math.tan(neigungswinkel);
+
+        for (let i = 0; i < position.count; i++) {
+            if (position.getY(i) <= 0) continue;
+
+            const z = position.getZ(i);
+            const distanz = Math.max(0, halbeTiefe - z);
+            const neueHoehe = halbeHoehe - steigung * Math.min(tiefe, distanz);
+            position.setY(i, Math.max(neueHoehe, -halbeHoehe));
+        }
+
+        position.needsUpdate = true;
+        geometrie.computeVertexNormals();
+        geometrie.computeBoundingBox();
+        geometrie.computeBoundingSphere();
+    }
+
+    // ========================================================================
+    // HILFSMETHODEN
+    // ========================================================================
+
+    /**
+     * Berechnet Auflagepunkte auf Längsträgern
+     */
+    berechneAuflagepunkteAufLaengstraegern(referenz, config) {
+        if (this.laengstraegerInstanz?.berechneQuertraegerAuflagepunkte) {
+            const auflagepunkte = this.laengstraegerInstanz.berechneQuertraegerAuflagepunkte()
+                .find(ap => Math.abs(ap.z - referenz.z) < 0.01);
+
+            if (auflagepunkte) {
+                return { links: auflagepunkte.links, rechts: auflagepunkte.rechts };
+            }
+        }
+
+        return { links: referenz.links, rechts: referenz.rechts };
+    }
+
+    /**
+     * Berechnet Auflagehöhe für mittlere Querträger
+     */
+    berechneAuflageHoeheFuerMittlerenQuertraeger(zPosition, auflagepunkte) {
+        if (!this.laengstraegerInstanz) return null;
+
+        const mitteltraeger = this.laengstraegerInstanz.gibAlleLaengstraeger?.()
+            .find(lt => typeof lt.name === "string" && lt.name.startsWith("mitte"));
+
+        const oberkanteAusMittel = mitteltraeger
+            ? this.berechneLaengstraegerOberkanteBeiZ(mitteltraeger, zPosition)
+            : null;
+
+        if (Number.isFinite(oberkanteAusMittel)) return oberkanteAusMittel;
+
+        const hoehen = [];
+
+        const linksLaengstraeger = this.laengstraegerInstanz.gibLaengstraeger?.("links");
+        if (linksLaengstraeger && auflagepunkte?.links?.y !== undefined) {
+            const h = auflagepunkte.links.y + (linksLaengstraeger.abmessungen?.hoehe || 0);
+            if (Number.isFinite(h)) hoehen.push(h);
+        }
+
+        const rechtsLaengstraeger = this.laengstraegerInstanz.gibLaengstraeger?.("rechts");
+        if (rechtsLaengstraeger && auflagepunkte?.rechts?.y !== undefined) {
+            const h = auflagepunkte.rechts.y + (rechtsLaengstraeger.abmessungen?.hoehe || 0);
+            if (Number.isFinite(h)) hoehen.push(h);
+        }
+
+        return hoehen.length ? Math.max(...hoehen) : null;
+    }
+
+    /**
+     * Berechnet Längsträger-Oberkante bei Z-Position
+     */
+    berechneLaengstraegerOberkanteBeiZ(laengstraeger, zPosition) {
+        const ref = laengstraeger?.referenzpunkte;
+        if (!ref?.start || !ref?.ende) return null;
+
+        const startZ = ref.start.z;
+        const deltaZ = ref.ende.z - startZ;
+        const t = deltaZ !== 0 ? (zPosition - startZ) / deltaZ : 0;
+
+        const interpolierteY = ref.start.y + (ref.ende.y - ref.start.y) * t;
+        return interpolierteY + (laengstraeger.abmessungen?.hoehe || 0);
+    }
+
+    /**
+     * Bestimmt Querträger-Typ
+     */
+    bestimmeQuertraegerTyp(position) {
+        if (position === "vorne") return "vordererQuertraeger";
+        if (position === "hinten") return "hintererQuertraeger";
+        if (position.startsWith("zwischen")) return "zwischenQuertraeger";
+        return "standardQuertraeger";
+    }
+
+    /**
+     * Erstellt Querträger-Material
+     */
+    erstelleQuertraegerMaterial(config) {
+        return MaterialManager.gibStrukturMaterial({
+            teil: "quertraeger",
+            config: config
         });
-        this.quertraegerGruppe.children.length>0;)this.quertraegerGruppe.remove(this.quertraegerGruppe.children[0]);
-        this.quertraegerListe=[]
     }
-    gibQuertraeger(e){
-        return this.quertraegerListe.find(t=>t.name===e)||null
+
+    /**
+     * Berechnet Befestigungspunkte
+     */
+    berechneBefestigungspunkte() {
+        const punkte = [];
+
+        this.quertraegerListe.forEach(qt => {
+            const anzahlPunkte = Math.ceil(qt.abmessungen.laenge / 1);
+
+            for (let i = 0; i <= anzahlPunkte; i++) {
+                const t = anzahlPunkte > 0 ? i / anzahlPunkte : 0;
+
+                const position = {
+                    x: qt.auflagepunkte.links.x + (qt.auflagepunkte.rechts.x - qt.auflagepunkte.links.x) * t,
+                    y: qt.auflagepunkte.links.y + (qt.auflagepunkte.rechts.y - qt.auflagepunkte.links.y) * t + qt.abmessungen.hoehe / 2,
+                    z: qt.auflagepunkte.links.z + (qt.auflagepunkte.rechts.z - qt.auflagepunkte.links.z) * t
+                };
+
+                punkte.push({
+                    quertraeger: qt.name,
+                    position: position,
+                    index: i,
+                    typ: "oberkante"
+                });
+            }
+        });
+
+        return punkte;
     }
-    gibQuertraegerNachPosition(e){
-        return this.quertraegerListe.filter(t=>t.position===e||t.position.startsWith(e))
+
+    // ========================================================================
+    // DEBUG
+    // ========================================================================
+
+    /**
+     * Debug-Labels hinzufügen (für Entwicklung)
+     */
+    fuegeDebugLabelsHinzu(mesh, positionen) {
+        const createLabel = (text, position, color = "#ffffff") => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = 512;
+            canvas.height = 128;
+            ctx.fillStyle = color;
+            ctx.font = "Bold 48px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(text, 256, 80);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.position.copy(position);
+            sprite.scale.set(0.3, 0.075, 1);
+            return sprite;
+        };
+
+        if (positionen.quertraegerOben) {
+            mesh.add(createLabel("Querträgeroberkante", positionen.quertraegerOben, "#ff0000"));
+        }
+        if (positionen.laengstraegerOben) {
+            mesh.add(createLabel("Längsträgeroberkante", positionen.laengstraegerOben, "#00ff00"));
+        }
+        if (positionen.keilHoehe) {
+            const pos = new THREE.Vector3(0, positionen.quertraegerOben.y + positionen.keilHoehe / 2, 0);
+            mesh.add(createLabel(`Keilhöhe: ${(1000 * positionen.keilHoehe).toFixed(1)}mm`, pos, "#ffff00"));
+        }
     }
-    gibAlleQuertraeger(){
-        return[...this.quertraegerListe]
+
+    // ========================================================================
+    // CLEANUP
+    // ========================================================================
+
+    /**
+     * Entfernt alle Querträger
+     */
+    entferneQuertraeger() {
+        this.quertraegerListe.forEach(qt => {
+            disposeEdgeHighlights(qt.mesh);
+
+            const geometrien = Array.isArray(qt.geometrie) ? qt.geometrie : [qt.geometrie].filter(Boolean);
+            geometrien.forEach(g => g?.dispose?.());
+
+            const material = qt.material;
+            const istManaged = material?.userData?.managedMaterial;
+            if (material?.dispose && !istManaged) {
+                material.dispose();
+            }
+        });
+
+        while (this.quertraegerGruppe.children.length > 0) {
+            this.quertraegerGruppe.remove(this.quertraegerGruppe.children[0]);
+        }
+
+        this.quertraegerListe = [];
     }
-    aktualisiereQuertraeger(){
-        return this.erstelleQuertraeger()
+
+    // ========================================================================
+    // LEGACY API (Rückwärtskompatibilität)
+    // ========================================================================
+
+    /**
+     * Gibt einen Querträger nach Name zurück
+     */
+    gibQuertraeger(name) {
+        return this.quertraegerListe.find(qt => qt.name === name) || null;
     }
-    setzeProfil(e){
-        return!!this.profileKonfig.setzeAktuellesProfil(e)&&(this.koordinatenSystem?.setzeProfil&&this.koordinatenSystem.setzeProfil(e), this.erstelleQuertraeger())
+
+    /**
+     * Gibt Querträger nach Position zurück
+     */
+    gibQuertraegerNachPosition(position) {
+        return this.quertraegerListe.filter(qt =>
+            qt.position === position || qt.position.startsWith(position)
+        );
     }
-    debugQuertraeger(){
-        console.group("🏗️ QUERTRÄGER-INFORMATIONEN"),
-        this.quertraegerListe.forEach(e=>{
-            console.group(`Querträger: ${e.name}`), console.log("Position:", e.position), console.log("Auflagepunkte:", e.auflagepunkte), console.log("Abmessungen:", e.abmessungen), console.log("Eigenschaften:", e.eigenschaften), console.groupEnd()
-        }),
-        console.groupEnd()
+
+    /**
+     * Gibt alle Querträger zurück
+     */
+    gibAlleQuertraeger() {
+        return [...this.quertraegerListe];
     }
-    dispose(){
-        this.entferneQuertraeger()
+
+    /**
+     * Aktualisiert die Querträger
+     */
+    aktualisiereQuertraeger() {
+        return this.erstelleQuertraeger();
+    }
+
+    /**
+     * Setzt ein neues Profil
+     */
+    setzeProfil(profilId) {
+        if (!this.profileKonfig.setzeAktuellesProfil(profilId)) {
+            return false;
+        }
+
+        if (this.koordinatenSystem?.setzeProfil) {
+            this.koordinatenSystem.setzeProfil(profilId);
+        }
+
+        return this.erstelleQuertraeger();
+    }
+
+    /**
+     * Debug-Ausgabe
+     */
+    debugQuertraeger() {
+        this.logger.group("QUERTRÄGER-INFORMATIONEN");
+
+        this.quertraegerListe.forEach(qt => {
+            this.logger.group(`Querträger: ${qt.name}`);
+            this.logger.info("Position:", qt.position);
+            this.logger.info("Auflagepunkte:", qt.auflagepunkte);
+            this.logger.info("Abmessungen:", qt.abmessungen);
+            this.logger.info("Eigenschaften:", qt.eigenschaften);
+            this.logger.groupEnd();
+        });
+
+        this.logger.groupEnd();
+    }
+
+    /**
+     * Cleanup
+     */
+    dispose() {
+        this.entferneQuertraeger();
+        super.dispose();
     }
 }

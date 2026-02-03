@@ -1,243 +1,440 @@
-import{
-    RenderEngine
-}
-from"./src/core/RenderEngine.js";
-import{
-    PergolaKonfiguration
-}
-from"./src/config/PergolaKonfiguration.js";
-import{
-    UIController
-}
-from"./src/ui/UIController.js";
-import{
-    StaticsCheck
-}
-from"./src/core/StaticsCheck.js";
-import{
+/**
+ * Pergola Konfigurator - Haupteinstiegspunkt
+ *
+ * Refactored: Verwendet ServiceRegistry statt globaler Variablen
+ */
+
+import { RenderEngine } from "./src/core/RenderEngine.js";
+import { PergolaKonfiguration } from "./src/config/PergolaKonfiguration.js";
+import { UIController } from "./src/ui/UIController.js";
+import { StaticsCheck } from "./src/core/StaticsCheck.js";
+import {
     initializeTerraceTextureControls,
     initializeOutdoorFurnitureControls
-}
-from"./src/ui/TerraceAndFurnitureControls.js";
+} from "./src/ui/TerraceAndFurnitureControls.js";
 
-// StaticsCheck global verfügbar machen für Carport-Segment-Checks
+// Neue Module
+import { createLogger, setDebugMode, isDebug } from "./src/utils/Logger.js";
+import ServiceRegistry, {
+    registerKonfigurator,
+    registerRenderEngine,
+    registerUIController,
+    registerStaticsCheck,
+    getKonfigurator,
+    getRenderEngine,
+    getUIController
+} from "./src/core/ServiceRegistry.js";
+import StorageService, { STORAGE_KEYS } from "./src/utils/StorageService.js";
+import { CONFIG, DOM_SELECTORS, EVENTS, COMPONENT_NAMES } from "./src/constants/index.js";
+import EventBus, { EventTypes, initializeEventBridges } from "./src/core/EventBus.js";
+
+// Logger für dieses Modul
+const logger = createLogger('Main');
+
+// StaticsCheck in Registry registrieren (statt window.StaticsCheck)
+registerStaticsCheck(StaticsCheck);
+
+// Legacy-Kompatibilität: StaticsCheck auch global verfügbar machen
+// TODO: Schrittweise entfernen, wenn alle Abhängigkeiten migriert sind
 window.StaticsCheck = StaticsCheck;
 
-class PergolaKonfigurator{
-    constructor(){
-        this.renderEngine=null,
-        this.konfiguration=null,
-        this.uiController=null,
-        this.istInitialisiert=!1,
-        console.log("🏗️ Pergola Konfigurator gestartet (Neue Architektur)")
+/**
+ * Hauptklasse des Pergola-Konfigurators
+ */
+class PergolaKonfigurator {
+    constructor() {
+        this.renderEngine = null;
+        this.konfiguration = null;
+        this.uiController = null;
+        this.istInitialisiert = false;
+
+        // Event-Listener-Referenzen für Cleanup
+        this._keydownHandler = null;
+        this._resizeHandler = null;
+
+        logger.info("Pergola Konfigurator gestartet");
     }
-    async initialisieren(){
-        try{
-            console.group("🚀 INITIALISIERE PERGOLA KONFIGURATOR"),
-            await this.warteDOMBereit(),
-            console.log("🎬 Initialisiere Render-Engine..."),
-            this.renderEngine=new RenderEngine("pergola-canvas"),
-            await this.renderEngine.initialisieren(),
-            console.log("🎨 Initialisiere UI-Controller..."),
-            this.uiController=new UIController(this.renderEngine),
-            window.uiController=this.uiController,
-            this.uiController.initialisieren(),
-            this.konfiguration=this.renderEngine.gibPergola().gibKonfiguration(),
-            this.initEventSystem(),
+
+    async initialisieren() {
+        try {
+            logger.group("INITIALISIERE PERGOLA KONFIGURATOR");
+
+            await this.warteDOMBereit();
+
+            // Event-Bridges initialisieren
+            initializeEventBridges();
+
+            logger.info("Initialisiere Render-Engine...");
+            this.renderEngine = new RenderEngine(DOM_SELECTORS.CANVAS);
+            await this.renderEngine.initialisieren();
+            registerRenderEngine(this.renderEngine);
+
+            logger.info("Initialisiere UI-Controller...");
+            this.uiController = new UIController(this.renderEngine);
+            registerUIController(this.uiController);
+
+            // Legacy-Kompatibilität
+            window.uiController = this.uiController;
+
+            this.uiController.initialisieren();
+            this.konfiguration = this.renderEngine.gibPergola().gibKonfiguration();
+
+            this.initEventSystem();
+
             // Initialisiere neue UI-Controls
             setTimeout(() => {
                 initializeTerraceTextureControls();
                 initializeOutdoorFurnitureControls();
-            }, 500),
-            this.istInitialisiert=!0,
-            console.log("✅ Pergola Konfigurator erfolgreich initialisiert"),
-            this.istDebugModus()&&this.debugKonfigurator()
-        }
-        catch(e){
-            console.error("❌ Fehler bei der Initialisierung:", e),
-            this.zeigeFehlermeldung("Initialisierung fehlgeschlagen", e.message)
-        }
-        console.groupEnd()
-    }
-    warteDOMBereit(){
-        return new Promise(e=>{
-            "loading"===document.readyState?document.addEventListener("DOMContentLoaded", e):e()
-        })
-    }
-    initUIIntegration(){
-        console.log("🎨 UI-Integration: Verwende Übergangs-Setup..."),
-        window.ConfigPanel&&(console.log("🔧 Integriere altes ConfigPanel..."), this.integriereAltesConfigPanel()),
-        window.MaterialList&&(console.log("📋 Integriere alte MaterialList..."), this.integriereAlteMaterialList())
-    }
-    integriereAltesConfigPanel(){
-        try{
-            const e=new window.ConfigPanel(this.renderEngine);
-            document.addEventListener("pergolaKonfigurationGeaendert", e=>{
-                this.renderEngine&&this.renderEngine.gibPergola()&&console.log("🔄 Konfiguration geändert:", e.detail)
-            }),
-            this.uiElemente.konfigurationspanel=e
-        }
-        catch(e){
-            console.warn("Altes ConfigPanel konnte nicht integriert werden:", e)
-        }
-    }
-    integriereAlteMaterialList(){
-        try{
-            const e=new window.MaterialList;
-            document.addEventListener("pergolaStrukturAktualisiert", n=>{
-                if(e&&e.updateMaterials){
-                    const i=n.detail.pergola;
-                    i.gibKonfiguration();
-                    e.updateMaterials(this.berechneNeueMateriealien(i))
-                }
-            }),
-            this.uiElemente.materialliste=e
-        }
-        catch(e){
-            console.warn("Alte MaterialList konnte nicht integriert werden:", e)
-        }
-    }
-    berechneNeueMateriealien(e){
-        const n=e.gibKonfiguration(),
-        i=e.berechneStatistiken(),
-        r=e.gibKomponente("pfosten").gibAllePfosten(),
-        t=e.gibKomponente("laengstraeger").gibAlleLaengstraeger(),
-        o=e.gibKomponente("quertraeger").gibAlleQuertraeger();
-        return{
-            pfosten:{
-                anzahl:r.length,
-                einzelhoehe:r[0]?.abmessungen?.hoehe||0,
-                gesamtlaenge:r.reduce((e, n)=>e+n.abmessungen.hoehe, 0),
-                profil:"100x100mm Aluprofil"
-            },
-            laengstraeger:{
-                anzahl:t.length,
-                einzellaenge:t[0]?.abmessungen?.laenge||0,
-                gesamtlaenge:t.reduce((e, n)=>e+n.abmessungen.laenge, 0),
-                profil:"160x80mm Aluprofil"
-            },
-            quertraeger:{
-                anzahl:o.length,
-                einzellaenge:o[0]?.abmessungen?.laenge||0,
-                gesamtlaenge:o.reduce((e, n)=>e+n.abmessungen.laenge, 0),
-                profil:"80x160mm Aluprofil"
-            },
-            konfiguration:n,
-            statistiken:i
-        }
-    }
-    initEventSystem(){
-        document.addEventListener("keydown", e=>{
-            if(e.ctrlKey||e.metaKey)switch(e.key){
-                case"d":e.preventDefault(), this.toggleDebugModus();
-                break;
-                case"r":e.preventDefault(), this.neuErstellen()
+            }, CONFIG.INITIALIZATION_DELAY);
+
+            this.istInitialisiert = true;
+
+            // Event emittieren
+            EventBus.emit(EventTypes.APP_INITIALIZED, { konfigurator: this });
+
+            logger.info("Pergola Konfigurator erfolgreich initialisiert");
+
+            if (this.istDebugModus()) {
+                this.debugKonfigurator();
             }
-        }),
-        window.addEventListener("resize", ()=>{
-            this.renderEngine&&this.renderEngine.aufFensterGroesseAendern()
-        }),
-        this.registriereConsoleBefehle()
+        } catch (e) {
+            logger.error("Fehler bei der Initialisierung:", e);
+            this.zeigeFehlermeldung("Initialisierung fehlgeschlagen", e.message);
+        }
+
+        logger.groupEnd();
     }
-    registriereConsoleBefehle(){
-        window.PergolaKonfigurator=this,
-        window.debugPergola=()=>{
-            this.renderEngine&&this.renderEngine.gibPergola()&&this.renderEngine.gibPergola().debugPergola()
-        },
-        window.debugRenderEngine=()=>{
-            this.renderEngine&&this.renderEngine.debugRenderEngine()
-        },
-        window.neuerstellen=()=>{
-            this.neuErstellen()
-        },
-        console.log("🔧 Console-Befehle registriert: debugPergola(), debugRenderEngine(), neuerstellen()")
+
+    warteDOMBereit() {
+        return new Promise(resolve => {
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", resolve);
+            } else {
+                resolve();
+            }
+        });
     }
-    neuErstellen(){
-        if(this.renderEngine&&this.renderEngine.gibPergola()){
-            console.log("🔄 Erstelle Pergola neu...");
-            this.renderEngine.gibPergola().erstellePergola()
+
+    initUIIntegration() {
+        logger.info("UI-Integration: Verwende Übergangs-Setup...");
+
+        if (window.ConfigPanel) {
+            logger.debug("Integriere altes ConfigPanel...");
+            this.integriereAltesConfigPanel();
+        }
+
+        if (window.MaterialList) {
+            logger.debug("Integriere alte MaterialList...");
+            this.integriereAlteMaterialList();
         }
     }
-    toggleDebugModus(){
-        const e=!("true"===localStorage.getItem("pergolaDebug"));
-        localStorage.setItem("pergolaDebug", e.toString()),
-        console.log("🔍 Debug-Modus "+(e?"aktiviert":"deaktiviert")),
-        e&&this.renderEngine&&this.renderEngine.gibPergola()&&this.renderEngine.gibPergola().debugPergola()
+
+    integriereAltesConfigPanel() {
+        try {
+            const panel = new window.ConfigPanel(this.renderEngine);
+
+            EventBus.on(EventTypes.CONFIG_CHANGED, (detail) => {
+                if (this.renderEngine && this.renderEngine.gibPergola()) {
+                    logger.debug("Konfiguration geändert:", detail);
+                }
+            });
+
+            this.uiElemente = this.uiElemente || {};
+            this.uiElemente.konfigurationspanel = panel;
+        } catch (e) {
+            logger.warn("Altes ConfigPanel konnte nicht integriert werden:", e);
+        }
     }
-    istDebugModus(){
-        return"true"===localStorage.getItem("pergolaDebug")||"1"===new URLSearchParams(window.location.search).get("debug")
+
+    integriereAlteMaterialList() {
+        try {
+            const materialList = new window.MaterialList();
+
+            EventBus.on(EventTypes.STRUCTURE_UPDATED, (detail) => {
+                if (materialList && materialList.updateMaterials) {
+                    const pergola = detail?.pergola;
+                    if (pergola) {
+                        pergola.gibKonfiguration();
+                        materialList.updateMaterials(this.berechneNeueMateriealien(pergola));
+                    }
+                }
+            });
+
+            this.uiElemente = this.uiElemente || {};
+            this.uiElemente.materialliste = materialList;
+        } catch (e) {
+            logger.warn("Alte MaterialList konnte nicht integriert werden:", e);
+        }
     }
-    debugKonfigurator(){
-        console.group("🔍 PERGOLA KONFIGURATOR DEBUG"),
-        console.log("Initialisiert:", this.istInitialisiert),
-        console.log("Render-Engine:", !!this.renderEngine),
-        console.log("UI-Elemente:", this.uiElemente),
-        this.renderEngine&&this.renderEngine.debugRenderEngine(),
-        console.groupEnd()
+
+    berechneNeueMateriealien(pergola) {
+        const konfig = pergola.gibKonfiguration();
+        const statistiken = pergola.berechneStatistiken();
+        const pfosten = pergola.gibKomponente(COMPONENT_NAMES.PFOSTEN).gibAllePfosten();
+        const laengstraeger = pergola.gibKomponente(COMPONENT_NAMES.LAENGSTRAEGER).gibAlleLaengstraeger();
+        const quertraeger = pergola.gibKomponente(COMPONENT_NAMES.QUERTRAEGER).gibAlleQuertraeger();
+
+        return {
+            pfosten: {
+                anzahl: pfosten.length,
+                einzelhoehe: pfosten[0]?.abmessungen?.hoehe || 0,
+                gesamtlaenge: pfosten.reduce((sum, p) => sum + p.abmessungen.hoehe, 0),
+                profil: "100x100mm Aluprofil"
+            },
+            laengstraeger: {
+                anzahl: laengstraeger.length,
+                einzellaenge: laengstraeger[0]?.abmessungen?.laenge || 0,
+                gesamtlaenge: laengstraeger.reduce((sum, l) => sum + l.abmessungen.laenge, 0),
+                profil: "160x80mm Aluprofil"
+            },
+            quertraeger: {
+                anzahl: quertraeger.length,
+                einzellaenge: quertraeger[0]?.abmessungen?.laenge || 0,
+                gesamtlaenge: quertraeger.reduce((sum, q) => sum + q.abmessungen.laenge, 0),
+                profil: "80x160mm Aluprofil"
+            },
+            konfiguration: konfig,
+            statistiken: statistiken
+        };
     }
-    zeigeFehlermeldung(e, n){
-        console.error(`❌ ${e}: ${n}`);
-        const i=document.getElementById("error-container");
-        i&&(i.innerHTML=`\n                <div class="error-message">\n                    <h3>${e}</h3>\n                    <p>${n}</p>\n                </div>\n            `, i.style.display="block")
+
+    initEventSystem() {
+        // Keyboard-Handler
+        this._keydownHandler = (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key) {
+                    case "d":
+                        e.preventDefault();
+                        this.toggleDebugModus();
+                        break;
+                    case "r":
+                        e.preventDefault();
+                        this.neuErstellen();
+                        break;
+                }
+            }
+        };
+        document.addEventListener("keydown", this._keydownHandler);
+
+        // Resize-Handler
+        this._resizeHandler = () => {
+            if (this.renderEngine) {
+                this.renderEngine.aufFensterGroesseAendern();
+            }
+        };
+        window.addEventListener("resize", this._resizeHandler);
+
+        this.registriereConsoleBefehle();
     }
-    dispose(){
-        this.renderEngine&&this.renderEngine.dispose(),
-        document.removeEventListener("keydown", this.initEventSystem),
-        window.removeEventListener("resize", this.initEventSystem),
-        console.log("🧹 Pergola Konfigurator beendet")
+
+    registriereConsoleBefehle() {
+        // In ServiceRegistry registrieren statt window
+        // Legacy-Kompatibilität bleibt vorerst erhalten
+
+        window.PergolaKonfigurator = this;
+
+        window.debugPergola = () => {
+            const engine = getRenderEngine();
+            if (engine && engine.gibPergola()) {
+                engine.gibPergola().debugPergola();
+            }
+        };
+
+        window.debugRenderEngine = () => {
+            const engine = getRenderEngine();
+            if (engine) {
+                engine.debugRenderEngine();
+            }
+        };
+
+        window.neuerstellen = () => {
+            this.neuErstellen();
+        };
+
+        // Neue Debug-Befehle
+        window.debugServices = () => {
+            ServiceRegistry.debug();
+        };
+
+        window.debugEvents = () => {
+            EventBus.debug();
+        };
+
+        logger.info("Console-Befehle: debugPergola(), debugRenderEngine(), neuerstellen(), debugServices(), debugEvents()");
+    }
+
+    neuErstellen() {
+        if (this.renderEngine && this.renderEngine.gibPergola()) {
+            logger.info("Erstelle Pergola neu...");
+            this.renderEngine.gibPergola().erstellePergola();
+        }
+    }
+
+    toggleDebugModus() {
+        const neuerStatus = !StorageService.getBoolean(STORAGE_KEYS.DEBUG, false);
+        StorageService.setBoolean(STORAGE_KEYS.DEBUG, neuerStatus);
+        setDebugMode(neuerStatus);
+
+        logger.info(`Debug-Modus ${neuerStatus ? "aktiviert" : "deaktiviert"}`);
+
+        if (neuerStatus && this.renderEngine && this.renderEngine.gibPergola()) {
+            this.renderEngine.gibPergola().debugPergola();
+        }
+    }
+
+    istDebugModus() {
+        // StorageService nutzen statt direktem localStorage-Zugriff
+        if (StorageService.getBoolean(STORAGE_KEYS.DEBUG, false)) {
+            return true;
+        }
+
+        // URL-Parameter prüfen
+        const params = new URLSearchParams(window.location.search);
+        return params.get(CONFIG.DEBUG_URL_PARAM) === "1";
+    }
+
+    debugKonfigurator() {
+        logger.group("PERGOLA KONFIGURATOR DEBUG");
+        logger.info("Initialisiert:", this.istInitialisiert);
+        logger.info("Render-Engine:", !!this.renderEngine);
+        logger.info("UI-Elemente:", this.uiElemente);
+
+        if (this.renderEngine) {
+            this.renderEngine.debugRenderEngine();
+        }
+
+        ServiceRegistry.debug();
+        logger.groupEnd();
+    }
+
+    zeigeFehlermeldung(titel, nachricht) {
+        logger.error(`${titel}: ${nachricht}`);
+
+        const container = document.getElementById(DOM_SELECTORS.ERROR_CONTAINER);
+        if (container) {
+            container.innerHTML = `
+                <div class="error-message">
+                    <h3>${titel}</h3>
+                    <p>${nachricht}</p>
+                </div>
+            `;
+            container.style.display = "block";
+        }
+    }
+
+    dispose() {
+        // Event-Listener entfernen
+        if (this._keydownHandler) {
+            document.removeEventListener("keydown", this._keydownHandler);
+        }
+        if (this._resizeHandler) {
+            window.removeEventListener("resize", this._resizeHandler);
+        }
+
+        // RenderEngine disposen
+        if (this.renderEngine) {
+            this.renderEngine.dispose();
+        }
+
+        // Event emittieren
+        EventBus.emit(EventTypes.APP_DISPOSED);
+
+        // ServiceRegistry aufräumen
+        ServiceRegistry.dispose();
+
+        logger.info("Pergola Konfigurator beendet");
     }
 }
 
-function ermittleShareId(){
-    const params=new URLSearchParams(window.location.search);
-    const fromQuery=params.get("share");
-    if(fromQuery)return fromQuery;
-    const pathMatch=window.location.pathname.match(/\/s\/([^/]+)\.json$/i);
-    return pathMatch?pathMatch[1]:null
+/**
+ * Ermittelt die Share-ID aus URL-Parametern oder Pfad
+ */
+function ermittleShareId() {
+    const params = new URLSearchParams(window.location.search);
+    const fromQuery = params.get(CONFIG.SHARE_URL_PARAM);
+
+    if (fromQuery) return fromQuery;
+
+    const pathMatch = window.location.pathname.match(/\/s\/([^/]+)\.json$/i);
+    return pathMatch ? pathMatch[1] : null;
 }
 
-async function ladeGeteilteKonfiguration(konfigurator){
-    const shareId=ermittleShareId();
-    if(!shareId||!konfigurator?.uiController)return;
-    const params=new URLSearchParams(window.location.search);
-    const targetIntern=params.get("target")==="intern"||/\/intern\//.test(window.location.pathname);
-    try{
-        const baseDir=targetIntern?"./intern/":"./s/";
-        const shareUrl=new URL(`${baseDir}${encodeURIComponent(shareId)}.json`, window.location.href).toString();
-        console.log("🔗 Lade geteilte Konfiguration:", shareUrl);
-        const response=await fetch(shareUrl, {cache:"no-store"});
-        if(!response.ok)throw new Error(`Snapshot ${shareId} nicht gefunden (HTTP ${response.status})`);
-        const snapshot=await response.json();
-        const cfg=snapshot?.originalConfig||snapshot?.details||snapshot?.config;
-        if(!cfg){
-            console.warn("⚠️ Snapshot enthält keine rekonstruierbare Konfiguration");
+/**
+ * Lädt eine geteilte Konfiguration
+ */
+async function ladeGeteilteKonfiguration(konfigurator) {
+    const shareId = ermittleShareId();
+
+    if (!shareId || !konfigurator?.uiController) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const targetIntern = params.get(CONFIG.TARGET_URL_PARAM) === CONFIG.TARGET_INTERN ||
+                         /\/intern\//.test(window.location.pathname);
+
+    try {
+        const baseDir = targetIntern ? "./intern/" : "./s/";
+        const shareUrl = new URL(
+            `${baseDir}${encodeURIComponent(shareId)}.json`,
+            window.location.href
+        ).toString();
+
+        logger.info("Lade geteilte Konfiguration:", shareUrl);
+
+        const response = await fetch(shareUrl, { cache: "no-store" });
+
+        if (!response.ok) {
+            throw new Error(`Snapshot ${shareId} nicht gefunden (HTTP ${response.status})`);
+        }
+
+        const snapshot = await response.json();
+        const cfg = snapshot?.originalConfig || snapshot?.details || snapshot?.config;
+
+        if (!cfg) {
+            logger.warn("Snapshot enthält keine rekonstruierbare Konfiguration");
             return;
         }
+
         konfigurator.uiController.ladeExterneKonfiguration(cfg);
-        console.log("✅ Snapshot angewendet:", shareId);
-        if(snapshot?.share?.viewUrl){
-            console.log("🔗 Link:", snapshot.share.viewUrl);
+        logger.info("Snapshot angewendet:", shareId);
+
+        if (snapshot?.share?.viewUrl) {
+            logger.info("Link:", snapshot.share.viewUrl);
         }
-    }catch(err){
-        console.warn("⚠️ Geteilte Konfiguration konnte nicht geladen werden:", err);
+    } catch (err) {
+        logger.warn("Geteilte Konfiguration konnte nicht geladen werden:", err);
     }
 }
 
-async function starteAnwendung(){
-    try{
-        console.log("🚀 Starte Pergola Konfigurator (Neue Architektur)...");
-        const e=new PergolaKonfigurator;
-        await e.initialisieren(),
-        window.konfigurator=e,
-        await ladeGeteilteKonfiguration(e),
-        console.log("✅ Anwendung erfolgreich gestartet"),
-        console.log("💡 Debug-Modus: Strg+D | Neu erstellen: Strg+R")
-    }
-    catch(e){
-        console.error("❌ Fehler beim Starten der Anwendung:", e)
+/**
+ * Startet die Anwendung
+ */
+async function starteAnwendung() {
+    try {
+        logger.info("Starte Pergola Konfigurator...");
+
+        const konfigurator = new PergolaKonfigurator();
+        await konfigurator.initialisieren();
+
+        // In ServiceRegistry registrieren
+        registerKonfigurator(konfigurator);
+
+        // Legacy-Kompatibilität
+        window.konfigurator = konfigurator;
+
+        await ladeGeteilteKonfiguration(konfigurator);
+
+        logger.info("Anwendung erfolgreich gestartet");
+        logger.info("Debug-Modus: Strg+D | Neu erstellen: Strg+R");
+    } catch (e) {
+        logger.error("Fehler beim Starten der Anwendung:", e);
     }
 }
-"loading"===document.readyState?document.addEventListener("DOMContentLoaded", starteAnwendung):starteAnwendung();
-export{
-    PergolaKonfigurator
-};
+
+// Anwendung starten
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", starteAnwendung);
+} else {
+    starteAnwendung();
+}
+
+export { PergolaKonfigurator };

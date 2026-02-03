@@ -1,148 +1,412 @@
-import{
-    ProfileKonfiguration
-}
-from"../config/ProfileKonfiguration.js";
-import{
-    MaterialManager
-}
-from"../core/MaterialManager.js";
-export class Kopfbaender{
-    constructor(e, n){
-        this.koordinatenSystem=e,
-        this.konfiguration=n,
-        this.profileKonfig=new ProfileKonfiguration,
-        this.materialManager=new MaterialManager,
-        this.kopfbaenderGruppe=new THREE.Group,
-        this.kopfbaenderGruppe.name="Kopfbänder"
+/**
+ * Kopfbänder-Komponente für den Pergola-Konfigurator
+ *
+ * Erstellt diagonale Verstärkungsbänder zwischen Pfosten und Trägern
+ * zur zusätzlichen Stabilisierung der Pergola-Struktur.
+ *
+ * Refactored: Erweitert Component3D für einheitliche API
+ */
+
+import { Component3D } from "../core/Component3D.js";
+import { ProfileKonfiguration } from "../config/ProfileKonfiguration.js";
+import { MaterialManager } from "../core/MaterialManager.js";
+import { COMPONENT_NAMES } from "../constants/index.js";
+
+/**
+ * Profil-Zuordnung für Kopfbänder basierend auf Pfostenprofil
+ * @type {Object<string, string>}
+ */
+const KOPFBAND_PROFILE = {
+    "200x120x4": "160x80x4",
+    "200x100x4": "120x80x4",
+    "160x80x4": "120x80x4",
+    "120x80x4": "100x60x3"
+};
+
+/**
+ * Standard-Kopfbandprofil wenn kein passendes gefunden wird
+ * @type {string}
+ */
+const DEFAULT_KOPFBAND_PROFIL = "120x80x4";
+
+/**
+ * Kopfband-Konstanten
+ */
+const KOPFBAND_CONFIG = {
+    /** Horizontale Länge des Kopfbands */
+    LAENGE: 0.8,
+    /** Vertikale Absenkung zum Träger */
+    HOEHEN_OFFSET: 0.4,
+    /** Mindestlänge für gültige Kopfbänder */
+    MIN_LAENGE: 0.1
+};
+
+/**
+ * Klasse zur Erstellung und Verwaltung von Kopfbändern
+ * @extends Component3D
+ */
+export class Kopfbaender extends Component3D {
+    /**
+     * @param {object} koordinatenSystem - Referenz zum KoordinatenSystem
+     * @param {object} konfiguration - Referenz zur PergolaKonfiguration
+     */
+    constructor(koordinatenSystem, konfiguration) {
+        super(COMPONENT_NAMES.KOPFBAENDER, koordinatenSystem, konfiguration);
+
+        /** @type {ProfileKonfiguration} */
+        this.profileKonfig = new ProfileKonfiguration();
+
+        /** @type {THREE.Group} */
+        this.kopfbaenderGruppe = new THREE.Group();
+        this.kopfbaenderGruppe.name = "Kopfbänder";
+
+        // Gruppe der Basisklasse überschreiben
+        this.gruppe = this.kopfbaenderGruppe;
     }
-    erstelleKopfbaender(){
+
+    // ========================================================================
+    // HAUPTMETHODEN
+    // ========================================================================
+
+    /**
+     * Erstellt alle Kopfbänder basierend auf Konfiguration
+     * @returns {THREE.Group}
+     */
+    erstelleKopfbaender() {
         this.entferneKopfbaender();
-        const e=this.konfiguration.gibAktuelleKonfiguration();
-        if(!e.kopfbaenderAktiv)return this.kopfbaenderGruppe;
-        console.log("🔺 Erstelle Kopfbänder...");
-        try{
-            const n=this.koordinatenSystem.gibReferenzpunkt("pfostenPositionen");
-            if(!n)return console.warn("⚠️ Keine Pfosten-Positionen verfügbar für Kopfbänder"),
-            this.kopfbaenderGruppe;
-            const r=this.bestimmeKopfbandProfil(e);
-            switch(e.kopfbaenderPosition||"ecken"){
-                case"ecken":this.erstelleEckKopfbaender(n, e, r);
-                break;
-                case"alle":this.erstelleAlleKopfbaender(n, e, r);
-                break;
-                case"vorne":this.erstelleVordereKopfbaender(n, e, r);
-                break;
-                case"hinten":this.erstelleHintereKopfbaender(n, e, r)
+
+        const config = this.konfiguration.gibAktuelleKonfiguration();
+
+        // Nur erstellen wenn aktiviert
+        if (!config.kopfbaenderAktiv) {
+            return this.kopfbaenderGruppe;
+        }
+
+        this.logger.debug("Erstelle Kopfbänder...");
+
+        try {
+            const pfostenPositionen = this.koordinatenSystem.gibReferenzpunkt("pfostenPositionen");
+
+            if (!pfostenPositionen) {
+                this.logger.warn("Keine Pfosten-Positionen verfügbar für Kopfbänder");
+                return this.kopfbaenderGruppe;
             }
-            console.log(`✅ ${this.kopfbaenderGruppe.children.length} Kopfbänder erstellt`)
+
+            const profil = this.bestimmeKopfbandProfil(config);
+            const position = config.kopfbaenderPosition || "ecken";
+
+            switch (position) {
+                case "ecken":
+                    this.erstelleEckKopfbaender(pfostenPositionen, config, profil);
+                    break;
+                case "alle":
+                    this.erstelleAlleKopfbaender(pfostenPositionen, config, profil);
+                    break;
+                case "vorne":
+                    this.erstelleVordereKopfbaender(pfostenPositionen, config, profil);
+                    break;
+                case "hinten":
+                    this.erstelleHintereKopfbaender(pfostenPositionen, config, profil);
+                    break;
+            }
+
+            this.logger.debug(`${this.kopfbaenderGruppe.children.length} Kopfbänder erstellt`);
+        } catch (error) {
+            this.logger.error("Fehler beim Erstellen der Kopfbänder:", error);
+            this.logger.warn("Kopfbänder werden übersprungen, Pergola wird ohne Kopfbänder erstellt");
         }
-        catch(e){
-            console.error("❌ Fehler beim Erstellen der Kopfbänder:", e),
-            console.error("   Kopfbänder werden übersprungen, Pergola wird ohne Kopfbänder erstellt")
-        }
-        return this.kopfbaenderGruppe
+
+        return this.kopfbaenderGruppe;
     }
-    erstelleEckKopfbaender(e, n, r){
-        console.log("🔺 Erstelle Eck-Kopfbänder..."),
-        console.log("   Verfügbare Pfosten-Positionen:", Object.keys(e));
-        [{
-            pfosten:e.vorne_links,
-            richtung:"vorne_links"
-        },
-        {
-            pfosten:e.vorne_rechts,
-            richtung:"vorne_rechts"
-        },
-        {
-            pfosten:e.hinten_links,
-            richtung:"hinten_links"
-        },
-        {
-            pfosten:e.hinten_rechts,
-            richtung:"hinten_rechts"
-        }
-        ].forEach(e=>{
-            e.pfosten?(console.log(`   → Verarbeite Ecke: ${e.richtung}`, e.pfosten), this.erstelleEinzelnesKopfband(e.pfosten, e.richtung, n, r)):console.warn(`   ⚠️ Keine Position für ${e.richtung}`)
-        })
+
+    // ========================================================================
+    // KOPFBAND-ERSTELLUNG NACH POSITION
+    // ========================================================================
+
+    /**
+     * Erstellt Kopfbänder an den Ecken
+     * @param {object} positionen - Pfosten-Positionen
+     * @param {object} config - Konfiguration
+     * @param {object} profil - Kopfbandprofil
+     */
+    erstelleEckKopfbaender(positionen, config, profil) {
+        this.logger.debug("Erstelle Eck-Kopfbänder...");
+        this.logger.debug("Verfügbare Pfosten-Positionen:", Object.keys(positionen));
+
+        const ecken = [
+            { pfosten: positionen.vorne_links, richtung: "vorne_links" },
+            { pfosten: positionen.vorne_rechts, richtung: "vorne_rechts" },
+            { pfosten: positionen.hinten_links, richtung: "hinten_links" },
+            { pfosten: positionen.hinten_rechts, richtung: "hinten_rechts" }
+        ];
+
+        ecken.forEach(ecke => {
+            if (ecke.pfosten) {
+                this.logger.debug(`Verarbeite Ecke: ${ecke.richtung}`, ecke.pfosten);
+                this.erstelleEinzelnesKopfband(ecke.pfosten, ecke.richtung, config, profil);
+            } else {
+                this.logger.warn(`Keine Position für ${ecke.richtung}`);
+            }
+        });
     }
-    erstelleAlleKopfbaender(e, n, r){
-        this.erstelleEckKopfbaender(e, n, r),
-        e.mitte&&n.mittelpfostenAktiv&&this.erstelleEinzelnesKopfband(e.mitte, "mitte", n, r)
-    }
-    erstelleVordereKopfbaender(e, n, r){
-        e.vorne_links&&this.erstelleEinzelnesKopfband(e.vorne_links, "vorne_links", n, r),
-        e.vorne_rechts&&this.erstelleEinzelnesKopfband(e.vorne_rechts, "vorne_rechts", n, r)
-    }
-    erstelleHintereKopfbaender(e, n, r){
-        e.hinten_links&&this.erstelleEinzelnesKopfband(e.hinten_links, "hinten_links", n, r),
-        e.hinten_rechts&&this.erstelleEinzelnesKopfband(e.hinten_rechts, "hinten_rechts", n, r)
-    }
-    erstelleEinzelnesKopfband(e, n, r, o){
-        try{
-            if(!e)return void console.warn(`⚠️ Keine Pfosten-Position für ${n}`);
-            r.kopfbaenderWinkel,
-            Math.PI;
-            const t=o?.abmessungen?.breite||.08,
-            i=o?.abmessungen?.hoehe||.04,
-            s=e.oberkante||e,
-            l=e.boden||e,
-            a=s.y||e.hoehe||e.y||r.gesamthoehe||2.5,
-            f=l.x||e.x||0,
-            p=l.z||e.z||0;
-            console.log(`🔺 Erstelle Kopfband ${n}: Start bei Pfosten (${f.toFixed(2)}, ${a.toFixed(2)}, ${p.toFixed(2)})`);
-            const h=.8;
-            let c=f,
-            d=p,
-            b=a;
-            n.includes("links")?c+=h:n.includes("rechts")&&(c-=h),
-            n.includes("vorne")?d+=h:n.includes("hinten")&&(d-=h),
-            b=a-.4,
-            console.log(`   → Ende bei Träger (${c.toFixed(2)}, ${b.toFixed(2)}, ${d.toFixed(2)})`);
-            const g=c-f,
-            k=b-a,
-            u=d-p,
-            K=Math.sqrt(g*g+k*k+u*u);
-            if(K<.1)return void console.warn(`⚠️ Kopfband ${n} zu kurz (${K.toFixed(2)}m)`);
-            const m=new THREE.BoxGeometry(t, i, K),
-            x=MaterialManager.gibStrukturMaterial({
-                teil:"kopfband", config:r
-            }),
-            E=new THREE.Mesh(m, x);
-            E.position.set((f+c)/2, (a+b)/2, (p+d)/2);
-            const P=new THREE.Vector3(g, k, u).normalize(),
-            _=new THREE.Vector3(0, 0, 1),
-            v=new THREE.Quaternion;
-            v.setFromUnitVectors(_, P),
-            E.quaternion.copy(v),
-            E.name=`Kopfband_${n}`,
-            this.kopfbaenderGruppe.add(E);
-            const $=Math.abs(180*Math.atan2(k, Math.sqrt(g*g+u*u))/Math.PI);
-            console.log(`   ✅ Kopfband ${n} erstellt (Länge: ${K.toFixed(2)}m, Winkel: ${$.toFixed(1)}°)`)
-        }
-        catch(e){
-            console.error(`❌ Fehler beim Erstellen von Kopfband ${n}:`, e)
+
+    /**
+     * Erstellt alle Kopfbänder (Ecken + Mitte)
+     * @param {object} positionen - Pfosten-Positionen
+     * @param {object} config - Konfiguration
+     * @param {object} profil - Kopfbandprofil
+     */
+    erstelleAlleKopfbaender(positionen, config, profil) {
+        this.erstelleEckKopfbaender(positionen, config, profil);
+
+        // Mittelpfosten nur wenn aktiv
+        if (positionen.mitte && config.mittelpfostenAktiv) {
+            this.erstelleEinzelnesKopfband(positionen.mitte, "mitte", config, profil);
         }
     }
-    bestimmeKopfbandProfil(e){
-        const n={
-            "200x120x4":"160x80x4",
-            "200x100x4":"120x80x4",
-            "160x80x4":"120x80x4",
-            "120x80x4":"100x60x3"
+
+    /**
+     * Erstellt nur vordere Kopfbänder
+     * @param {object} positionen - Pfosten-Positionen
+     * @param {object} config - Konfiguration
+     * @param {object} profil - Kopfbandprofil
+     */
+    erstelleVordereKopfbaender(positionen, config, profil) {
+        if (positionen.vorne_links) {
+            this.erstelleEinzelnesKopfband(positionen.vorne_links, "vorne_links", config, profil);
         }
-        [e.pfostenProfil||"160x80x4"]||"120x80x4";
-        return this.profileKonfig.gibProfil(n)||this.profileKonfig.gibAktuellesProfil()
-    }
-    entferneKopfbaender(){
-        for(;
-        this.kopfbaenderGruppe.children.length>0;){
-            const e=this.kopfbaenderGruppe.children[0];
-            e.geometry&&e.geometry.dispose(),
-            e.material&&(Array.isArray(e.material)?e.material.forEach(e=>e.dispose()):e.material.dispose()),
-            this.kopfbaenderGruppe.remove(e)
+        if (positionen.vorne_rechts) {
+            this.erstelleEinzelnesKopfband(positionen.vorne_rechts, "vorne_rechts", config, profil);
         }
     }
-    static gibVerbesserungsFaktor(){
-        return 1.3
+
+    /**
+     * Erstellt nur hintere Kopfbänder
+     * @param {object} positionen - Pfosten-Positionen
+     * @param {object} config - Konfiguration
+     * @param {object} profil - Kopfbandprofil
+     */
+    erstelleHintereKopfbaender(positionen, config, profil) {
+        if (positionen.hinten_links) {
+            this.erstelleEinzelnesKopfband(positionen.hinten_links, "hinten_links", config, profil);
+        }
+        if (positionen.hinten_rechts) {
+            this.erstelleEinzelnesKopfband(positionen.hinten_rechts, "hinten_rechts", config, profil);
+        }
+    }
+
+    // ========================================================================
+    // EINZELNES KOPFBAND
+    // ========================================================================
+
+    /**
+     * Erstellt ein einzelnes Kopfband
+     * @param {object} pfostenPos - Pfosten-Position
+     * @param {string} richtung - Richtungsbezeichnung
+     * @param {object} config - Konfiguration
+     * @param {object} profil - Kopfbandprofil
+     */
+    erstelleEinzelnesKopfband(pfostenPos, richtung, config, profil) {
+        try {
+            if (!pfostenPos) {
+                this.logger.warn(`Keine Pfosten-Position für ${richtung}`);
+                return;
+            }
+
+            // Profil-Abmessungen
+            const breite = profil?.abmessungen?.breite || 0.08;
+            const hoehe = profil?.abmessungen?.hoehe || 0.04;
+
+            // Startpunkt am Pfosten ermitteln
+            const oberkante = pfostenPos.oberkante || pfostenPos;
+            const boden = pfostenPos.boden || pfostenPos;
+
+            const startY = oberkante.y || pfostenPos.hoehe || pfostenPos.y || config.gesamthoehe || 2.5;
+            const startX = boden.x || pfostenPos.x || 0;
+            const startZ = boden.z || pfostenPos.z || 0;
+
+            this.logger.debug(
+                `Erstelle Kopfband ${richtung}: Start bei Pfosten ` +
+                `(${startX.toFixed(2)}, ${startY.toFixed(2)}, ${startZ.toFixed(2)})`
+            );
+
+            // Endpunkt berechnen basierend auf Richtung
+            let endX = startX;
+            let endZ = startZ;
+            let endY = startY;
+
+            // Horizontale Verschiebung
+            if (richtung.includes("links")) {
+                endX += KOPFBAND_CONFIG.LAENGE;
+            } else if (richtung.includes("rechts")) {
+                endX -= KOPFBAND_CONFIG.LAENGE;
+            }
+
+            // Tiefenverschiebung
+            if (richtung.includes("vorne")) {
+                endZ += KOPFBAND_CONFIG.LAENGE;
+            } else if (richtung.includes("hinten")) {
+                endZ -= KOPFBAND_CONFIG.LAENGE;
+            }
+
+            // Vertikale Verschiebung
+            endY = startY - KOPFBAND_CONFIG.HOEHEN_OFFSET;
+
+            this.logger.debug(
+                `Ende bei Träger (${endX.toFixed(2)}, ${endY.toFixed(2)}, ${endZ.toFixed(2)})`
+            );
+
+            // Richtungsvektor und Länge berechnen
+            const deltaX = endX - startX;
+            const deltaY = endY - startY;
+            const deltaZ = endZ - startZ;
+            const laenge = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+
+            // Prüfen ob Kopfband lang genug ist
+            if (laenge < KOPFBAND_CONFIG.MIN_LAENGE) {
+                this.logger.warn(`Kopfband ${richtung} zu kurz (${laenge.toFixed(2)}m)`);
+                return;
+            }
+
+            // Geometrie erstellen
+            const geometrie = new THREE.BoxGeometry(breite, hoehe, laenge);
+
+            // Material erstellen
+            const material = MaterialManager.gibStrukturMaterial({
+                teil: "kopfband",
+                config
+            });
+
+            // Mesh erstellen
+            const mesh = new THREE.Mesh(geometrie, material);
+
+            // Positionieren (Mittelpunkt)
+            mesh.position.set(
+                (startX + endX) / 2,
+                (startY + endY) / 2,
+                (startZ + endZ) / 2
+            );
+
+            // Rotation berechnen
+            const direction = new THREE.Vector3(deltaX, deltaY, deltaZ).normalize();
+            const defaultDir = new THREE.Vector3(0, 0, 1);
+            const quaternion = new THREE.Quaternion();
+            quaternion.setFromUnitVectors(defaultDir, direction);
+            mesh.quaternion.copy(quaternion);
+
+            mesh.name = `Kopfband_${richtung}`;
+            this.kopfbaenderGruppe.add(mesh);
+
+            // Debug: Winkel berechnen
+            const winkel = Math.abs(
+                (180 * Math.atan2(deltaY, Math.sqrt(deltaX * deltaX + deltaZ * deltaZ))) / Math.PI
+            );
+            this.logger.debug(
+                `Kopfband ${richtung} erstellt (Länge: ${laenge.toFixed(2)}m, Winkel: ${winkel.toFixed(1)}°)`
+            );
+        } catch (error) {
+            this.logger.error(`Fehler beim Erstellen von Kopfband ${richtung}:`, error);
+        }
+    }
+
+    // ========================================================================
+    // PROFIL-BESTIMMUNG
+    // ========================================================================
+
+    /**
+     * Bestimmt das passende Kopfbandprofil basierend auf Pfostenprofil
+     * @param {object} config - Konfiguration
+     * @returns {object} - Kopfbandprofil
+     */
+    bestimmeKopfbandProfil(config) {
+        const pfostenProfil = config.pfostenProfil || "160x80x4";
+        const kopfbandProfilId = KOPFBAND_PROFILE[pfostenProfil] || DEFAULT_KOPFBAND_PROFIL;
+
+        return this.profileKonfig.gibProfil(kopfbandProfilId) ||
+               this.profileKonfig.gibAktuellesProfil();
+    }
+
+    // ========================================================================
+    // CLEANUP
+    // ========================================================================
+
+    /**
+     * Entfernt alle Kopfbänder
+     */
+    entferneKopfbaender() {
+        while (this.kopfbaenderGruppe.children.length > 0) {
+            const child = this.kopfbaenderGruppe.children[0];
+
+            if (child.geometry) {
+                child.geometry.dispose();
+            }
+
+            if (child.material) {
+                if (Array.isArray(child.material)) {
+                    child.material.forEach(mat => mat.dispose());
+                } else {
+                    child.material.dispose();
+                }
+            }
+
+            this.kopfbaenderGruppe.remove(child);
+        }
+    }
+
+    // ========================================================================
+    // COMPONENT3D INTERFACE
+    // ========================================================================
+
+    /**
+     * Erstellt die Komponente (Component3D Interface)
+     * @returns {THREE.Group}
+     */
+    create() {
+        return this.erstelleKopfbaender();
+    }
+
+    /**
+     * Gibt alle Elemente zurück (Component3D Interface)
+     * @returns {THREE.Object3D[]}
+     */
+    getAll() {
+        return [...this.kopfbaenderGruppe.children];
+    }
+
+    /**
+     * Gibt die 3D-Gruppe zurück (Component3D Interface)
+     * @returns {THREE.Group}
+     */
+    getGroup() {
+        return this.kopfbaenderGruppe;
+    }
+
+    /**
+     * Legacy: Gibt die 3D-Gruppe zurück
+     * @deprecated Verwende getGroup() stattdessen
+     * @returns {THREE.Group}
+     */
+    gib3DGruppe() {
+        return this.kopfbaenderGruppe;
+    }
+
+    /**
+     * Cleanup (Component3D Interface)
+     */
+    dispose() {
+        this.entferneKopfbaender();
+        super.dispose();
+    }
+
+    // ========================================================================
+    // STATISCHE METHODEN
+    // ========================================================================
+
+    /**
+     * Gibt den statischen Verbesserungsfaktor zurück
+     * @returns {number}
+     */
+    static gibVerbesserungsFaktor() {
+        return 1.3;
     }
 }

@@ -63,7 +63,14 @@ export class UIController{
             glasTyp:"klar",
             glasFarbe:"klar",
             carportModus:!1,
-            carportSegmente:[]
+            carportSegmente:[],
+            glaswaende:{
+                links:{typ:"keine",istTuer:!1},
+                rechts:{typ:"keine",istTuer:!1},
+                vorne:{typ:"keine",istTuer:!1},
+                hinten:{typ:"keine",istTuer:!1}
+            },
+            glaswaendeFarbe:"klar"
         },
         this.selectPropertyMap={
             type:"typ",
@@ -101,6 +108,7 @@ export class UIController{
         this.initSelects(),
         this.optionCardController.initialisieren(),
         this.initGlassColorOptions(),
+        this.initGlaswaende(),
         this.updateDrainageVerfuegbarkeit(),
         this.initProfilauswahl(),
         this.initKoordinatenToggle(),
@@ -359,7 +367,7 @@ export class UIController{
             const t=this.elemente[e];
             t&&t.addEventListener("change", t=>{
                 const n=this.selectPropertyMap[e];
-                n&&(this.aktuelleKonfiguration[n]=t.target.value), this.updateOptionCardState(e, t.target.value), "roofType"===e&&(this.updateEpdmColorVisibility(), this.updateDrainageVerfuegbarkeit(), this.updateGlassColorVisibility(), this.updateRoofHints()), "drainage"===e&&(this.pruefeDrainageEinschraenkung(), this.updateDrainageHints()), "type"===e&&this.updateTypeHints(), "fasteningType"===e&&this.updateFasteningHints(), "color"===e&&(this.aktuelleKonfiguration.ncsFarbe=null, this.updateOptionCardState("ncsColor", null)), this.onKonfigurationGeaendert()
+                n&&(this.aktuelleKonfiguration[n]=t.target.value), this.updateOptionCardState(e, t.target.value), "roofType"===e&&(this.updateEpdmColorVisibility(), this.updateDrainageVerfuegbarkeit(), this.updateGlassColorVisibility(), this.updateRoofHints()), "drainage"===e&&(this.pruefeDrainageEinschraenkung(), this.updateDrainageHints()), "type"===e&&(this.updateTypeHints(), this.updateGlaswaendeWandanbauStatus()), "fasteningType"===e&&this.updateFasteningHints(), "color"===e&&(this.aktuelleKonfiguration.ncsFarbe=null, this.updateOptionCardState("ncsColor", null)), this.onKonfigurationGeaendert()
             })
         }),
         this.updateEpdmColorVisibility(),
@@ -387,6 +395,9 @@ export class UIController{
         }
         if("ncsColor"===e){
             this.updateStatus(`NCS-Farbe gewählt: ${t.toUpperCase()}`, "success");
+        }
+        if("type"===e){
+            this.updateGlaswaendeWandanbauStatus();
         }
     }
     updateOptionCardState(e, t){
@@ -418,6 +429,85 @@ export class UIController{
         Array.from(this.elemente.glassColorOptions||[]).forEach(e=>{
             e.disabled=!t, e.setAttribute("tabindex", t?"0":"-1")
         })
+    }
+    initGlaswaende(){
+        const seiten=["links","rechts","vorne","hinten"];
+        seiten.forEach(seite=>{
+            const container=document.querySelector(`.glaswand-typ-cards[data-seite="${seite}"]`);
+            if(!container)return;
+            const cards=container.querySelectorAll(".option-card");
+            cards.forEach(card=>{
+                card.addEventListener("click", ()=>{
+                    const typ=card.dataset.value;
+                    if(!typ)return;
+                    cards.forEach(c=>c.classList.remove("active"));
+                    card.classList.add("active");
+                    this.aktuelleKonfiguration.glaswaende[seite].typ=typ;
+                    if(typ!=="schiebewand"){
+                        this.aktuelleKonfiguration.glaswaende[seite].istTuer=false;
+                    }
+                    this.updateGlaswaendeTuerOption(seite);
+                    this.updateGlaswaendeFarbeVisibility();
+                    this.onKonfigurationGeaendert();
+                    this.updateStatus(`Glaswand ${seite}: ${typ}`, "success");
+                });
+            });
+            const tuerCheckbox=document.querySelector(`.glaswand-tuer-checkbox[data-seite="${seite}"]`);
+            if(tuerCheckbox){
+                tuerCheckbox.addEventListener("change", ()=>{
+                    this.aktuelleKonfiguration.glaswaende[seite].istTuer=tuerCheckbox.checked;
+                    this.onKonfigurationGeaendert();
+                });
+            }
+        });
+        const glaswandFarbeOptions=document.querySelectorAll("#glaswand-farbe-options .glass-color-option");
+        glaswandFarbeOptions.forEach(opt=>{
+            opt.addEventListener("click", ()=>{
+                const farbe=opt.dataset.glaswandColor;
+                if(!farbe)return;
+                glaswandFarbeOptions.forEach(o=>o.classList.remove("active"));
+                opt.classList.add("active");
+                this.aktuelleKonfiguration.glaswaendeFarbe=farbe;
+                this.onKonfigurationGeaendert();
+                this.updateStatus(`Glaswand-Farbe: ${farbe}`, "success");
+            });
+        });
+        this.updateGlaswaendeWandanbauStatus();
+        this.updateGlaswaendeFarbeVisibility();
+    }
+    updateGlaswaendeTuerOption(seite){
+        const tuerLabel=document.querySelector(`#glaswand-${seite}-container .glaswand-tuer-option`);
+        if(!tuerLabel)return;
+        const typ=this.aktuelleKonfiguration.glaswaende[seite].typ;
+        tuerLabel.style.display=(typ==="schiebewand")?"flex":"none";
+    }
+    updateGlaswaendeFarbeVisibility(){
+        const container=document.getElementById("glaswand-farbe-container");
+        if(!container)return;
+        const hasGlaswand=["links","rechts","vorne","hinten"].some(s=>this.aktuelleKonfiguration.glaswaende[s].typ!=="keine");
+        container.style.display=hasGlaswand?"block":"none";
+    }
+    updateGlaswaendeWandanbauStatus(){
+        const hintenContainer=document.getElementById("glaswand-hinten-container");
+        if(!hintenContainer)return;
+        const istWandanbau=this.aktuelleKonfiguration.typ==="wandanschluss";
+        const hinweis=hintenContainer.querySelector(".glaswand-wandanbau-hinweis");
+        const cards=hintenContainer.querySelectorAll(".option-card");
+        if(istWandanbau){
+            hintenContainer.style.opacity="0.6";
+            hintenContainer.style.pointerEvents="none";
+            if(hinweis)hinweis.style.display="block";
+            this.aktuelleKonfiguration.glaswaende.hinten.typ="keine";
+            this.aktuelleKonfiguration.glaswaende.hinten.istTuer=false;
+            cards.forEach(c=>{
+                c.classList.remove("active");
+                if(c.dataset.value==="keine")c.classList.add("active");
+            });
+        }else{
+            hintenContainer.style.opacity="1";
+            hintenContainer.style.pointerEvents="auto";
+            if(hinweis)hinweis.style.display="none";
+        }
     }
     updateDrainageVerfuegbarkeit(){
         const e=this.elemente.drainage;

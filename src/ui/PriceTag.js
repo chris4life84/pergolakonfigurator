@@ -815,6 +815,90 @@ export class PriceTag{
                 }
             }
         }
+        // Glaswände-Berechnung
+        if(t&&t.glaswaende){
+            const gw=t.glaswaende;
+            const breite=t.breite||4;
+            const tiefe=t.tiefe||3;
+            const hoehe=t.hoehe||2.5;
+            const seiten={
+                links:{laenge:tiefe,hoehe:hoehe},
+                rechts:{laenge:tiefe,hoehe:hoehe},
+                vorne:{laenge:breite,hoehe:hoehe},
+                hinten:{laenge:breite,hoehe:hoehe}
+            };
+            let glaswandFlaeche=0;
+            let schiebewandFlaeche=0;
+            let rahmenLaenge=0;
+            let schienenLaenge=0;
+            let tuerCount=0;
+            Object.entries(gw).forEach(([seite,config])=>{
+                if(!config||config.typ==="keine")return;
+                const s=seiten[seite];
+                if(!s)return;
+                const flaeche=s.laenge*s.hoehe;
+                const umfang=2*(s.laenge+s.hoehe);
+                if(config.typ==="festglas"){
+                    glaswandFlaeche+=flaeche;
+                    rahmenLaenge+=umfang;
+                }else if(config.typ==="schiebewand"){
+                    schiebewandFlaeche+=flaeche;
+                    rahmenLaenge+=umfang;
+                    schienenLaenge+=s.laenge;
+                    if(config.istTuer)tuerCount++;
+                }
+            });
+            if(glaswandFlaeche>0){
+                const preis=this.findePreis("glaswaende","festglas");
+                if(preis){
+                    zusatzpos.push({
+                        label:"Festglas Seitenwände",
+                        detail:`${numberFormatter.format(glaswandFlaeche)} m² × ${currencyFormatter.format(preis.price)}/m²`,
+                        netto:glaswandFlaeche*preis.price
+                    });
+                }
+            }
+            if(schiebewandFlaeche>0){
+                const preis=this.findePreis("glaswaende","schiebewand");
+                if(preis){
+                    zusatzpos.push({
+                        label:"Schiebewände",
+                        detail:`${numberFormatter.format(schiebewandFlaeche)} m² × ${currencyFormatter.format(preis.price)}/m²`,
+                        netto:schiebewandFlaeche*preis.price
+                    });
+                }
+            }
+            if(rahmenLaenge>0){
+                const preis=this.findePreis("glaswaende","rahmen");
+                if(preis){
+                    zusatzpos.push({
+                        label:"Glaswand-Rahmen (Alu)",
+                        detail:`${numberFormatter.format(rahmenLaenge)} m × ${currencyFormatter.format(preis.price)}/m`,
+                        netto:rahmenLaenge*preis.price
+                    });
+                }
+            }
+            if(schienenLaenge>0){
+                const preis=this.findePreis("glaswaende","schiene");
+                if(preis){
+                    zusatzpos.push({
+                        label:"Bodenschienen",
+                        detail:`${numberFormatter.format(schienenLaenge)} m × ${currencyFormatter.format(preis.price)}/m`,
+                        netto:schienenLaenge*preis.price
+                    });
+                }
+            }
+            if(tuerCount>0){
+                const preis=this.findePreis("glaswaende","tuerBeschlag");
+                if(preis){
+                    zusatzpos.push({
+                        label:"Tür-Beschläge",
+                        detail:`${tuerCount} Stück × ${currencyFormatter.format(preis.price)}`,
+                        netto:tuerCount*preis.price
+                    });
+                }
+            }
+        }
         return zusatzpos;
     }
     berechneExtras(){

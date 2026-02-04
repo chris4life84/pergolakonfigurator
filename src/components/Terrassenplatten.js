@@ -52,8 +52,8 @@ export class Terrassenplatten extends Component3D {
         /** @type {object} Platten-Konfiguration */
         this.plattenKonfiguration = { ...PLATTEN_CONFIG };
 
-        /** @type {Object<string, THREE.Material>} */
-        this.materialien = {};
+        /** @type {Object<string, THREE.Material>} Lokaler Material-Cache */
+        this.plattenMaterialien = {};
 
         /** @type {THREE.Texture} */
         this.noiseTexture = null;
@@ -132,7 +132,7 @@ export class Terrassenplatten extends Component3D {
         this.noiseTexture = this.erzeugeNoiseTextur(512);
 
         // Hauptplatten-Material
-        this.materialien.hauptPlatte = new THREE.MeshStandardMaterial({
+        this.plattenMaterialien.hauptPlatte = new THREE.MeshStandardMaterial({
             color: new THREE.Color(PLATTEN_FARBEN.hauptPlatte),
             roughness: 0.78,
             metalness: 0.01,
@@ -143,17 +143,17 @@ export class Terrassenplatten extends Component3D {
             toneMapped: true,
             flatShading: false
         });
-        this.materialien.hauptPlatte.receiveShadow = true;
-        this.materialien.hauptPlatte.castShadow = true;
-        this.materialien.hauptPlattenVarianten = [this.materialien.hauptPlatte];
+        this.plattenMaterialien.hauptPlatte.receiveShadow = true;
+        this.plattenMaterialien.hauptPlatte.castShadow = true;
+        this.plattenMaterialien.hauptPlattenVarianten = [this.plattenMaterialien.hauptPlatte];
 
         this.logger.debug("Platten-Material Farbe:",
-            this.materialien.hauptPlatte.color.getStyle(),
-            "Emissive:", this.materialien.hauptPlatte.emissive.getStyle()
+            this.plattenMaterialien.hauptPlatte.color.getStyle(),
+            "Emissive:", this.plattenMaterialien.hauptPlatte.emissive.getStyle()
         );
 
         // Randstein-Material
-        this.materialien.randstein = new THREE.MeshStandardMaterial({
+        this.plattenMaterialien.randstein = new THREE.MeshStandardMaterial({
             color: new THREE.Color(PLATTEN_FARBEN.randstein),
             roughness: 0.8,
             metalness: 0.01,
@@ -163,8 +163,8 @@ export class Terrassenplatten extends Component3D {
             map: this.noiseTexture,
             toneMapped: true
         });
-        this.materialien.randstein.receiveShadow = true;
-        this.materialien.randstein.castShadow = true;
+        this.plattenMaterialien.randstein.receiveShadow = true;
+        this.plattenMaterialien.randstein.castShadow = true;
     }
 
     /**
@@ -263,11 +263,11 @@ export class Terrassenplatten extends Component3D {
      * @returns {THREE.Material}
      */
     holePlattenMaterial() {
-        if (this.materialien.hauptPlattenVarianten && this.materialien.hauptPlattenVarianten.length > 0) {
-            return this.materialien.hauptPlattenVarianten[0];
+        if (this.plattenMaterialien.hauptPlattenVarianten && this.plattenMaterialien.hauptPlattenVarianten.length > 0) {
+            return this.plattenMaterialien.hauptPlattenVarianten[0];
         }
 
-        return this.materialien.hauptPlatte || new THREE.MeshStandardMaterial({
+        return this.plattenMaterialien.hauptPlatte || new THREE.MeshStandardMaterial({
             color: new THREE.Color("#f5f5dc"),
             roughness: 0.82,
             metalness: 0.02
@@ -344,7 +344,7 @@ export class Terrassenplatten extends Component3D {
                 z = seite.start.z + i * schrittweite + schrittweite / 2;
             }
 
-            const mesh = new THREE.Mesh(geometrie, this.materialien.randstein);
+            const mesh = new THREE.Mesh(geometrie, this.plattenMaterialien.randstein);
             mesh.position.set(x, bereich.hoehe + hoehe / 2, z);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
@@ -444,7 +444,7 @@ export class Terrassenplatten extends Component3D {
         this.logger.group("TERRASSENPLATTEN DEBUG");
         this.logger.info("Anzahl Platten:", this.platten.length);
         this.logger.info("Konfiguration:", this.plattenKonfiguration);
-        this.logger.info("Materialien:", Object.keys(this.materialien));
+        this.logger.info("Materialien:", Object.keys(this.plattenMaterialien));
         this.logger.groupEnd();
     }
 
@@ -454,7 +454,7 @@ export class Terrassenplatten extends Component3D {
     dispose() {
         this.entfernePlatten();
 
-        Object.values(this.materialien).forEach(material => {
+        Object.values(this.plattenMaterialien).forEach(material => {
             const materialList = Array.isArray(material) ? material : [material];
             materialList.forEach(mat => {
                 if (!mat || typeof mat.dispose !== "function") return;
@@ -468,7 +468,7 @@ export class Terrassenplatten extends Component3D {
             });
         });
 
-        this.materialien = {};
+        this.plattenMaterialien = {};
         super.dispose();
     }
 }

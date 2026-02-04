@@ -21,6 +21,15 @@ export class PergolaKonfiguration{
             glasTyp:"klar",
             glasFarbe:"klar",
             seiten:"keine",
+            // Glaswände-Konfiguration
+            glaswaende:{
+                links:{ typ:"keine", istTuer:false },
+                rechts:{ typ:"keine", istTuer:false },
+                vorne:{ typ:"keine", istTuer:false },
+                hinten:{ typ:"keine", istTuer:false }
+            },
+            glaswaendeFarbe:"klar",
+            glaswaendeRahmenFarbe:null,
             beleuchtung:!1,
             heizung:!1,
             sensoren:!1,
@@ -230,6 +239,10 @@ export class PergolaKonfiguration{
         return void 0!==e.zentralerMittelpfosten&&(n.zentralerMittelpfosten=!0===e.zentralerMittelpfosten),
         void 0!==e.zwischenpfostenBreite&&(n.zwischenpfostenBreite=!0===e.zwischenpfostenBreite),
         void 0!==e.zwischenpfostenTiefe&&(n.zwischenpfostenTiefe=!0===e.zwischenpfostenTiefe),
+        // Glaswände-Validierung
+        void 0!==e.glaswaende&&(n.glaswaende=this.validiereGlaswaende(e.glaswaende, e.typ||this.aktuelleKonfiguration?.typ)),
+        void 0!==e.glaswaendeFarbe&&["klar","matt","grau","bronze"].includes(e.glaswaendeFarbe)&&(n.glaswaendeFarbe=e.glaswaendeFarbe),
+        void 0!==e.glaswaendeRahmenFarbe&&(n.glaswaendeRahmenFarbe=e.glaswaendeRahmenFarbe),
         Object.keys(e).forEach(t=>{
             if(void 0===n[t])if("befestigung"===t){
                 ["ankerplatte", "einbetonieren"].includes(e[t])&&(n[t]=e[t])
@@ -237,6 +250,54 @@ export class PergolaKonfiguration{
             else n[t]=e[t]
         }),
         n
+    }
+    /**
+     * Validiert die Glaswände-Konfiguration
+     * @param {object} glaswaende - Glaswände-Objekt
+     * @param {string} typ - Pergola-Typ (freistehend/wandanbau)
+     * @returns {object} Validierte Glaswände-Konfiguration
+     */
+    validiereGlaswaende(glaswaende, typ){
+        const erlaubteTypen=["keine","festglas","schiebewand"];
+        const seiten=["links","rechts","vorne","hinten"];
+        const aktuelleGlaswaende=this.aktuelleKonfiguration?.glaswaende||{};
+        const result={};
+        
+        seiten.forEach(seite=>{
+            const eingabe=glaswaende[seite];
+            const aktuell=aktuelleGlaswaende[seite]||{typ:"keine",istTuer:false};
+            
+            if(eingabe===undefined){
+                result[seite]=aktuell;
+                return;
+            }
+            
+            // Bei Wandanbau ist "hinten" immer "keine"
+            if(seite==="hinten"&&typ==="wandanbau"){
+                result[seite]={typ:"keine",istTuer:false};
+                return;
+            }
+            
+            if(typeof eingabe==="string"){
+                // Einfache Typ-Angabe
+                result[seite]={
+                    typ:erlaubteTypen.includes(eingabe)?eingabe:"keine",
+                    istTuer:false
+                };
+            }else if(typeof eingabe==="object"&&eingabe!==null){
+                // Objekt mit typ und istTuer
+                const neuerTyp=erlaubteTypen.includes(eingabe.typ)?eingabe.typ:"keine";
+                result[seite]={
+                    typ:neuerTyp,
+                    // Tür nur bei Schiebewand erlaubt
+                    istTuer:neuerTyp==="schiebewand"?!!eingabe.istTuer:false
+                };
+            }else{
+                result[seite]=aktuell;
+            }
+        });
+        
+        return result;
     }
     berechneAbhaengigeWerte(){
         const e=this.aktuelleKonfiguration;

@@ -49,8 +49,8 @@ export class OutdoorMoebel extends Component3D {
         // Gruppe der Basisklasse überschreiben
         this.gruppe = this.moebelGruppe;
 
-        /** @type {Object<string, THREE.Material>} */
-        this.materialien = {};
+        /** @type {Object<string, THREE.Material>} Lokaler Material-Cache */
+        this.moebelMaterialien = {};
 
         /** @type {THREE.Object3D[]} */
         this.moebel = [];
@@ -112,7 +112,7 @@ export class OutdoorMoebel extends Component3D {
         this.logger.debug("Lade Pflanzen-Texturen...");
 
         // Pflanzen-Material (Anthurium)
-        this.materialien.pflanze = new THREE.MeshStandardMaterial({
+        this.moebelMaterialien.pflanze = new THREE.MeshStandardMaterial({
             color: new THREE.Color(0xffffff),
             roughness: 0.7,
             metalness: 0.0,
@@ -127,28 +127,28 @@ export class OutdoorMoebel extends Component3D {
             () => this.logger.warn("Pflanzen Diffuse Map nicht gefunden")
         );
         plantDiffuse.colorSpace = THREE.SRGBColorSpace;
-        this.materialien.pflanze.map = plantDiffuse;
+        this.moebelMaterialien.pflanze.map = plantDiffuse;
 
         // Pflanzen Normal Map
         const plantNormal = textureLoader.load(
             `${basePath}${pflanzenDatei}_nor_gl_${resolution}.jpg`,
             () => {
-                this.materialien.pflanze.needsUpdate = true;
+                this.moebelMaterialien.pflanze.needsUpdate = true;
             }
         );
-        this.materialien.pflanze.normalMap = plantNormal;
-        this.materialien.pflanze.normalScale = new THREE.Vector2(1.5, 1.5);
+        this.moebelMaterialien.pflanze.normalMap = plantNormal;
+        this.moebelMaterialien.pflanze.normalScale = new THREE.Vector2(1.5, 1.5);
 
         // Pflanzen ARM Map (AO + Roughness + Metalness)
         const plantARM = textureLoader.load(
             `${basePath}${pflanzenDatei}_arm_${resolution}.jpg`,
             () => {
-                this.materialien.pflanze.needsUpdate = true;
+                this.moebelMaterialien.pflanze.needsUpdate = true;
             }
         );
-        this.materialien.pflanze.aoMap = plantARM;
-        this.materialien.pflanze.roughnessMap = plantARM;
-        this.materialien.pflanze.metalnessMap = plantARM;
+        this.moebelMaterialien.pflanze.aoMap = plantARM;
+        this.moebelMaterialien.pflanze.roughnessMap = plantARM;
+        this.moebelMaterialien.pflanze.metalnessMap = plantARM;
 
         this.logger.debug("Pflanzen-Material erstellt (Anthurium)");
     }
@@ -255,7 +255,7 @@ export class OutdoorMoebel extends Component3D {
         const blattGeo = new THREE.PlaneGeometry(breite, hoehe, 8, 8);
         this.wendeBlattWoelbungAn(blattGeo, breite, hoehe);
 
-        const blatt = new THREE.Mesh(blattGeo, this.materialien.pflanze);
+        const blatt = new THREE.Mesh(blattGeo, this.moebelMaterialien.pflanze);
 
         // Positionierung
         const blattX = Math.cos(winkel) * radius;
@@ -381,7 +381,7 @@ export class OutdoorMoebel extends Component3D {
         this.entferneMoebel();
 
         // Materialien aufräumen
-        Object.values(this.materialien).forEach(material => {
+        Object.values(this.moebelMaterialien).forEach(material => {
             if (material.map) material.map.dispose();
             if (material.normalMap) material.normalMap.dispose();
             if (material.roughnessMap) material.roughnessMap.dispose();
@@ -391,7 +391,7 @@ export class OutdoorMoebel extends Component3D {
             material.dispose();
         });
 
-        this.materialien = {};
+        this.moebelMaterialien = {};
         super.dispose();
     }
 }

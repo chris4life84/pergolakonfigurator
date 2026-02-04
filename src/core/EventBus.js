@@ -347,5 +347,5 @@ export function initializeEventBridges() {
 }
 
 // Export
-export { EventBus, EventTypes };
+export { EventBus };
 export default EventBus;

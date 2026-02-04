@@ -349,6 +349,10 @@
                 <span class="tab-icon">🏠</span>
                 <span class="tab-label">Dach</span>
             </button>
+            <button class="horizontal-tab hide-on-mobile" data-tab="seitenwaende">
+                <span class="tab-icon">🪟</span>
+                <span class="tab-label">Seitenwände</span>
+            </button>
             <button class="horizontal-tab hide-on-mobile" data-tab="gestaltung">
                 <span class="tab-icon">🎨</span>
                 <span class="tab-label">Gestaltung</span>
@@ -659,6 +663,128 @@
                             </button>
                             <button type="button" class="option-card" data-value="vollprofil" disabled style="opacity:0.5; cursor:not-allowed; pointer-events:none;">
                                 <span class="option-card-label">Ohne Rinne</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Seitenwände -->
+            <div class="horizontal-tab-content" data-content="seitenwaende">
+                <div class="config-grid">
+                    <!-- Info-Box -->
+                    <div class="control-group-compact" style="grid-column: 1 / -1;">
+                        <div style="padding: 0.75rem 1rem; background: rgba(59,130,246,0.08); border-left: 3px solid #3b82f6; border-radius: 6px; margin-bottom: 0.5rem;">
+                            <strong>🪟 Optionale Glaswände</strong>
+                            <p style="margin: 0.35rem 0 0 0; font-size: 0.85rem; color: #555;">
+                                Wählen Sie für jede Seite der Pergola optional Festglas oder Schiebewände. Die Panelanzahl wird automatisch berechnet (~1,2m pro Panel).
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Linke Seite -->
+                    <div class="control-group-compact glaswand-seite" id="glaswand-links-container">
+                        <h4>⬅️ Linke Seite</h4>
+                        <div class="option-card-grid option-card-grid--medium glaswand-typ-cards" data-seite="links">
+                            <button type="button" class="option-card active" data-value="keine">
+                                <span class="option-card-label">Keine</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="festglas">
+                                <span class="option-card-label">Festglas</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="schiebewand">
+                                <span class="option-card-label">Schiebewand</span>
+                            </button>
+                        </div>
+                        <label class="glaswand-tuer-option" style="display:none; margin-top:0.5rem;">
+                            <input type="checkbox" class="glaswand-tuer-checkbox" data-seite="links">
+                            🚪 Als Tür (größerer Griff)
+                        </label>
+                    </div>
+
+                    <!-- Rechte Seite -->
+                    <div class="control-group-compact glaswand-seite" id="glaswand-rechts-container">
+                        <h4>➡️ Rechte Seite</h4>
+                        <div class="option-card-grid option-card-grid--medium glaswand-typ-cards" data-seite="rechts">
+                            <button type="button" class="option-card active" data-value="keine">
+                                <span class="option-card-label">Keine</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="festglas">
+                                <span class="option-card-label">Festglas</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="schiebewand">
+                                <span class="option-card-label">Schiebewand</span>
+                            </button>
+                        </div>
+                        <label class="glaswand-tuer-option" style="display:none; margin-top:0.5rem;">
+                            <input type="checkbox" class="glaswand-tuer-checkbox" data-seite="rechts">
+                            🚪 Als Tür (größerer Griff)
+                        </label>
+                    </div>
+
+                    <!-- Vordere Seite -->
+                    <div class="control-group-compact glaswand-seite" id="glaswand-vorne-container">
+                        <h4>⬆️ Vordere Seite</h4>
+                        <div class="option-card-grid option-card-grid--medium glaswand-typ-cards" data-seite="vorne">
+                            <button type="button" class="option-card active" data-value="keine">
+                                <span class="option-card-label">Keine</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="festglas">
+                                <span class="option-card-label">Festglas</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="schiebewand">
+                                <span class="option-card-label">Schiebewand</span>
+                            </button>
+                        </div>
+                        <label class="glaswand-tuer-option" style="display:none; margin-top:0.5rem;">
+                            <input type="checkbox" class="glaswand-tuer-checkbox" data-seite="vorne">
+                            🚪 Als Tür (größerer Griff)
+                        </label>
+                    </div>
+
+                    <!-- Hintere Seite -->
+                    <div class="control-group-compact glaswand-seite" id="glaswand-hinten-container">
+                        <h4>⬇️ Hintere Seite</h4>
+                        <div class="option-card-grid option-card-grid--medium glaswand-typ-cards" data-seite="hinten">
+                            <button type="button" class="option-card active" data-value="keine">
+                                <span class="option-card-label">Keine</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="festglas">
+                                <span class="option-card-label">Festglas</span>
+                            </button>
+                            <button type="button" class="option-card" data-value="schiebewand">
+                                <span class="option-card-label">Schiebewand</span>
+                            </button>
+                        </div>
+                        <label class="glaswand-tuer-option" style="display:none; margin-top:0.5rem;">
+                            <input type="checkbox" class="glaswand-tuer-checkbox" data-seite="hinten">
+                            🚪 Als Tür (größerer Griff)
+                        </label>
+                        <!-- Hinweis für Wandanbau -->
+                        <div class="glaswand-wandanbau-hinweis" style="display:none; margin-top:0.5rem; padding:0.5rem; background:rgba(251,191,36,0.15); border-radius:6px; font-size:0.85rem; color:#92400e;">
+                            ⚠️ Bei Wandmontage ist die hintere Seite an der Hauswand befestigt.
+                        </div>
+                    </div>
+
+                    <!-- Glasfarbe -->
+                    <div class="control-group-compact" id="glaswand-farbe-container" style="display:none;">
+                        <h4>🎨 Glasfarbe (Seitenwände)</h4>
+                        <div class="glass-color-options" id="glaswand-farbe-options">
+                            <button type="button" class="glass-color-option active" data-glaswand-color="klar">
+                                <span class="glass-color-preview glass-color-preview--klar"></span>
+                                <span class="glass-color-label">Klar</span>
+                            </button>
+                            <button type="button" class="glass-color-option" data-glaswand-color="matt">
+                                <span class="glass-color-preview glass-color-preview--matt"></span>
+                                <span class="glass-color-label">Matt</span>
+                            </button>
+                            <button type="button" class="glass-color-option" data-glaswand-color="grau">
+                                <span class="glass-color-preview glass-color-preview--grau"></span>
+                                <span class="glass-color-label">Grau</span>
+                            </button>
+                            <button type="button" class="glass-color-option" data-glaswand-color="bronze">
+                                <span class="glass-color-preview glass-color-preview--bronze"></span>
+                                <span class="glass-color-label">Bronze</span>
                             </button>
                         </div>
                     </div>

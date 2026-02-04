@@ -82,8 +82,8 @@ export class Befestigung extends Component3D {
         /** @type {object} Befestigungs-Konfiguration */
         this.befestigungsKonfiguration = BEFESTIGUNGS_CONFIG;
 
-        /** @type {Object<string, THREE.Material>} */
-        this.materialien = {};
+        /** @type {Object<string, THREE.Material>} Lokaler Material-Cache */
+        this.befestigungMaterialien = {};
 
         /** @type {THREE.Mesh[]} */
         this.befestigungsElemente = [];
@@ -172,28 +172,28 @@ export class Befestigung extends Component3D {
     erstelleMaterialien(config) {
         const farbe = this.gibPergolaFarbe(config.farbe);
 
-        this.materialien.ankerplatte = new THREE.MeshStandardMaterial({
+        this.befestigungMaterialien.ankerplatte = new THREE.MeshStandardMaterial({
             color: new THREE.Color(farbe),
             roughness: 0.4,
             metalness: 0.3,
             envMapIntensity: 0.6
         });
 
-        this.materialien.beton = new THREE.MeshStandardMaterial({
+        this.befestigungMaterialien.beton = new THREE.MeshStandardMaterial({
             color: new THREE.Color("#555555"),
             roughness: 0.8,
             metalness: 0.03,
             envMapIntensity: 0.25
         });
 
-        this.materialien.schraube = new THREE.MeshStandardMaterial({
+        this.befestigungMaterialien.schraube = new THREE.MeshStandardMaterial({
             color: new THREE.Color(0x2c2c2c),
             roughness: 0.4,
             metalness: 0.3
         });
 
         // Schatten für alle Materialien aktivieren
-        Object.values(this.materialien).forEach(mat => {
+        Object.values(this.befestigungMaterialien).forEach(mat => {
             mat.receiveShadow = true;
             mat.castShadow = true;
         });
@@ -287,7 +287,7 @@ export class Befestigung extends Component3D {
                 plattenConfig.hoehe,
                 plattenConfig.tiefe
             );
-            const mesh = new THREE.Mesh(geometrie, this.materialien.ankerplatte);
+            const mesh = new THREE.Mesh(geometrie, this.befestigungMaterialien.ankerplatte);
 
             const pos = bodenAngepasst || bodenOriginal;
             const yPos = pos.y - 0.01;
@@ -319,7 +319,7 @@ export class Befestigung extends Component3D {
         );
 
         schraubenConfig.positionen.forEach((offset, index) => {
-            const mesh = new THREE.Mesh(geometrie, this.materialien.schraube);
+            const mesh = new THREE.Mesh(geometrie, this.befestigungMaterialien.schraube);
             const yPos = platte.position.y + 0.01 + schraubenConfig.hoehe / 2;
 
             mesh.position.set(
@@ -368,7 +368,7 @@ export class Befestigung extends Component3D {
 
             // Geometrie und Mesh
             const geometrie = new THREE.BoxGeometry(breite, betonConfig.hoehe, tiefe);
-            const mesh = new THREE.Mesh(geometrie, this.materialien.beton);
+            const mesh = new THREE.Mesh(geometrie, this.befestigungMaterialien.beton);
 
             mesh.position.set(
                 position.x,
@@ -479,7 +479,7 @@ export class Befestigung extends Component3D {
     debugBefestigung() {
         this.logger.group("BEFESTIGUNG DEBUG");
         this.logger.info("Anzahl Elemente:", this.befestigungsElemente.length);
-        this.logger.info("Materialien:", Object.keys(this.materialien));
+        this.logger.info("Materialien:", Object.keys(this.befestigungMaterialien));
         this.logger.info("Konfiguration:", this.befestigungsKonfiguration);
         this.logger.groupEnd();
     }
@@ -490,11 +490,11 @@ export class Befestigung extends Component3D {
     dispose() {
         this.entferneBefestigung();
 
-        Object.values(this.materialien).forEach(mat => {
+        Object.values(this.befestigungMaterialien).forEach(mat => {
             mat.dispose();
         });
 
-        this.materialien = {};
+        this.befestigungMaterialien = {};
         super.dispose();
     }
 }

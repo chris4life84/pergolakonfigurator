@@ -38,6 +38,10 @@ import{
     OutdoorMoebel
 }
 from"../components/OutdoorMoebel.js";
+import{
+    Glaswaende
+}
+from"../components/Glaswaende.js";
 export class Pergola{
     constructor(){
         this.konfiguration=new PergolaKonfiguration,
@@ -50,6 +54,7 @@ export class Pergola{
         this.befestigung=new Befestigung(this.koordinatenSystem, this.konfiguration, this.pfosten),
         this.kopfbaender=new Kopfbaender(this.koordinatenSystem, this.konfiguration),
         this.outdoorMoebel=new OutdoorMoebel(this.koordinatenSystem, this.konfiguration),
+        this.glaswaende=new Glaswaende(this.koordinatenSystem, this.konfiguration, this.pfosten),
         this.pergolaGruppe=new THREE.Group,
         this.pergolaGruppe.name="PergolaHauptgruppe",
         this.istErstellt=!1,
@@ -152,6 +157,19 @@ export class Pergola{
             console.log("🌿 Erstelle Pflanzen...");
             const t=this.outdoorMoebel.erstelleOutdoorMoebel();
             this.pergolaGruppe.add(t)
+        }
+        // Glaswände erstellen (wenn konfiguriert)
+        if(e.glaswaende){
+            const hatGlaswaende=Object.values(e.glaswaende).some(s=>s&&s.typ&&s.typ!=="keine");
+            if(hatGlaswaende){
+                console.log("🪟 Erstelle Glaswände...");
+                try{
+                    const glaswaendeGruppe=this.glaswaende.erstelleGlaswaende();
+                    this.pergolaGruppe.add(glaswaendeGruppe)
+                }catch(err){
+                    console.warn("Glaswände-Erstellung fehlgeschlagen:", err)
+                }
+            }
         }
     }
     erstelleEPDMDachfolie(e){

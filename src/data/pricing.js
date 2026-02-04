@@ -280,6 +280,37 @@ export const PRICE_TABLE={
             unit:"meter",
             price:40.00
         }
+    },
+    glaswaende:{
+        schiebewand:{
+            unit:"sqm",
+            price:280.00,
+            description:"Schiebewand pro m²"
+        },
+        festglas:{
+            unit:"sqm",
+            price:195.00,
+            description:"Festglas pro m²"
+        },
+        rahmen:{
+            unit:"meter",
+            price:52.00,
+            description:"Aluminium-Rahmen für Glaswand"
+        },
+        tuerBeschlag:{
+            unit:"stueck",
+            price:85.00,
+            description:"Tür-Beschlag mit größerem Griff"
+        },
+        schiene:{
+            unit:"meter",
+            price:38.00,
+            description:"Bodenschiene für Schiebewand"
+        },
+        default:{
+            unit:"sqm",
+            price:195.00
+        }
     }
 };
 export const EXTRA_POSITIONS=[{

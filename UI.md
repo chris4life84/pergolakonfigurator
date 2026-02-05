@@ -424,6 +424,118 @@ export class PostController {
 }
 ```
 
+## 🪟 Glaswände-Steuerung
+
+**Integration in UIController**
+
+### Verantwortung
+
+- Glaswand-Typ pro Seite (keine, festglas, schiebewand)
+- Tür-Option (nur bei Schiebewand)
+- Glasfarbe-Auswahl
+- Wandanbau-Modus (hintere Seite deaktiviert)
+
+### HTML-Struktur
+
+```html
+<!-- Tab: Seitenwände -->
+<div class="horizontal-tab-content" data-content="seitenwaende">
+    <!-- Pro Seite: links, rechts, vorne, hinten -->
+    <div class="control-group-compact glaswand-seite" id="glaswand-links-container">
+        <h4>⬅️ Linke Seite</h4>
+        <div class="option-card-grid glaswand-typ-cards" data-seite="links">
+            <button class="option-card active" data-value="keine">Keine</button>
+            <button class="option-card" data-value="festglas">Festglas</button>
+            <button class="option-card" data-value="schiebewand">Schiebewand</button>
+        </div>
+        <label class="glaswand-tuer-option" style="display:none;">
+            <input type="checkbox" class="glaswand-tuer-checkbox" data-seite="links">
+            🚪 Als Tür (größerer Griff)
+        </label>
+    </div>
+    
+    <!-- Glasfarbe -->
+    <div id="glaswand-farbe-container" style="display:none;">
+        <h4>🎨 Glasfarbe (Seitenwände)</h4>
+        <div class="glass-color-options" id="glaswand-farbe-options">
+            <button class="glass-color-option" data-glaswand-color="klar">Klar</button>
+            <button class="glass-color-option" data-glaswand-color="matt">Matt</button>
+            <button class="glass-color-option" data-glaswand-color="grau">Grau</button>
+            <button class="glass-color-option" data-glaswand-color="bronze">Bronze</button>
+        </div>
+    </div>
+</div>
+```
+
+### UIController-Methoden
+
+```javascript
+// Initialisierung
+initGlaswaende() {
+    const seiten = ["links", "rechts", "vorne", "hinten"];
+    
+    seiten.forEach(seite => {
+        // Typ-Buttons
+        const container = document.querySelector(`.glaswand-typ-cards[data-seite="${seite}"]`);
+        container?.querySelectorAll(".option-card").forEach(card => {
+            card.addEventListener("click", () => {
+                this.aktuelleKonfiguration.glaswaende[seite].typ = card.dataset.value;
+                this.updateGlaswaendeTuerOption(seite);
+                this.updateGlaswaendeFarbeVisibility();
+                this.onKonfigurationGeaendert();
+            });
+        });
+        
+        // Tür-Checkbox
+        const tuerCheckbox = document.querySelector(`.glaswand-tuer-checkbox[data-seite="${seite}"]`);
+        tuerCheckbox?.addEventListener("change", () => {
+            this.aktuelleKonfiguration.glaswaende[seite].istTuer = tuerCheckbox.checked;
+            this.onKonfigurationGeaendert();
+        });
+    });
+    
+    // Glasfarbe
+    document.querySelectorAll("#glaswand-farbe-options .glass-color-option").forEach(opt => {
+        opt.addEventListener("click", () => {
+            this.aktuelleKonfiguration.glaswaendeFarbe = opt.dataset.glaswandColor;
+            this.onKonfigurationGeaendert();
+        });
+    });
+    
+    this.updateGlaswaendeWandanbauStatus();
+}
+
+// Tür-Option ein/ausblenden (nur bei Schiebewand)
+updateGlaswaendeTuerOption(seite) {
+    const tuerLabel = document.querySelector(`#glaswand-${seite}-container .glaswand-tuer-option`);
+    const typ = this.aktuelleKonfiguration.glaswaende[seite].typ;
+    tuerLabel.style.display = (typ === "schiebewand") ? "flex" : "none";
+}
+
+// Glasfarbe-Container ein/ausblenden
+updateGlaswaendeFarbeVisibility() {
+    const container = document.getElementById("glaswand-farbe-container");
+    const hasGlaswand = ["links", "rechts", "vorne", "hinten"]
+        .some(s => this.aktuelleKonfiguration.glaswaende[s].typ !== "keine");
+    container.style.display = hasGlaswand ? "block" : "none";
+}
+
+// Wandanbau: Hintere Seite deaktivieren
+updateGlaswaendeWandanbauStatus() {
+    const hintenContainer = document.getElementById("glaswand-hinten-container");
+    const istWandanbau = this.aktuelleKonfiguration.typ === "wandanschluss";
+    
+    if (istWandanbau) {
+        hintenContainer.style.opacity = "0.6";
+        hintenContainer.style.pointerEvents = "none";
+        this.aktuelleKonfiguration.glaswaende.hinten.typ = "keine";
+    } else {
+        hintenContainer.style.opacity = "1";
+        hintenContainer.style.pointerEvents = "auto";
+    }
+}
+```
+
 ## 🎴 OptionCardController
 
 **Datei**: `src/ui/OptionCardController.js`

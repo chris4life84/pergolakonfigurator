@@ -507,9 +507,105 @@ export class OutdoorMoebel extends Component3D {
 }
 ```
 
+#### 9. Glaswände (Glass Side Walls)
+
+**Datei**: `src/components/Glaswaende.js`
+
+**Verantwortung**: Optionale Glas-Seitenwände für alle vier Seiten der Pergola
+
+**Features**:
+- Festglas oder Schiebetüren pro Seite
+- Automatische Panel-Berechnung (~1.2m Breite pro Panel)
+- Unterstützung für Pultdach (Trapezform) und Flachdach
+- Tür-Option mit größerem Griff
+- Wandanbau-Modus (hintere Seite automatisch deaktiviert)
+- Verschiedene Glasfarben (klar, matt, grau, bronze)
+- Bodenschienen für Schiebetüren
+
+```javascript
+export class Glaswaende extends Component3D {
+    constructor(koordinatenSystem, konfiguration, pfostenInstanz) {
+        super('Glaswaende', koordinatenSystem, konfiguration);
+        this.pfostenInstanz = pfostenInstanz;
+        this.glasMaterialien = new Map();
+        this.rahmenMaterialien = new Map();
+    }
+
+    create() {
+        return this.erstelleGlaswaende();
+    }
+
+    erstelleGlaswaende() {
+        const config = this.getConfig();
+        const abhaengig = this.konfiguration.berechneAbhaengigeWerte(config);
+        
+        const seiten = ['links', 'rechts', 'vorne', 'hinten'];
+        seiten.forEach(seite => {
+            const seitenConfig = config.glaswaende?.[seite];
+            if (seitenConfig?.typ !== 'keine') {
+                const wand = this.erstelleGlaswandFuerSeite(seite, seitenConfig, config, abhaengig);
+                this.gruppe.add(wand);
+            }
+        });
+        
+        return this.getGroup();
+    }
+
+    berechnePanelAnzahl(laenge) {
+        const zielAnzahl = Math.round(laenge / 1.2); // ~1.2m pro Panel
+        return Math.max(2, Math.min(6, zielAnzahl));
+    }
+
+    erstellePanel(breite, hoehe, glasMaterial, rahmenMaterial, istTuer, typ) {
+        // Erstellt einzelnes Panel mit Rahmen, Glas und Griff
+    }
+
+    erstelleSchienen(laenge, hoehe, material) {
+        // Erstellt Bodenschienen für Schiebetüren
+    }
+}
+```
+
+**Glaswand-Konfiguration**:
+```javascript
+GLASWAND_CONFIG = {
+    PANEL_ZIEL_BREITE: 1.2,    // Meter pro Panel
+    PANEL_MIN_ANZAHL: 2,
+    PANEL_MAX_ANZAHL: 6,
+    RAHMEN_BREITE: 0.04,       // 40mm
+    GLAS_DICKE: 0.008,         // 8mm VSG
+    GRIFF_HOEHE: 0.15,         // Standard 150mm
+    GRIFF_HOEHE_TUER: 0.30     // Tür 300mm
+}
+```
+
+**Glasfarben**:
+```javascript
+GLASWAND_MATERIALIEN = {
+    klar: { transmission: 0.92, roughness: 0.05 },
+    matt: { transmission: 0.7, roughness: 0.4 },
+    grau: { transmission: 0.75, roughness: 0.1 },
+    bronze: { transmission: 0.72, roughness: 0.12 }
+}
+```
+
+**Element-Struktur**:
+```javascript
+{
+    name: 'glaswand_links',
+    gruppe: THREE.Group,
+    typ: 'festglas',  // oder 'schiebewand'
+    istTuer: false,
+    panels: [
+        { mesh: THREE.Group, index: 0 },
+        { mesh: THREE.Group, index: 1 }
+    ]
+}
+```
+
 ### Visualisierungs-Komponenten
 
-#### 9. Bemaßung (Dimensions)
+#### 10. Bemaßung (Dimensions)
 
 **Datei**: `src/components/Bemassung.js`
 

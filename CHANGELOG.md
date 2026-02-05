@@ -2,6 +2,45 @@
 
 Alle wichtigen Änderungen am Pergola-Konfigurator werden in dieser Datei dokumentiert.
 
+## [2.1.0] - Feature Release - Februar 2026
+
+### ✨ Neue Features
+
+#### Glaswände (Seitenwände)
+
+- **Neue Komponente**: `src/components/Glaswaende.js`
+- **Festglas** oder **Schiebewand** für jede Pergola-Seite
+- **Automatische Panel-Berechnung**: ~1.2m Breite pro Panel (min 2, max 6)
+- **Pultdach-Unterstützung**: Trapezförmige Glaswände bei geneigtem Dach
+- **Tür-Option**: Größerer Griff (300mm statt 150mm)
+- **Wandanbau-Modus**: Hintere Seite automatisch deaktiviert
+- **Glasfarben**: klar, matt, grau, bronze
+- **Bodenschienen** für Schiebewände
+
+#### UI-Erweiterungen
+
+- **Neuer Tab**: "Seitenwände" in der Konfigurationsleiste
+- **Option-Cards** pro Seite: Keine / Festglas / Schiebewand
+- **Tür-Checkbox**: Nur für Schiebewände aktiv
+- **Glasfarbe-Auswahl** für Seitenwände
+
+#### Preisberechnung
+
+- **Schiebewand**: 280€/m²
+- **Festglas**: 195€/m²
+- **Rahmen**: 52€/m
+- **Bodenschiene**: 38€/m
+- **Tür-Beschlag**: 85€/Stück
+
+### 🐛 Bugfixes
+
+- **EventBus.js**: Duplikat-Export von `EventTypes` entfernt
+- **Befestigung.js**: `materialien` Map-Konflikt mit Component3D behoben
+- **OutdoorMoebel.js**: `materialien` Map-Konflikt mit Component3D behoben
+- **Terrassenplatten.js**: `materialien` Map-Konflikt mit Component3D behoben
+
+---
+
 ## [2.0.0] - Refactoring Release - Februar 2026
 
 ### 🎯 Hauptziele des Refactorings

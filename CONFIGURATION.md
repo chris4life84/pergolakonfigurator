@@ -68,6 +68,16 @@ gibStandardKonfiguration() {
         carportModus: false,
         carportSegmente: [],
 
+        // Glaswände (Seitenwände)
+        glaswaende: {
+            links: { typ: "keine", istTuer: false },
+            rechts: { typ: "keine", istTuer: false },
+            vorne: { typ: "keine", istTuer: false },
+            hinten: { typ: "keine", istTuer: false }
+        },
+        glaswaendeFarbe: "klar",         // "klar", "matt", "grau", "bronze"
+        glaswaendeRahmenFarbe: "ral7016", // RAL-Farbe für Rahmen
+
         // Regenwasser
         regenwasserAbfluss: "rinne",  // "rinne", "fallrohr"
 

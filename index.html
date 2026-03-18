@@ -8,8 +8,10 @@
     <link rel="stylesheet" href="css/overrides.min.css">
     <link rel="stylesheet" href="css/mobile-optimizations.css">
     <link rel="stylesheet" href="css/horizontal-layout.css">
-    <link rel="stylesheet" href="css/premium-optimizer.css">
-    <link rel="stylesheet" href="css/quick-wins.css">
+    <!-- Dark-Theme Dateien deaktiviert zugunsten des hellen Modul-Garten Themes -->
+    <!-- <link rel="stylesheet" href="css/premium-optimizer.css"> -->
+    <!-- <link rel="stylesheet" href="css/quick-wins.css"> -->
+    <link rel="stylesheet" href="css/modul-garten-theme.css">
     <style>
         .template-flyout{
             position:absolute;
@@ -252,11 +254,8 @@
                     document.body.classList.add('compact-info-hidden');
                     const ci=document.getElementById('compact-info');
                     if(ci) ci.hidden=true;
-                    // Toggle bleibt sichtbar, damit „Basisdaten“ weiterhin vorhanden ist
-                    const infoFab=document.getElementById('infobox-toggle');
-                    const infoPanel=document.getElementById('infobox-panel');
-                    if(infoFab) infoFab.style.display='none';
-                    if(infoPanel) infoPanel.style.display='none';
+                    // Toggle bleibt sichtbar, damit „Basisdaten” weiterhin vorhanden ist
+                    // Infobox-Panel und Toggle nicht mehr verstecken
                 }
                 if(isSnapshotS){
                     const configPanel=document.querySelector('.horizontal-config-panel');

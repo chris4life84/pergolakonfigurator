@@ -1,0 +1,496 @@
+/* ===================================================================
+   MODUL-GARTEN UNIFIED THEME
+   Angleichung des Pergola-Konfigurators an den Modulhaus-Stil
+   Wird als letztes Stylesheet geladen und überschreibt bestehende Styles
+   =================================================================== */
+
+/* --- Design Tokens --- */
+:root {
+    --mg-wood-50: #fdf8f0;
+    --mg-wood-100: #f5e6c8;
+    --mg-wood-200: #e8cfa0;
+    --mg-wood-300: #d4ad6a;
+    --mg-wood-400: #c4944a;
+    --mg-wood-500: #a87632;
+    --mg-wood-600: #8b5e28;
+    --mg-wood-700: #6e4720;
+    --mg-wood-800: #513418;
+    --mg-wood-900: #3a2510;
+
+    /* Bestehende Variablen umleiten */
+    --primary-dark: #ffffff;
+    --primary-dark-hover: #f9f5f0;
+    --accent-warm: #8b5e28;
+    --accent-blue: #8b5e28;
+    --accent-blue-dark: #6e4720;
+}
+
+/* --- Body --- */
+body {
+    background: var(--mg-wood-50) !important;
+}
+
+/* --- Header --- */
+.header {
+    --mint: #c4944a;
+    --mint-deep: #8b5e28;
+    --text: #513418;
+    background: #ffffff !important;
+    backdrop-filter: blur(12px);
+    color: var(--mg-wood-800) !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+    border-bottom: 1px solid var(--mg-wood-200) !important;
+}
+
+.header .site-title,
+.header h1,
+.header a {
+    color: var(--mg-wood-800) !important;
+}
+
+/* --- Tab-Leiste (horizontal-tabs) --- */
+.horizontal-tabs {
+    background: #ffffff !important;
+    border-bottom: 2px solid var(--mg-wood-200) !important;
+    box-shadow: none !important;
+}
+
+.horizontal-tabs::-webkit-scrollbar-thumb {
+    background: rgba(139, 94, 40, 0.3) !important;
+}
+
+.horizontal-tab {
+    background: #ffffff !important;
+    color: var(--mg-wood-800) !important;
+    box-shadow: none !important;
+    border-bottom: 3px solid transparent !important;
+    font-weight: 600 !important;
+}
+
+.horizontal-tab:hover {
+    background: var(--mg-wood-50) !important;
+    color: var(--mg-wood-600) !important;
+    box-shadow: none !important;
+}
+
+.horizontal-tab.tab-highlight-yellow {
+    background: #fff8d0 !important;
+    border-bottom-color: var(--mg-wood-400) !important;
+}
+
+/* Aktiver Tab muss highlight-yellow überschreiben */
+.horizontal-tab.active,
+.horizontal-tab.active.tab-highlight-yellow,
+.horizontal-tab.active.tab-highlight-blue,
+.horizontal-tab.active.tab-highlight-green {
+    background: var(--mg-wood-600) !important;
+    color: #ffffff !important;
+    border-bottom-color: var(--mg-wood-700) !important;
+    box-shadow: 0 2px 8px rgba(139, 94, 40, 0.25) !important;
+}
+
+.horizontal-tab.active .tab-label,
+.horizontal-tab.active .tab-icon,
+.horizontal-tab.active span {
+    color: #ffffff !important;
+}
+
+.horizontal-tab.tab-highlight-blue {
+    background: var(--mg-wood-50) !important;
+    border-bottom-color: var(--mg-wood-500) !important;
+    color: var(--mg-wood-800) !important;
+    box-shadow: none !important;
+}
+
+/* --- Config Panel --- */
+.horizontal-config-panel {
+    background: #ffffff !important;
+    border-top: 1px solid var(--mg-wood-200) !important;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06) !important;
+}
+
+.horizontal-config-content {
+    background: #ffffff !important;
+}
+
+/* --- Control Sections / Cards --- */
+.control-section {
+    background: #ffffff !important;
+    border: 1px solid var(--mg-wood-200) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+}
+
+.control-section h3,
+.control-section h4,
+.control-section label {
+    color: var(--mg-wood-800) !important;
+}
+
+/* --- Option Cards --- */
+.option-card {
+    border: 2px solid var(--mg-wood-200) !important;
+    background: #ffffff !important;
+    color: var(--mg-wood-800) !important;
+}
+
+.option-card:hover,
+.option-card:focus-visible {
+    border-color: var(--mg-wood-400) !important;
+    box-shadow: 0 4px 12px rgba(139, 94, 40, 0.12) !important;
+}
+
+.option-card.active {
+    border-color: var(--mg-wood-600) !important;
+    background: var(--mg-wood-50) !important;
+    box-shadow: 0 4px 12px rgba(139, 94, 40, 0.18) !important;
+}
+
+/* --- Preis-Panel --- */
+.price-tag {
+    background: #ffffff !important;
+    border: 1px solid var(--mg-wood-200) !important;
+    border-radius: 12px !important;
+}
+
+.price-tag__title {
+    color: var(--mg-wood-800) !important;
+}
+
+.price-tag__total-label {
+    color: var(--mg-wood-600) !important;
+    font-weight: 700 !important;
+}
+
+.price-tag__total-amount {
+    color: var(--mg-wood-800) !important;
+}
+
+.price-tag .price-tag__net,
+.price-tag .price-tag__mwst {
+    color: var(--mg-wood-700) !important;
+}
+
+/* Anfrage-Button */
+#anfrageWeiterButton,
+.price-tag button,
+.price-tag a {
+    background: var(--mg-wood-600) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 8px !important;
+}
+
+#anfrageWeiterButton:hover,
+.price-tag button:hover,
+.price-tag a:hover {
+    background: var(--mg-wood-700) !important;
+}
+
+/* --- Buttons generell --- */
+.no-posts-button {
+    background: var(--mg-wood-600) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(139, 94, 40, 0.3) !important;
+}
+
+.no-posts-button:hover {
+    background: var(--mg-wood-700) !important;
+    box-shadow: 0 4px 12px rgba(139, 94, 40, 0.4) !important;
+}
+
+/* Infobox Tab-Buttons */
+.tab-button.active,
+.tab-button:hover {
+    color: var(--mg-wood-600) !important;
+}
+
+.tab-button.active {
+    border-bottom-color: var(--mg-wood-600) !important;
+}
+
+/* --- Infobox Toggle --- */
+.infobox-toggle {
+    background: var(--mg-wood-600) !important;
+    color: #ffffff !important;
+}
+
+.infobox-toggle:hover {
+    background: var(--mg-wood-700) !important;
+    box-shadow: -5px 5px 20px rgba(139, 94, 40, 0.3) !important;
+}
+
+/* --- Infobox Panel --- */
+.infobox-header {
+    border-bottom: 1px solid var(--mg-wood-200) !important;
+}
+
+.infobox-close {
+    color: var(--mg-wood-600) !important;
+}
+
+.infobox-close:hover {
+    background: var(--mg-wood-50) !important;
+}
+
+/* --- Selects & Inputs --- */
+.styled-select,
+select,
+.control-group-compact select {
+    background: #ffffff !important;
+    border: 1px solid var(--mg-wood-200) !important;
+    color: var(--mg-wood-800) !important;
+    border-radius: 8px !important;
+}
+
+.styled-select:focus,
+select:focus {
+    border-color: var(--mg-wood-500) !important;
+    box-shadow: 0 0 0 3px rgba(139, 94, 40, 0.15) !important;
+}
+
+/* --- Number Inputs --- */
+input[type="number"] {
+    background: #ffffff !important;
+    border: 1px solid var(--mg-wood-200) !important;
+    color: var(--mg-wood-800) !important;
+    border-radius: 6px !important;
+}
+
+input[type="number"]:focus {
+    border-color: var(--mg-wood-500) !important;
+    box-shadow: 0 0 0 3px rgba(139, 94, 40, 0.15) !important;
+}
+
+/* Dimension +/- Buttons */
+.dim-btn,
+.dimension-btn {
+    background: var(--mg-wood-600) !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+
+.dim-btn:hover,
+.dimension-btn:hover {
+    background: var(--mg-wood-700) !important;
+}
+
+/* --- Basisdaten/Teilen Buttons (oben links) --- */
+.canvas-action-btn,
+.canvas-action-button {
+    background: var(--mg-wood-600) !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+
+.canvas-action-btn:hover,
+.canvas-action-button:hover {
+    background: var(--mg-wood-700) !important;
+}
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar-thumb {
+    background: rgba(139, 94, 40, 0.25) !important;
+}
+
+/* --- Focus Rings --- */
+*:focus-visible {
+    outline-color: var(--mg-wood-500) !important;
+}
+
+/* --- Mobile-Anfrage-Bar: nur mobil anzeigen --- */
+.mobile-anfrage-bar {
+    display: none !important;
+}
+@media (max-width: 768px) {
+    .mobile-anfrage-bar {
+        display: flex !important;
+    }
+}
+
+/* --- Glasfarbe-Buttons kompakter --- */
+.glass-color-options {
+    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)) !important;
+    gap: 0.4rem !important;
+}
+.glass-color-option {
+    min-height: auto !important;
+    padding: 0.4rem !important;
+}
+.glass-color-preview {
+    height: 32px !important;
+}
+.glass-color-label {
+    font-size: 0.75rem !important;
+}
+
+/* --- Aufbau-Buttons (Freistehend/Wandmontiert) --- */
+.aufbau-btn.active,
+.aufbau-option.active {
+    background: var(--mg-wood-600) !important;
+    color: #ffffff !important;
+    border-color: var(--mg-wood-600) !important;
+}
+
+/* --- Statik Badge --- */
+.statik-badge-ok,
+.statics-badge {
+    background: #dcfce7 !important;
+    color: #166534 !important;
+}
+
+/* ===================================================================
+   QUICK-WINS OVERRIDES
+   quick-wins.css setzt alles auf weiß (dark theme).
+   Hier zurücksetzen für helles Theme.
+   =================================================================== */
+
+/* Globale Text-Farben: Dunkel statt Weiß */
+h4, h5 {
+    color: var(--mg-wood-800) !important;
+}
+
+label,
+.dimension-label,
+.post-control label,
+.segment-section-content label {
+    color: var(--mg-wood-800) !important;
+}
+
+small,
+.control-group-compact small {
+    color: var(--mg-wood-700) !important;
+}
+
+select {
+    color: var(--mg-wood-800) !important;
+}
+
+select option {
+    background: #ffffff !important;
+    color: var(--mg-wood-800) !important;
+}
+
+.option-card {
+    color: var(--mg-wood-800) !important;
+}
+
+.option-card-label {
+    color: var(--mg-wood-800) !important;
+}
+
+/* Segment / Carport Bereiche — dunkler Text */
+.segment-header strong {
+    color: var(--mg-wood-800) !important;
+}
+
+.segment-body h5,
+.dimension-label,
+.dimension-label small {
+    color: var(--mg-wood-800) !important;
+}
+
+.carport-template-compact label,
+.carport-segment label,
+.carport-mode label,
+label[for*="carport"] {
+    color: var(--mg-wood-800) !important;
+}
+
+/* Segment Sections — helles Theme */
+.segment-section-toggle {
+    background: #ffffff !important;
+    border: 1px solid var(--mg-wood-200) !important;
+    color: var(--mg-wood-800) !important;
+}
+
+.segment-section-toggle:hover {
+    background: var(--mg-wood-50) !important;
+    border-color: var(--mg-wood-400) !important;
+    box-shadow: 0 2px 8px rgba(139, 94, 40, 0.12) !important;
+}
+
+.segment-section-toggle[aria-expanded="true"] {
+    background: var(--mg-wood-50) !important;
+    border: 2px solid var(--mg-wood-500) !important;
+    color: var(--mg-wood-700) !important;
+    box-shadow: 0 2px 8px rgba(139, 94, 40, 0.15) !important;
+}
+
+.segment-section-content {
+    background: #ffffff !important;
+    border: 1px solid var(--mg-wood-200) !important;
+}
+
+.segment-section-content > div {
+    background: #ffffff !important;
+    border: 1px solid var(--mg-wood-200) !important;
+}
+
+/* Post Accordion — helles Theme */
+.post-accordion-item {
+    background: #ffffff !important;
+    border: 1px solid var(--mg-wood-200) !important;
+}
+
+.post-accordion-item.active {
+    border: 2px solid var(--mg-wood-500) !important;
+    background: var(--mg-wood-50) !important;
+    box-shadow: 0 2px 8px rgba(139, 94, 40, 0.15) !important;
+}
+
+.post-accordion-header {
+    background: #ffffff !important;
+    color: var(--mg-wood-800) !important;
+}
+
+.post-accordion-header:hover {
+    background: var(--mg-wood-50) !important;
+}
+
+.post-accordion-item.active .post-accordion-header {
+    background: var(--mg-wood-50) !important;
+    color: var(--mg-wood-700) !important;
+}
+
+.post-accordion-content {
+    background: #ffffff !important;
+}
+
+.post-control {
+    background: #ffffff !important;
+    border: 1px solid var(--mg-wood-200) !important;
+}
+
+/* Control Group Compact */
+.control-group-compact {
+    background: #ffffff !important;
+    border: 1px solid var(--mg-wood-200) !important;
+    border-radius: 12px !important;
+}
+
+.control-group-compact:hover {
+    box-shadow: 0 2px 8px rgba(139, 94, 40, 0.1) !important;
+    border-color: var(--mg-wood-400) !important;
+}
+
+.control-group-compact h4 {
+    color: var(--mg-wood-800) !important;
+}
+
+/* Warning/Info Boxes — angepasst */
+div[style*="rgba(255,193,7,0.1)"] p {
+    color: var(--mg-wood-800) !important;
+}
+
+div[style*="rgba(255,193,7,0.1)"] strong {
+    color: var(--mg-wood-600) !important;
+}
+
+div[style*="rgba(0,123,255,0.05)"] h3 {
+    color: var(--mg-wood-600) !important;
+}
+
+div[style*="rgba(0,123,255,0.05)"] p {
+    color: var(--mg-wood-800) !important;
+}

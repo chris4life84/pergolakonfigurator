@@ -19,14 +19,14 @@ import { COMPONENT_NAMES, ROOF_TYPES } from "../constants/index.js";
  */
 const GLAS_MATERIALIEN = {
     klar: {
-        baseColor: 0xe70e76,
-        attenuationColor: 0xf82aff,
+        baseColor: 0xd4f1f9,
+        attenuationColor: 0xc8e6ef,
         attenuationDistance: 2.8,
-        transmission: 0.36,
-        roughness: 0.84,
+        transmission: 0.92,
+        roughness: 0.05,
         thickness: 0.055,
-        ior: 1,
-        specularIntensity: 0.018
+        ior: 1.52,
+        specularIntensity: 0.5
     },
     matt: {
         baseColor: 0xdae7e2,

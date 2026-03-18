@@ -252,10 +252,17 @@ export class Component3D {
         this.clear();
 
         // Alle gecachten Materialien disposen
-        this.materialien.forEach((mat, key) => {
-            this.disposeMaterial(mat);
-        });
-        this.materialien.clear();
+        if (this.materialien instanceof Map) {
+            this.materialien.forEach((mat) => {
+                this.disposeMaterial(mat);
+            });
+            this.materialien.clear();
+        } else if (this.materialien && typeof this.materialien === 'object') {
+            Object.values(this.materialien).forEach((mat) => {
+                this.disposeMaterial(mat);
+            });
+            this.materialien = {};
+        }
 
         this.isDisposed = true;
         this.logger.debug('Disposed');

@@ -92,6 +92,10 @@ export class PostProcessPipeline {
      * @returns {boolean} - True wenn erfolgreich
      */
     initialisieren(width, height) {
+        // Post-Processing temporär deaktiviert - EffectComposer rendert schwarzen Output
+        this.logger.warn("Post-Processing deaktiviert - verwende direktes Rendering");
+        return false;
+
         // Prüfe ob EffectComposer verfügbar
         if (!THREE.EffectComposer || !THREE.RenderPass) {
             this.logger.warn("Post-Processing nicht verfügbar (EffectComposer fehlt)");
@@ -101,13 +105,8 @@ export class PostProcessPipeline {
         const resolution = new THREE.Vector2(width, height);
         const pixelRatio = this.renderer.getPixelRatio();
 
-        // Render Target erstellen
-        const renderTarget = new THREE.WebGLRenderTarget(width, height, {
-            samples: this.renderer.capabilities.isWebGL2 ? 2 : 0
-        });
-
-        // Effect Composer
-        this.composer = new THREE.EffectComposer(this.renderer, renderTarget);
+        // Effect Composer (ohne MSAA RenderTarget, da samples > 0 nicht mit ShaderPass kompatibel)
+        this.composer = new THREE.EffectComposer(this.renderer);
         this.composer.setPixelRatio(pixelRatio);
 
         // Render Pass (Basis)
